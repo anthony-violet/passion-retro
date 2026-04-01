@@ -34,6 +34,7 @@ urlpatterns = [
     path("pm/", include("messagerie.urls")),
     path("shop/", include("shop.urls")),
     path("panel/", include("panel.urls")),
+    path("version/", include("version.urls")),
 
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]

@@ -1,11 +1,135 @@
 {% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
 {% block content %}
-    <div class="container">
-        <h2>Update Profile</h2>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ user_form.as_p }}
-            <button type="submit">Modifier</button>
-        </form>
-    </div>
+<div class="container">
+    <h2>Modifier mon profil</h2>
+
+    <!-- Informations générales -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="profile">
+
+        <div class="profile-card">
+            <h3>Informations générales</h3>
+            <div class="form-section">
+                <div class="form-row">
+                    <label>{{ user_form.avatar.label }}</label>
+                    {{ user_form.avatar }}
+                    {% if user_form.avatar.errors %}<p class="form-error">{{ user_form.avatar.errors }}</p>{% endif %}
+                </div>
+                <div class="form-row two-cols">
+                    <div>
+                        <label>{{ user_form.first_name.label }}</label>
+                        {{ user_form.first_name }}
+                        {% if user_form.first_name.errors %}<p class="form-error">{{ user_form.first_name.errors }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label>{{ user_form.last_name.label }}</label>
+                        {{ user_form.last_name }}
+                        {% if user_form.last_name.errors %}<p class="form-error">{{ user_form.last_name.errors }}</p>{% endif %}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>{{ user_form.biography.label }}</label>
+                    {{ user_form.biography }}
+                    {% if user_form.biography.errors %}<p class="form-error">{{ user_form.biography.errors }}</p>{% endif %}
+                </div>
+                <div class="form-row">
+                    <label>{{ user_form.theme.label }}</label>
+                    {{ user_form.theme }}
+                    {% if user_form.theme.errors %}<p class="form-error">{{ user_form.theme.errors }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <h3>E-mail &amp; confidentialité</h3>
+            <div class="form-section">
+                <div class="form-row">
+                    <label>{{ user_form.email.label }}</label>
+                    {{ user_form.email }}
+                    {% if user_form.email.errors %}<p class="form-error">{{ user_form.email.errors }}</p>{% endif %}
+                </div>
+                <div class="form-row form-row-check">
+                    {{ user_form.show_email }}
+                    <label for="{{ user_form.show_email.id_for_label }}">{{ user_form.show_email.label }}</label>
+                    {% if user_form.show_email.errors %}<p class="form-error">{{ user_form.show_email.errors }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <h3>Liens &amp; réseaux sociaux</h3>
+            <div class="form-section">
+                <div class="form-row">
+                    <label>{{ user_form.website.label }}</label>
+                    {{ user_form.website }}
+                    {% if user_form.website.errors %}<p class="form-error">{{ user_form.website.errors }}</p>{% endif %}
+                </div>
+                <div class="form-row two-cols">
+                    <div>
+                        <label>{{ user_form.twitter.label }}</label>
+                        {{ user_form.twitter }}
+                        {% if user_form.twitter.errors %}<p class="form-error">{{ user_form.twitter.errors }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label>{{ user_form.discord.label }}</label>
+                        {{ user_form.discord }}
+                        {% if user_form.discord.errors %}<p class="form-error">{{ user_form.discord.errors }}</p>{% endif %}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>{{ user_form.youtube.label }}</label>
+                    {{ user_form.youtube }}
+                    {% if user_form.youtube.errors %}<p class="form-error">{{ user_form.youtube.errors }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <button type="submit" class="btn btn-default">Enregistrer les modifications</button>
+        </div>
+    </form>
+
+    <!-- Changement de mot de passe -->
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="password">
+
+        <div class="profile-card">
+            <h3>Changer le mot de passe</h3>
+            <div class="form-section">
+                <div class="form-row">
+                    <label>{{ password_form.old_password.label }}</label>
+                    {{ password_form.old_password }}
+                    {% if password_form.old_password.errors %}<p class="form-error">{{ password_form.old_password.errors }}</p>{% endif %}
+                </div>
+                <div class="form-row two-cols">
+                    <div>
+                        <label>{{ password_form.new_password1.label }}</label>
+                        {{ password_form.new_password1 }}
+                        {% if password_form.new_password1.errors %}<p class="form-error">{{ password_form.new_password1.errors }}</p>{% endif %}
+                    </div>
+                    <div>
+                        <label>{{ password_form.new_password2.label }}</label>
+                        {{ password_form.new_password2 }}
+                        {% if password_form.new_password2.errors %}<p class="form-error">{{ password_form.new_password2.errors }}</p>{% endif %}
+                    </div>
+                </div>
+                {% if password_form.non_field_errors %}
+                    <p class="form-error">{{ password_form.non_field_errors }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="profile-actions">
+            <button type="submit" class="btn btn-default">Modifier le mot de passe</button>
+        </div>
+    </form>
+</div>
 {% endblock %}

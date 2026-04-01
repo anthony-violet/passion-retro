@@ -49,6 +49,7 @@
     <script src="{% static 'js/utils/functions.js' %}" defer></script>
     <script src="{% static 'js/avatars/pixel-art.js' %}" defer></script>
     <script src="{% static 'js/utils/multiple_posts.js' %}" defer></script>
+    {% block extracss %}{% endblock %}
     {% block extrajs %}{% endblock %}
 </head>
 <body class="theme-{{ request.theme_active }}">
@@ -93,7 +94,7 @@
         {% endif %}
     </div>
     <div class="footer">
-        <p>{{ site_name }} &copy;2024 - 2026. Icones par icon8</p>
+        <p>{{ site_name }} &copy;2024 - 2026. Version 1.1 <a href="/version/history">Historique</a></p>
     </div>
 </body>
 </html>

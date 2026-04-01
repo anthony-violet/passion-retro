@@ -3,7 +3,8 @@ from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .forms import PostForm, UserRegistrationForm, UserLoginForm, UserUpdateForm, ProfileUpdateForm
+from django.contrib.auth import update_session_auth_hash
+from .forms import PostForm, UserRegistrationForm, UserLoginForm, UserUpdateForm, ProfileUpdateForm, PasswordUpdateForm
 from posts.models import Post
 from django.utils.text import slugify
 from django.template.loader import render_to_string
@@ -165,39 +166,52 @@ def login(request):
     
     return render(request, 'users/login.html', {'form': form})
 
-def profile(request):
-    from forum.models import Topic, Post
-    from posts.models import Post
-    user = User.objects.get(id=request.user.id)
-    # On compte le nombre de topics du forum de l'utilisateur
-    topics = Topic.objects.filter(author=user).count()
-    forum_posts = Post.objects.filter(author=user).count()
-    posts = Post.objects.filter(author=user).count()
+def _profile_context(user):
+    from forum.models import Topic
+    from forum.models import Post as ForumPost
+    from posts.models import Post as Article
+    return {
+        'user': user,
+        'topics': Topic.objects.filter(author=user).count(),
+        'forum_posts': ForumPost.objects.filter(author=user).count(),
+        'posts': Article.objects.filter(author=user).count(),
+    }
 
-    return render(request, 'users/profile.html', { 'user': user, 'topics': topics, 'forum_posts': forum_posts, 'posts': posts })
+def profile(request):
+    user = User.objects.get(id=request.user.id)
+    return render(request, 'users/profile.html', _profile_context(user))
 
 def another_profile(request, user_id):
-    from forum.models import Topic, Post
-    from posts.models import Post
     user = User.objects.get(id=user_id)
-    # On compte le nombre de topics du forum de l'utilisateur
-    topics = Topic.objects.filter(author=user).count()
-    forum_posts = Post.objects.filter(author=user).count()
-    posts = Post.objects.filter(author=user).count()
-
-    return render(request, 'users/profile.html', {'user': user, 'topics': topics, 'forum_posts': forum_posts, 'posts': posts})
+    return render(request, 'users/profile.html', _profile_context(user))
 
 @login_required(login_url='login')
 def profile_update(request):
+    user_form = UserUpdateForm(instance=request.user)
+    password_form = PasswordUpdateForm(request.user)
+
     if request.method == 'POST':
-        user_form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
-        if user_form.is_valid():
-            user_form.save()
-            messages.success(request, 'Votre profil a été mis à jour avec succès !')
-            return redirect('profile')
-    else:
-        user_form = UserUpdateForm(instance=request.user)
-    return render(request, 'users/profile_update.html', {'user_form': user_form})
+        action = request.POST.get('action')
+
+        if action == 'profile':
+            user_form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
+            if user_form.is_valid():
+                user_form.save()
+                messages.success(request, 'Profil mis à jour avec succès !')
+                return redirect('profile_update')
+
+        elif action == 'password':
+            password_form = PasswordUpdateForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Mot de passe modifié avec succès !')
+                return redirect('profile_update')
+
+    return render(request, 'users/profile_update.html', {
+        'user_form': user_form,
+        'password_form': password_form,
+    })
 
 @login_required
 def contribute(request):

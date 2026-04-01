@@ -1,86 +1,360 @@
-.profile-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 2rem;
-    margin: 2rem 0;
+/* === EN-TÊTE H2 ================================================== */
+.container h2.profile-username {
+    margin-bottom: 0;
 }
 
-.profile-header {
-    background-color: #1a1b2e;
-    border-radius: 8px;
-    padding: 1.5rem;
+/* === HERO BANNIÈRE ================================================ */
+.profile-hero {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--gradient-menu-header);
+    border-bottom: 2px solid var(--border-menu-header);
+    margin-top: 0;
     margin-bottom: 1.5rem;
+}
+
+.profile-hero-avatar {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.profile-hero-avatar img {
+    display: block;
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
 }
 
 .level-badge {
-    background: linear-gradient(135deg, #7e3ace, #6425c9);
-    color: #ffffff;
+    position: absolute;
+    bottom: -8px;
+    right: -8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    background: var(--bg-button, linear-gradient(135deg, #5588cc, #1a3d7c));
+    border: 2px solid var(--border-menu-header, #0f265a);
     border-radius: 50%;
-    padding: 0.5rem;
+    color: #fff;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 
-.profile-info .username {
-    color: #8a2be2;
-    font-size: 1.8rem;
+.level-text {
+    font-size: 0.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.profile-bio {
-    background-color: #1a1b2e;
-    border-radius: 8px;
-    padding: 1.5rem;
+.level-number {
+    font-size: 1rem;
+    font-weight: bold;
 }
 
-.stats-card, .achievements-card {
-    background-color: #1a1b2e;
-    border-radius: 8px;
-    padding: 1.5rem;
+.profile-hero-info {
+    color: var(--text-menu-header, #fff);
+    text-shadow: var(--text-shadow-menu-header, 0 1px 2px rgba(0,0,0,0.4));
+}
+
+.profile-username {
+    font-size: 1.5rem;
+    margin: 0 0 0.25rem;
+    color: var(--text-menu-header, #fff);
+    text-shadow: var(--text-shadow-menu-header, 0 1px 2px rgba(0,0,0,0.4));
+}
+
+.profile-realname {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin: 0.1rem 0;
+}
+
+.profile-joined,
+.profile-xp,
+.profile-email {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin: 0.1rem 0;
+}
+
+.profile-email-private {
+    font-size: 0.75rem;
+    opacity: 0.65;
+    font-style: italic;
+}
+
+.profile-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.profile-link {
+    font-size: 0.8rem;
+    color: var(--text-menu-header, #fff);
+    background: rgba(255,255,255,0.15);
+    border-radius: 3px;
+    padding: 0.2rem 0.5rem;
+    text-decoration: none;
+    opacity: 0.9;
+}
+
+a.profile-link:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.25);
+    text-decoration: none;
+    color: #fff;
+}
+
+/* === GRILLE PRINCIPALE ============================================ */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
     margin-bottom: 1.5rem;
+    border: none;
+}
+
+.profile-main {
+    border: none;
+}
+
+/* === CARTES ======================================================= */
+.profile-card {
+    background-color: var(--bg-forum-row, #f5f7fc);
+    border: 1px solid var(--border-container, #b0b8c8);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.profile-card h3 {
+    font-size: 0.95rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-primary, #2c2c2c);
+    border-bottom: 1px solid var(--border-container, #b0b8c8);
+    padding-bottom: 0.5rem;
+    margin: 0 0 0.75rem;
+}
+
+.bio-content {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-primary, #2c2c2c);
+}
+
+/* === STATISTIQUES ================================================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
 }
 
 .stat-item {
-    background-color: #242642;
-    border-radius: 6px;
-    padding: 1rem;
+    background-color: var(--bg-forum-row-even, #edf0f8);
+    border: 1px solid var(--border-container, #b0b8c8);
+    border-radius: 4px;
+    padding: 0.6rem 0.4rem;
     text-align: center;
 }
 
 .stat-value {
-    color: #8a2be2;
-    font-size: 1.4rem;
+    display: block;
+    color: var(--text-link, #1464b4);
+    font-size: 1.2rem;
     font-weight: bold;
 }
 
+.stat-label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-primary, #2c2c2c);
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 0.1rem;
+}
+
+/* === BADGES ======================================================= */
+.achievements-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
 .badge-item {
-    background-color: #242642;
-    border-radius: 6px;
-    padding: 0.8rem;
-    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--bg-forum-row-even, #edf0f8);
+    border: 1px solid var(--border-container, #b0b8c8);
+    border-radius: 4px;
+    padding: 0.5rem;
+    width: 70px;
+    text-align: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+    cursor: default;
 }
 
 .badge-item:hover {
     transform: translateY(-2px);
-    background-color: #2f325a;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
 }
 
-.profile-actions .btn-primary {
-    background-color: #8a2be2;
-    border: none;
-    color: white;
-    transition: background-color 0.2s;
+.badge-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
 }
 
-.profile-actions .btn-primary:hover {
-    background-color: #7e3ace;
+.badge-name {
+    font-size: 0.65rem;
+    margin-top: 0.3rem;
+    color: var(--text-primary, #2c2c2c);
+    opacity: 0.8;
+    word-break: break-word;
 }
 
-.profile-actions .btn-secondary {
-    background-color: #242642;
-    border: 1px solid #8a2be2;
-    color: #8a2be2;
-    transition: all 0.2s;
+/* === INVENTAIRE =================================================== */
+.profile-inventory {
+    margin-top: 0.5rem;
 }
 
-.profile-actions .btn-secondary:hover {
-    background-color: #8a2be2;
-    color: white;
+.inventory-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-top: 0.25rem;
+}
+
+.inventory-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--bg-forum-row-even, #edf0f8);
+    border: 1px solid var(--border-container, #b0b8c8);
+    border-radius: 4px;
+    padding: 0.5rem;
+    min-width: 80px;
+    text-align: center;
+    transition: box-shadow 0.15s;
+}
+
+.inventory-item:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.inventory-item img {
+    max-width: 64px;
+    max-height: 64px;
+    object-fit: contain;
+}
+
+.item-quantity {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--text-link, #1464b4);
+    margin-top: 0.25rem;
+}
+
+/* === ACTIONS ====================================================== */
+.profile-actions {
+    margin: 1rem 0 0.5rem;
+    text-align: right;
+}
+
+/* === FORMULAIRES DE MODIFICATION ================================== */
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.form-row label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--text-primary, #2c2c2c);
+}
+
+.form-row input[type="text"],
+.form-row input[type="email"],
+.form-row input[type="url"],
+.form-row input[type="password"],
+.form-row input[type="file"],
+.form-row select,
+.form-row textarea {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border-input, #a0aabb);
+    border-radius: 3px;
+    background-color: var(--bg-input, #fff);
+    color: var(--text-primary, #2c2c2c);
+    font-size: 0.9rem;
+    box-shadow: var(--shadow-input, inset 0 1px 3px rgba(0,0,0,0.12));
+    box-sizing: border-box;
+}
+
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+    outline: none;
+    border-color: var(--border-input-focus, #2a5caa);
+    box-shadow: var(--shadow-input-focus);
+}
+
+.form-row.two-cols {
+    flex-direction: row;
+    gap: 1rem;
+}
+
+.form-row.two-cols > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.form-row-check {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-row-check input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+.form-row-check label {
+    font-weight: normal;
+    margin: 0;
+}
+
+.form-error {
+    font-size: 0.8rem;
+    color: var(--text-danger, #bb1111);
+    margin: 0;
+}
+
+/* === UTILITAIRES ================================================== */
+.no-items {
+    font-size: 0.85rem;
+    opacity: 0.7;
+    font-style: italic;
 }

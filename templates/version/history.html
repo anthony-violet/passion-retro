@@ -1,0 +1,13 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Historique des versions du site</h2>
+    <p>Cette page retrace l'évolution du site à travers ses différentes versions. Vous y trouverez le détail des nouveautés, corrections et améliorations apportées au fil du temps.</p>
+
+    {% if datas %}
+    Liste des versions
+    {% endif %}
+
+</div>
+{% endblock %}

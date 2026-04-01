@@ -72,6 +72,7 @@ INSTALLED_APPS = [
     "messagerie",
     "shop",
     "panel",
+    "version",
 ]
 
 SITE_ID = 1

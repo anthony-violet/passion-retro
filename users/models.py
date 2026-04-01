@@ -16,6 +16,11 @@ class User(AbstractUser):
     theme = models.CharField(max_length=50, default='default')
     border_avatar = models.CharField(max_length=50, blank=True, null=True)
     username_decoration = models.CharField(max_length=50, blank=True, null=True)
+    show_email = models.BooleanField(default=False)
+    website = models.URLField(blank=True, null=True)
+    twitter = models.CharField(max_length=100, blank=True, null=True)
+    discord = models.CharField(max_length=100, blank=True, null=True)
+    youtube = models.CharField(max_length=100, blank=True, null=True)
 
     groups = models.ManyToManyField(
         Group,

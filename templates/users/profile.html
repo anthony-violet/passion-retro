@@ -1,35 +1,54 @@
 {% extends 'layout.html' %}
-{% load bbcode_tags %}
+{% load static bbcode_tags %}
+
+{% block extracss %}
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
 
 {% block content %}
     <div class="container">
-        {% block profile-nav %}
-            {% include "../components/profile_nav.html" %}
-        {% endblock %}
+        <h2 class="profile-username"><span class="{{ user.username_decoration }}">{{ user.username }}</span></h2>
+        <div class="profile-hero">
+            <div class="profile-hero-avatar">
+                <div class="{{ user.border_avatar }}">
+                    <img src="/media/{{ user.avatar }}" alt="Avatar de {{ user.username }}">
+                </div>
+                <div class="level-badge">
+                    <span class="level-text">LVL</span>
+                    <span class="level-number">{{ user.level.level }}</span>
+                </div>
+            </div>
+            <div class="profile-hero-info">
+                {% if user.first_name or user.last_name %}
+                    <p class="profile-realname">{{ user.first_name }} {{ user.last_name }}</p>
+                {% endif %}
+                <p class="profile-joined">Membre depuis le {{ user.date_joined|date:"d F Y" }}</p>
+                {% if user == request.user %}
+                    <p class="profile-xp">Prochain niveau : <strong>{{ request.user.experience_left }} XP</strong></p>
+                {% endif %}
+                {% if user.show_email or user == request.user %}
+                    <p class="profile-email">
+                        {{ user.email }}
+                        {% if not user.show_email and user == request.user %}
+                            <span class="profile-email-private">(non visible par les autres)</span>
+                        {% endif %}
+                    </p>
+                {% endif %}
+                {% if user.website or user.twitter or user.discord or user.youtube %}
+                    <div class="profile-links">
+                        {% if user.website %}<a href="{{ user.website }}" target="_blank" rel="noopener" class="profile-link">🌐 Site web</a>{% endif %}
+                        {% if user.twitter %}<a href="https://twitter.com/{{ user.twitter|cut:'@' }}" target="_blank" rel="noopener" class="profile-link">🐦 {{ user.twitter }}</a>{% endif %}
+                        {% if user.discord %}<span class="profile-link">💬 {{ user.discord }}</span>{% endif %}
+                        {% if user.youtube %}<span class="profile-link">▶ {{ user.youtube }}</span>{% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
 
         <div class="profile-grid">
-            <!-- Colonne de gauche -->
+            <!-- Colonne de gauche : biographie -->
             <div class="profile-main">
-                <div class="profile-header">
-                    <div class="avatar-container">
-                        <div class="level-badge">
-                            <span class="level-text">LEVEL</span>
-                            <span class="level-number">{{ user.level.level }}</span>
-                        </div>
-                    </div>
-                    <div class="profile-info">
-                        <h2 class="username">{{ user.username }}</h2>
-                        {% if user == request.user %}
-                            Prochain niveau: {{ request.user.experience_left }} XP
-                        {% endif %}
-                        <p class="joined-date">Membre depuis le {{ user.date_joined|date:"d F Y" }}</p>
-                        {% if user.first_name or user.last_name %}
-                            <p class="real-name">{{ user.first_name }} {{ user.last_name }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="profile-bio">
+                <div class="profile-card">
                     <h3>Biographie</h3>
                     <div class="bio-content">
                         {{ user.biography|bbcode|safe|linebreaksbr|default:"Aucune biographie disponible" }}
@@ -37,9 +56,9 @@
                 </div>
             </div>
 
-            <!-- Colonne de droite -->
-            <div class="profile-stats">
-                <div class="stats-card">
+            <!-- Colonne de droite : stats + badges -->
+            <div class="profile-sidebar">
+                <div class="profile-card">
                     <h3>Statistiques</h3>
                     <div class="stats-grid">
                         <div class="stat-item">
@@ -65,7 +84,7 @@
                     </div>
                 </div>
 
-                <div class="achievements-card">
+                <div class="profile-card">
                     <h3>Badges</h3>
                     <div class="achievements-grid">
                         {% for badge in user.badges.all %}
@@ -74,85 +93,75 @@
                                 <span class="badge-name">{{ badge.name }}</span>
                             </div>
                         {% empty %}
-                            <p class="no-badges">Aucun badge pour le moment</p>
+                            <p class="no-items">Aucun badge pour le moment</p>
                         {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
-        
+
         {% if user.id == request.user.id %}
-            <div class="inventory">
+            <div class="profile-card profile-inventory">
                 <h3>Inventaire</h3>
+                <div id="tooltip-bubble" style="display:none; position:fixed; background:rgba(0,0,0,0.7); color:white; padding:8px 12px; border-radius:5px; z-index:9999; pointer-events:none; max-width:250px;"></div>
                 <div class="inventory-grid">
                     {% for inventory in request.user.inventory.all %}
-                    {%if inventory.item.name != 'Or' %}
-                        <a href="{% url 'use_item' inventory.item.id %}">
-                    {% endif %}
-                            <div class="inventory-item" id="bubbleinfo">
+                        {% if inventory.item.name != 'Or' %}
+                            <a href="{% url 'use_item' inventory.item.id %}">
+                        {% endif %}
+                            <div class="inventory-item">
                                 <span class="item-name">
                                     {% if inventory.item.category.name == 'Décoration pseudo' %}
-                                        <center><span id="item" data-info="{{ inventory.item }} : {{ inventory.item.description }}" class="{{ inventory.item.name|slugify }}" style="font-size: 1.5rem">{{ request.user }}</span></center>
+                                        <div style="text-align:center">
+                                            <span data-info="{{ inventory.item }} : {{ inventory.item.description }}" class="{{ inventory.item.name|slugify }}" style="font-size: 1.5rem">{{ request.user }}</span>
+                                        </div>
+                                    {% elif inventory.item.category.name == 'cadres' %}
+                                        <div style="text-align:center">
+                                            <div class="{{ inventory.item.name|slugify }}"><img src="/media/{{ request.user.avatar }}" style="width:100px;" alt=""></div>
+                                        </div>
                                     {% else %}
-                                        {% if inventory.item.category.name == 'cadres' %}
-                                            <center><div class="{{ inventory.item.name|slugify }}""><img src="/media/{{ request.user.avatar }}" style="width:100px;" alt=""></div></center>
-                                        {% else %}
-                                            <img id="item" data-info="{{ inventory.item }} : {{ inventory.item.description }}" src="/media/shop/items/{{ inventory.item.image }}" alt="{{ inventory.item }} : {{ inventory.item.description }}">
-                                        {% endif %}
+                                        <img data-info="{{ inventory.item }} : {{ inventory.item.description }}" src="/media/shop/items/{{ inventory.item.image }}" alt="{{ inventory.item }} : {{ inventory.item.description }}">
                                     {% endif %}
                                 </span>
                                 <span class="item-quantity">{{ inventory.quantity }}</span>
-                                <div id="div-bubble" style="
-                                    display: none;
-                                    position: absolute;
-                                    background-color: rgba(0, 0, 0, 0.5);
-                                    color: white;
-                                    text-shadow: none;
-                                    padding: 10px;
-                                    border-radius: 5px;
-                                    top: 0px; 
-                                    left: 0px;
-                                    z-index: 9998;
-                                "></div>
                             </div>
-                    {%if inventory.item != 'Or' %}
-                        </a>
-                    {% endif %}
+                        {% if inventory.item.name != 'Or' %}
+                            </a>
+                        {% endif %}
                     {% empty %}
-                        <p class="no-items">
-                            Aucun objet dans l'inventaire
-                        </p>
+                        <p class="no-items">Aucun objet dans l'inventaire</p>
                     {% endfor %}
                 </div>
             </div>
             <div class="profile-actions">
                 <a href="{% url 'profile_update' %}" class="btn btn-default">Modifier le profil</a>
-                <!-- <a href="" class="btn btn-warning">Voir l'inventaire</a> -->
             </div>
         {% endif %}
     </div>
+
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', () => {
-            const bubble = document.querySelector('#bubbleinfo');
-                console.log(bubble);
-                if (!bubble) {
-                    console.error('Element with ID "bubbleinfo" not found.');
-                    return;
+            const tooltip = document.getElementById('tooltip-bubble');
+            if (!tooltip) return;
+
+            document.querySelectorAll('.inventory-item [data-info]').forEach(item => {
+                item.addEventListener('mouseover', function(e) {
+                    tooltip.textContent = this.dataset.info;
+                    tooltip.style.left = e.clientX + 10 + 'px';
+                    tooltip.style.top = e.clientY + 10 + 'px';
+                    tooltip.style.display = 'block';
+                });
+                item.addEventListener('mouseout', function() {
+                    tooltip.style.display = 'none';
+                });
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (tooltip.style.display === 'block') {
+                    tooltip.style.left = e.clientX + 10 + 'px';
+                    tooltip.style.top = e.clientY + 10 + 'px';
                 }
-    
-            const item = bubble.querySelector('#item');
-            const div = document.querySelector('#div-bubble');
-            let info = item.dataset.info;
-    
-            bubble.addEventListener('mouseover', function() {
-                div.style.top = item.offsetTop + -10 + 'px';
-                div.style.left = item.offsetLeft +'px';
-                div.textContent = info;
-                div.style.display = 'block';
             });
-            bubble.addEventListener('mouseout', function() {
-                div.style.display = 'none';
-            });
-        })
+        });
     </script>
 {% endblock %}

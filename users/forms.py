@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
 
 from .models import User
 
@@ -41,21 +42,52 @@ class UserLoginForm(forms.Form):
     )
 
 class UserUpdateForm(forms.ModelForm):
-    theme = forms.CharField(
-        # On créer une liste de choix pour le thème
+    theme = forms.ChoiceField(
         label='Thème',
-        widget=forms.Select(choices=[('default', 'Thème par defaut'), ('80s', 'Thème années 80'), ('00s', 'Thème années 2000 (adapté pour mobiles)')]),
+        choices=[
+            ('default', 'Thème par défaut'),
+            ('80s', 'Thème années 80'),
+            ('00s', 'Thème années 2000'),
+        ],
+        widget=forms.Select(),
     )
+
     class Meta:
         model = User
+        fields = [
+            'avatar', 'first_name', 'last_name', 'biography', 'theme',
+            'email', 'show_email',
+            'website', 'twitter', 'discord', 'youtube',
+        ]
         labels = {
             'avatar': 'Avatar',
-            'email': 'Email',
             'first_name': 'Prénom',
             'last_name': 'Nom',
             'biography': 'Biographie',
+            'theme': 'Thème',
+            'email': 'Adresse e-mail',
+            'show_email': 'Afficher mon e-mail sur mon profil',
+            'website': 'Site web',
+            'twitter': 'Twitter / X (pseudo)',
+            'discord': 'Discord (pseudo)',
+            'youtube': 'YouTube (chaîne)',
         }
-        fields = ['avatar', 'email', 'first_name', 'last_name', 'biography']
+        widgets = {
+            'biography': forms.Textarea(attrs={'rows': 5}),
+            'website': forms.URLInput(attrs={'placeholder': 'https://...'}),
+            'twitter': forms.TextInput(attrs={'placeholder': '@pseudo'}),
+            'discord': forms.TextInput(attrs={'placeholder': 'pseudo#0000'}),
+            'youtube': forms.TextInput(attrs={'placeholder': 'Nom de la chaîne ou URL'}),
+        }
+
+
+class PasswordUpdateForm(DjangoPasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['old_password'].label = 'Mot de passe actuel'
+        self.fields['new_password1'].label = 'Nouveau mot de passe'
+        self.fields['new_password2'].label = 'Confirmation du nouveau mot de passe'
+        self.fields['new_password1'].help_text = None
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
