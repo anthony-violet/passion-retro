@@ -6,3 +6,7 @@ staticfiles/**/*
 media/**/*
 *.sqlite3
 **/__pycache__/*
+.CLAUDE.md
+test_preview.py
+mariadb_fixture.json
+convert_mariadb_to_fixture.py
