@@ -221,3 +221,29 @@ EMAIL_USE_SSL = os.getenv('EMAIL_USE_TLS', default=False)
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', default='webmaster@localhost')
 EMAIL_HOST_PASSWORD =  os.getenv('EMAIL_HOST_PASSWORD', default='password')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', default='webmaster@localhost')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}

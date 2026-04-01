@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: mariadb:10.6
@@ -12,12 +14,6 @@ services:
       - mariadb_data:/var/lib/mysql
     networks:
       - internal
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   web:
     build: .
@@ -26,11 +22,7 @@ services:
     command: >
       bash -c "python manage.py migrate &&
                python manage.py collectstatic --noinput &&
-               python manage.py create_default_superuser &&
-               python manage.py create_initial_data &&
                gunicorn passion_retro.wsgi:application --bind 0.0.0.0:5500 --workers 4 --timeout 60"
-    ports:
-      - "5500:5500"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -53,10 +45,10 @@ services:
       - SITE_URL=${SITE_URL}
       - SITE_NAME=${SITE_NAME}
     depends_on:
-      db:
-        condition: service_healthy
+      - db
     networks:
       - internal
+      - global_network
 
 networks:
   internal:
