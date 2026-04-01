@@ -66,6 +66,73 @@
         <div class="rpg-board-paginate">{% paginate %}</div>
     </div>
 
+    {% elif request.theme_active == 'vhs' %}
+
+    <div class="vhs-forum">
+        <nav class="vhs-breadcrumb">
+            <a href="{% url 'forum_home' %}">{{ forum.category.name }}</a>
+            <span class="vhs-breadcrumb__sep">›</span>
+            <span>{{ forum.name }}</span>
+        </nav>
+
+        <div class="vhs-channel-header">
+            <span class="vhs-channel-number">CH.{{ forum.id|stringformat:"03d" }}</span>
+            <span class="vhs-channel-name">{{ forum.name }}</span>
+            {% if forum.description %}
+            <span class="vhs-channel-desc">{{ forum.description|safe }}</span>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <div class="vhs-channel-actions">
+                <a href="{% url 'create_topic' forum.id %}" class="btn btn-add">▶ REC — Nouveau Topic</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="vhs-guide__header">
+            <span>TIMECODE</span>
+            <span>PROGRAMME</span>
+            <span>AUTEUR</span>
+            <span>MSGS</span>
+            <span>DERNIER</span>
+        </div>
+
+        {% for topic in topics %}
+        <a href="{% url 'post_list' topic.forum.id topic.id %}"
+           class="vhs-guide__row{% if unread_topics|get_item:topic.id %} vhs-guide__row--unread{% endif %}">
+            <div class="vhs-guide__timecode">
+                {{ topic.created_at|date:"H:i" }}<br>
+                <small style="font-size:0.65rem;color:#2a2a2a;">{{ topic.created_at|date:"d/m/y" }}</small>
+            </div>
+            <div class="vhs-guide__title">
+                {% if unread_topics|get_item:topic.id %}
+                <span class="vhs-guide__unread-pill">● NEW</span>
+                {% endif %}
+                <span class="vhs-guide__title-text">{{ topic.title }}</span>
+            </div>
+            <div class="vhs-guide__author">
+                <span class="{{ topic.author.username_decoration }}">{{ topic.author.username }}</span>
+            </div>
+            <div class="vhs-guide__count">
+                {{ count_posts|get_item:topic.id|default_if_none:'0' }}
+            </div>
+            <div class="vhs-guide__last">
+                {% with last_post=last_posts|get_item:topic.id %}
+                    {% if last_post %}
+                    <span class="vhs-guide__last-author {{ last_post.author.username_decoration }}">{{ last_post.author.username }}</span>
+                    <span class="vhs-guide__last-date">{{ last_post.created }}</span>
+                    {% else %}
+                    <span style="color:#1e1e1e;">—</span>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </a>
+        {% empty %}
+        <div class="vhs-guide__empty">Aucun sujet pour le moment</div>
+        {% endfor %}
+
+        <div style="padding: 10px 18px;">{% paginate %}</div>
+    </div>
+
     {% else %}
 
     <h2>{{ forum.name }}</h2>

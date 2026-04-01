@@ -23,6 +23,20 @@
     </div>
 </div>
 <script src="{% static 'js/themes/rpg/banner.js' %}"></script>
+{% elif request.theme_active == '80s' %}
+<div class="banner-container">
+    <div class="banner">
+        <div class="galaxy-background"></div>
+        <div class="grid"></div>
+        <div class="sun"></div>
+        <div class="spaceship">
+            <div class="engine"></div>
+        </div>
+        <div class="banner-text" id="bannerText">{{ site_name }}</div>
+        <div class="slogan">Bienvenue sur le portail web 100% Retro ! Attention, ce site web n'est pas conseils aux personnes nees apres 2005 sous peine de crise existensielle.</div>
+    </div>
+</div>
+<script src="{% static 'js/themes/80s/retro.js' %}" defer></script>
 {% else %}
 <div class="banner-container">
     <div class="banner">

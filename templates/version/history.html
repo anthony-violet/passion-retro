@@ -1,4 +1,5 @@
 {% extends 'layout.html' %}
+{% load bbcode_tags %}
 
 {% block content %}
 <div class="container">
@@ -10,7 +11,7 @@
             <h3>{{ v.name }}</h3>
             <hr />
             <strong>en {{ v.created_at|date:"F Y" }}</strong>
-            <p>{{ v.content }}</p>
+            <p>{{ v.content|bbcode|safe|linebreaksbr }}</p>
         {% endfor %}
     {% endif %}
 
