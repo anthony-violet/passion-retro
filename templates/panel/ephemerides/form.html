@@ -1,0 +1,47 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>{{ action }} un événement</h2>
+    <a href="{% url 'panel_ephemerides' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label>Jour</label>
+                <input type="number" name="day" value="{{ event.day|default:'' }}" min="1" max="31" required>
+            </div>
+            <div class="panel-form-group">
+                <label>Mois</label>
+                <input type="number" name="month" value="{{ event.month|default:'' }}" min="1" max="12" required>
+            </div>
+            <div class="panel-form-group">
+                <label>Année</label>
+                <input type="number" name="year" value="{{ event.year|default:'' }}" placeholder="ex: 1994" required>
+            </div>
+            <div class="panel-form-group">
+                <label>Catégorie</label>
+                <select name="category">
+                    {% for value, label in categories %}
+                    <option value="{{ value }}" {% if event.category == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="panel-form-group panel-form-full">
+                <label>Titre</label>
+                <input type="text" name="title" value="{{ event.title|default:'' }}" placeholder="ex: Sortie de Super Mario 64" required>
+            </div>
+            <div class="panel-form-group panel-form-full">
+                <label>Description (BBCode supporté)</label>
+                <textarea name="content" rows="6" placeholder="Décrivez l'événement...">{{ event.content|default:'' }}</textarea>
+            </div>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">{{ action }}</button>
+            <a href="{% url 'panel_ephemerides' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

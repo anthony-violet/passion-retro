@@ -89,6 +89,7 @@ INSTALLED_APPS = [
     "shop",
     "panel",
     "version",
+    "ephemerides"
 ]
 
 SITE_ID = 1

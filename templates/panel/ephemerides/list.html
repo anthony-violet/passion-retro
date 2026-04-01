@@ -1,0 +1,52 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>📅 Éphémérides</h2>
+    <a href="{% url 'panel_ephemeride_create' %}" class="btn btn-add">+ Nouvel événement</a>
+</div>
+
+<div class="panel-section">
+    <form method="get" style="margin-bottom:1rem;">
+        <select name="month" onchange="this.form.submit()">
+            <option value="">— Tous les mois —</option>
+            {% for m in months %}
+            <option value="{{ m }}" {% if selected_month == m %}selected{% endif %}>
+                Mois {{ m }}
+            </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <table class="panel-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Catégorie</th>
+                <th>Titre</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td>{{ event.id }}</td>
+                <td>{{ event.day|stringformat:"02d" }}/{{ event.month|stringformat:"02d" }}/{{ event.year }}</td>
+                <td>{{ event.get_category_display }}</td>
+                <td>{{ event.title }}</td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_ephemeride_edit' event.id %}" class="btn btn-small btn-warning">Modifier</a>
+                    <form method="post" action="{% url 'panel_ephemeride_delete' event.id %}" style="display:inline" onsubmit="return confirm('Supprimer cet événement ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="panel-empty">Aucun événement enregistré.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'layout.html' %}
+{% load bbcode_tags %}
+
+{% block content %}
+<div class="container">
+    <h2>📅 Éphémérides du {{ today|date:"j F" }}</h2>
+    <p>Retrouvez les événements marquants du monde rétro survenus un {{ today|date:"j F" }}.</p>
+
+    {% if events %}
+        {% for event in events %}
+        <div class="ephemeride-card">
+            <div class="ephemeride-header">
+                <span class="ephemeride-category">{{ event.get_category_display }}</span>
+                <span class="ephemeride-year">Il y a {{ today.year|add:"-1"|add:event.year|add:"-1"|stringformat:"d" }}… en {{ event.year }}</span>
+            </div>
+            <h3>{{ event.title }}</h3>
+            {% if event.content %}
+                <div class="ephemeride-content">{{ event.content|bbcode|safe }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="panel-empty">Aucun événement rétro enregistré pour ce jour. <a href="/ephemerides/">Revenez demain !</a></p>
+    {% endif %}
+</div>
+{% endblock %}
