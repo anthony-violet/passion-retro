@@ -15,6 +15,7 @@
     --bg-body:                #04000f;
     --bg-container:           #0a0025;
     --bg-menu:                #070018;
+    --bg-post-footer:         linear-gradient(135deg, #9900cc 0%, #6600aa 50%, #440088 100%);;
     --bg-menu-guestbook:      rgba(255, 0, 255, 0.04);
     --bg-post-card:           #0a0025;
     --bg-notification-success:#001a0a;

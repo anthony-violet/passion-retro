@@ -7,6 +7,7 @@
     --bg-menu: #f5f7fa;
     --bg-menu-guestbook: #f0f4fa;
     --bg-post-card: #fafbfd;
+    --bg-post-footer: linear-gradient(to bottom, #2a5caa 0%, #1a3d7c 50%, #163268 100%);
     --bg-notification-success: #dff0d8;
     --bg-notification-error: #fde8e8;
     --bg-forum-row: #f5f7fc;
@@ -1217,6 +1218,22 @@ span.unread-badge {
     margin-left: 5px;
     transition: margin-left 0.1s;
 }
+
+.post-footer {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 0.75rem;
+    color: var(--text-link-secondary);
+    background: var(--bg-post-footer);
+    border-top: 2px solid var(--border-menu-header);
+    text-shadow: 0 0 12px rgba(240, 216, 96, 0.5), 0 1px 3px rgba(0, 0, 0, 0.98);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    margin: 0;
+    bottom: 0;
+    position: relative;
+}
+
 .gallery {
     display: flex;
     flex-direction: row;
