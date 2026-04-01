@@ -1,0 +1,39 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Sujets du forum</h2>
+    <a href="{% url 'panel_forum' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <table class="panel-table">
+        <thead>
+            <tr><th>Titre</th><th>Forum</th><th>Auteur</th><th>Créé le</th><th>État</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for topic in topics %}
+            <tr>
+                <td>{{ topic.title|truncatechars:50 }}</td>
+                <td>{{ topic.forum.name }}</td>
+                <td>{{ topic.author }}</td>
+                <td>{{ topic.created|date:"d/m/Y" }}</td>
+                <td>
+                    {% if topic.state == 'open' %}
+                        <span class="panel-badge panel-badge-success">Ouvert</span>
+                    {% else %}
+                        <span class="panel-badge panel-badge-danger">Fermé</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'panel_forum_topic_toggle' topic.id %}" class="btn btn-small btn-warning">
+                        {% if topic.state == 'open' %}Fermer{% else %}Ouvrir{% endif %}
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="panel-empty">Aucun sujet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

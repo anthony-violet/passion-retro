@@ -1,0 +1,81 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Éditer — {{ u.username }}</h2>
+    <a href="{% url 'panel_user_list' %}" class="btn btn-small">← Retour</a>
+</div>
+
+<div class="panel-section">
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label>Pseudo</label>
+                <input type="text" name="username" value="{{ u.username }}" required>
+            </div>
+            <div class="panel-form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ u.email }}">
+            </div>
+            <div class="panel-form-group">
+                <label>Prénom</label>
+                <input type="text" name="first_name" value="{{ u.first_name }}">
+            </div>
+            <div class="panel-form-group">
+                <label>Nom</label>
+                <input type="text" name="last_name" value="{{ u.last_name }}">
+            </div>
+            <div class="panel-form-group panel-form-full">
+                <label>Biographie</label>
+                <textarea name="biography" rows="3">{{ u.biography }}</textarea>
+            </div>
+            <div class="panel-form-group">
+                <label>Thème</label>
+                <select name="theme">
+                    {% for val, label in themes %}
+                    <option value="{{ val }}" {% if u.theme == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="panel-form-group">
+                <label>Nouveau mot de passe <small>(laisser vide = inchangé)</small></label>
+                <input type="password" name="new_password">
+            </div>
+        </div>
+
+        <div class="panel-form-checkboxes">
+            <label class="panel-checkbox">
+                <input type="checkbox" name="active" {% if u.active %}checked{% endif %}>
+                Compte actif
+            </label>
+            <label class="panel-checkbox">
+                <input type="checkbox" name="is_staff" {% if u.is_staff %}checked{% endif %}>
+                Staff
+            </label>
+            <label class="panel-checkbox">
+                <input type="checkbox" name="is_superuser" {% if u.is_superuser %}checked{% endif %}>
+                Super-admin
+            </label>
+        </div>
+
+        <div class="panel-form-group">
+            <label>Groupes</label>
+            <div class="panel-checkboxes-list">
+                {% for group in groups %}
+                <label class="panel-checkbox">
+                    <input type="checkbox" name="groups" value="{{ group.id }}"
+                           {% if group in u.groups.all %}checked{% endif %}>
+                    {{ group.name }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">Enregistrer</button>
+            <a href="{% url 'panel_user_list' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

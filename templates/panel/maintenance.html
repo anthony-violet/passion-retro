@@ -1,0 +1,31 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Maintenance</h2>
+</div>
+<div class="panel-section">
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-checkboxes">
+            <label class="panel-checkbox panel-checkbox-large">
+                <input type="checkbox" name="is_active" {% if info.is_active %}checked{% endif %}>
+                <span class="{% if info.is_active %}panel-text-danger{% endif %}">
+                    {% if info.is_active %}⚠ Maintenance active — le site est inaccessible{% else %}✔ Site en ligne{% endif %}
+                </span>
+            </label>
+        </div>
+        <div class="panel-form-group">
+            <label>Titre du message</label>
+            <input type="text" name="name" value="{{ info.name }}">
+        </div>
+        <div class="panel-form-group">
+            <label>Message affiché aux visiteurs</label>
+            <textarea name="content" rows="5">{{ info.content }}</textarea>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">Enregistrer</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

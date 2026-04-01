@@ -1,0 +1,64 @@
+/* Textarea Preview Styles */
+.textarea-preview-container {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.textarea-preview-container textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 0.5rem;
+    border: 1px solid var(--border-input);
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
+    font-size: 1rem;
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-input);
+}
+
+.textarea-preview-container textarea:focus {
+    outline: none;
+    border-color: var(--border-input-focus);
+    box-shadow: var(--shadow-input-focus);
+}
+
+.textarea-preview {
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border-container);
+    border-radius: 4px;
+    background-color: var(--bg-menu);
+    color: var(--text-primary);
+    font-family: inherit;
+}
+
+.textarea-preview-content {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--border-stats-forum);
+    border-radius: 4px;
+    background-color: var(--bg-container);
+    color: var(--text-primary);
+    min-height: 50px;
+}
+
+.textarea-preview-content blockquote {
+    margin: 0.5rem 0;
+    padding-left: 1rem;
+    border-left: 3px solid var(--border-input-focus);
+    color: var(--text-primary);
+}
+
+.textarea-preview-content strong {
+    font-weight: bold;
+}
+
+.textarea-preview-content em {
+    font-style: italic;
+}
+
+.textarea-preview-content u {
+    text-decoration: underline;
+}

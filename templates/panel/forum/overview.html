@@ -1,0 +1,53 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Forum</h2>
+    <div>
+        <a href="{% url 'panel_forum_category_create' %}" class="btn btn-add">+ Catégorie</a>
+        <a href="{% url 'panel_forum_forum_create' %}" class="btn btn-add">+ Forum</a>
+        <a href="{% url 'panel_forum_topics' %}" class="btn">Topics</a>
+        <a href="{% url 'panel_forum_posts' %}" class="btn">Messages</a>
+    </div>
+</div>
+
+{% for category in categories %}
+<div class="panel-section">
+    <div class="panel-section-header">
+        <h3>{{ category.name }}</h3>
+        <div>
+            <a href="{% url 'panel_forum_category_edit' category.id %}" class="btn btn-small">Éditer</a>
+            <form method="post" action="{% url 'panel_forum_category_delete' category.id %}" style="display:inline" onsubmit="return confirm('Supprimer cette catégorie ?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+            </form>
+        </div>
+    </div>
+    <table class="panel-table">
+        <thead>
+            <tr><th>Forum</th><th>Description</th><th>Auteur</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for forum in category.forum_set.all %}
+            <tr>
+                <td><strong>{{ forum.name }}</strong></td>
+                <td>{{ forum.description|truncatechars:60 }}</td>
+                <td>{{ forum.author }}</td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_forum_forum_edit' forum.id %}" class="btn btn-small">Éditer</a>
+                    <form method="post" action="{% url 'panel_forum_forum_delete' forum.id %}" style="display:inline" onsubmit="return confirm('Supprimer ce forum ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="panel-empty">Aucun forum dans cette catégorie.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% empty %}
+<div class="panel-empty-state">Aucune catégorie créée.</div>
+{% endfor %}
+{% endblock %}

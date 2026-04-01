@@ -1,0 +1,26 @@
+@keyframes textFlicker {
+    0% { text-shadow: 2px 2px var(--border-dark); }
+    50% { text-shadow: 2px 2px var(--highlight); }
+    100% { text-shadow: 2px 2px var(--border-dark); }
+}
+
+@keyframes menuHover {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(5px); }
+}
+
+.menu h2, .container h2 {
+    animation: textFlicker 2s infinite;
+}
+
+.menu-horizontal ul li a:hover {
+    animation: menuHover 0.3s forwards;
+}
+
+.notification ul li {
+    transition: all 0.2s ease;
+}
+
+.notification ul li:hover {
+    transform: translateX(10px);
+}

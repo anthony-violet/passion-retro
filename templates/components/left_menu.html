@@ -1,0 +1,49 @@
+<div class="menu">
+    <h2>Communauté</h2>
+    <ul>
+        <li><a href="{% url 'home' %}">Accueil</a></li>
+        <li><a href="{% url 'forum_home' %}">Forum</a></li>
+        <li>
+            <a href="{% url 'portal_games' %}">Portail des jeux</a>
+            {% if request.user.is_staff and pending_quizes_count > 0 %}
+                <span class="badge badge-warning">{{ pending_quizes_count }}</span>
+            {% endif %}
+        </li>
+        <li>
+            <a href="{% url 'shop_home' %}" class="new-item-menu">Boutique</a>
+        </li>
+        <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
+    </ul>
+</div>
+<div class="menu">
+    <h2>Jeux</h2>
+    <ul>
+        {% for games in request.posts_games %}
+            <li><a href="{% url 'view_post' games.slug %}">{{ games.title }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+<div class="menu">
+    <h2>Films & Series</h2>
+    <ul>
+        {% for movies in request.posts_movies %}
+            <li><a href="{% url 'view_post' movies.slug %}">{{ movies.title }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+<div class="menu">
+    <h2>Musique</h2>
+    <ul>
+        {% for music in request.posts_music %}
+            <li><a href="{% url 'view_post' music.slug %}">{{ music.title }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+<div class="menu">
+    <h2>Technologies</h2>
+    <ul>
+        {% for tech in request.posts_tech %}
+            <li><a href="{% url 'view_post' tech.slug %}">{{ tech.title }}</a></li>
+        {% endfor %}
+    </ul>
+</div>

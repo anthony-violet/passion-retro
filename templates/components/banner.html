@@ -1,0 +1,41 @@
+{% if request.theme_active != '00s' %}
+    <div class="warning-announce-not-mobile-compatible">
+        Le design séléctionné n'est pas compatible avec les appareils mobiles. Veuillez choisir un autre design pour une meilleure expérience utilisateur.
+    </div>
+{% endif %}
+{% if request.theme_active == 'rpg' %}
+<div class="banner-container">
+    <div class="banner rpg-banner">
+        <div class="rpg-frame">
+            <div class="rpg-background">
+                <div class="rpg-cloud"></div>
+                <div class="rpg-cloud"></div>
+                <div class="rpg-tree"></div>
+                <div class="rpg-tree"></div>
+            </div>
+            <div class="rpg-text-box">
+                <div class="rpg-title">Passion Retro</div>
+                <div class="rpg-message">
+                    Bienvenue sur le portail web 100% Rétro ! Attention, ce site web n'est pas conseillé aux personnes<br>nées après 2005 sous peine de crise existensielle.
+                </div>
+                <div class="rpg-pointer">▼</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="banner-container">
+    <div class="banner">
+        <div class="galaxy-background"></div>
+        {% if request.theme_active == "80s" %}
+        <div class="grid"></div>
+        <div class="sun"></div>
+        <div class="spaceship">
+            <div class="engine"></div>
+        </div>
+        {% endif %}
+        <div class="banner-text" id="bannerText">Passion Retro</div>
+        <div class="slogan">Bienvenue sur le portail web 100% Rétro ! Attention, ce site web n'est pas conseillé aux personnes nées après 2005 sous peine de crise existensielle.</div>
+    </div>
+</div>
+{% endif %}

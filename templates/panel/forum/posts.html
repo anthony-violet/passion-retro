@@ -1,0 +1,42 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Messages du forum</h2>
+    <a href="{% url 'panel_forum' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <table class="panel-table">
+        <thead>
+            <tr><th>Sujet</th><th>Auteur</th><th>Date</th><th>Actif</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr>
+                <td>{{ post.topic.title|truncatechars:50 }}</td>
+                <td>{{ post.author }}</td>
+                <td>{{ post.created|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if post.active %}
+                        <span class="panel-badge panel-badge-success">Oui</span>
+                    {% else %}
+                        <span class="panel-badge panel-badge-danger">Non</span>
+                    {% endif %}
+                </td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_forum_post_toggle' post.id %}" class="btn btn-small btn-warning">
+                        {% if post.active %}Masquer{% else %}Afficher{% endif %}
+                    </a>
+                    <form method="post" action="{% url 'panel_forum_post_delete' post.id %}" style="display:inline" onsubmit="return confirm('Supprimer ce message ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="panel-empty">Aucun message.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

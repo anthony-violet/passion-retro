@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-code">400</div>
+    <div class="error-message">
+        <h1>Requête invalide</h1>
+        <p>La requête envoyée au serveur est incorrecte ou malformée.<br>
+        Vérifie les informations saisies et réessaie.</p>
+    </div>
+    <div class="error-actions">
+        <a href="/" class="error-btn">Retour à l'accueil</a>
+    </div>
+</div>
+{% endblock %}

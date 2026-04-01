@@ -1,0 +1,53 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Articles</h2>
+    <div>
+        <a href="?status=pending" class="btn btn-small {% if status == 'pending' %}btn-add{% endif %}">En attente</a>
+        <a href="?status=active" class="btn btn-small {% if status == 'active' %}btn-add{% endif %}">Publiés</a>
+        <a href="?status=all" class="btn btn-small {% if status == 'all' %}btn-add{% endif %}">Tous</a>
+        <a href="{% url 'panel_post_categories' %}" class="btn btn-small">Catégories</a>
+    </div>
+</div>
+<div class="panel-section">
+    <table class="panel-table">
+        <thead>
+            <tr><th>Titre</th><th>Catégorie</th><th>Auteur</th><th>Type</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr>
+                <td>{{ post.title|truncatechars:45 }}</td>
+                <td>{{ post.category }}</td>
+                <td>{{ post.author }}</td>
+                <td>{{ post.type }}</td>
+                <td>{{ post.created|date:"d/m/Y" }}</td>
+                <td>
+                    {% if post.active %}
+                        <span class="panel-badge panel-badge-success">Publié</span>
+                    {% else %}
+                        <span class="panel-badge panel-badge-warning">En attente</span>
+                    {% endif %}
+                </td>
+                <td class="panel-actions">
+                    {% if not post.active %}
+                        <a href="{% url 'panel_post_approve' post.id %}" class="btn btn-small btn-add">✔ Approuver</a>
+                        <a href="{% url 'panel_post_reject' post.id %}" class="btn btn-small btn-warning">✘ Rejeter</a>
+                    {% else %}
+                        <a href="{% url 'panel_post_reject' post.id %}" class="btn btn-small btn-warning">Dépublier</a>
+                    {% endif %}
+                    <a href="{% url 'panel_post_edit' post.id %}" class="btn btn-small">Éditer</a>
+                    <form method="post" action="{% url 'panel_post_delete' post.id %}" style="display:inline" onsubmit="return confirm('Supprimer cet article ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="panel-empty">Aucun article.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

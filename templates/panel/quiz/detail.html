@@ -1,0 +1,27 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Quiz — {{ quiz.name }}</h2>
+    <a href="{% url 'panel_quiz' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <p><strong>Auteur :</strong> {{ quiz.author }} &nbsp;|&nbsp; <strong>Créé le :</strong> {{ quiz.created|date:"d/m/Y" }}</p>
+    <p>{{ quiz.description }}</p>
+
+    {% for question in questions %}
+    <div class="panel-quiz-question">
+        <div class="panel-quiz-q-header">Q{{ forloop.counter }} — {{ question.question }}</div>
+        <ul class="panel-quiz-choices">
+            {% for choice in question.choices.all %}
+            <li class="{% if choice.is_correct %}panel-choice-correct{% endif %}">
+                {% if choice.is_correct %}✔{% else %}○{% endif %} {{ choice.choice }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% empty %}
+    <p class="panel-empty">Aucune question.</p>
+    {% endfor %}
+</div>
+{% endblock %}

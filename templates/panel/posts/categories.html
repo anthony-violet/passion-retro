@@ -1,0 +1,35 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Catégories d'articles</h2>
+    <a href="{% url 'panel_posts' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <form method="post" class="panel-inline-form">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="Nouvelle catégorie…" required>
+        <button type="submit" class="btn btn-add">Créer</button>
+    </form>
+    <table class="panel-table">
+        <thead><tr><th>#</th><th>Nom</th><th>Créée le</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td>{{ cat.id }}</td>
+                <td>{{ cat.name }}</td>
+                <td>{{ cat.created|date:"d/m/Y" }}</td>
+                <td>
+                    <form method="post" action="{% url 'panel_post_category_delete' cat.id %}" style="display:inline" onsubmit="return confirm('Supprimer cette catégorie ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="panel-empty">Aucune catégorie.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

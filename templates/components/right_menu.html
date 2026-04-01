@@ -1,0 +1,87 @@
+{% load bbcode_tags %}
+
+<div class="menu">
+    <h2>Membre</h2>
+    <ul>
+        <!-- Si le membre est connecté -->
+        {% if request.user.is_authenticated %}
+            <center><div class="{{ request.user.border_avatar }}"><img src="/media/{{ request.user.avatar }}" style="width:150px;" alt="Avatar de {{ request.user.username }}"></div></center>
+            <li>Bonjour <strong><span class="{{ request.user.username_decoration }}" data-text="{{ request.user.username }}">{{ request.user.username }}</span></strong></li>
+            <li><a href="{% url 'profile' %}">Mon Profil</a></li>
+            <li>
+                <a href="{% url 'pm_home' %}">Messagerie privée</a>
+                {% if pending_pm_count > 0 %}
+                    <span class="badge badge-warning">{{ pending_pm_count }}</span>
+                {% endif %}
+            </li>
+            <li><a href="{% url 'contributions' %}">Mes contributions</a></li>
+            <li>
+                <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
+                    {% csrf_token %}
+                </form>
+                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Déconnexion</a>
+            </li>
+            <!-- Si c'est un admin -->
+            {% if request.user.is_staff %}
+                <li>
+                    <a href="/admin/posts/post/?active__exact=0">
+                        Articles en attente
+                    </a>
+                    {% if pending_posts_count > 0 %}
+                        <span class="badge badge-warning">{{ pending_posts_count }}</span>
+                    {% endif %}
+                </li>
+                <li><a href="/admin" target="_blank" class="danger">Administration</a></li>
+            {% endif %}
+        <!-- Si le membre n'est pas connecté -->
+        {% else %}
+            <li>
+                <form action="{% url 'login' %}" method="post" class="incol">
+                    {% csrf_token %}
+                    <input type="text" name="username" placeholder="Nom d'utilisateur">
+                    <input type="password" name="password" placeholder="Mot de passe">
+                    <button>Connexion</button>
+                </form>
+            </li>
+            <li><a href="{% url 'register' %}">Inscription</a></li>
+        {% endif %}
+    </ul>
+</div>
+<div class="menu">
+    <h2>Livre d'Or</h2>
+    <ul class="guestbook">
+        {% for message in request.guestbook %}    
+            <li><span class="date">[{{ message.created }}]</span> <span class="author {{ message.author.username_decoration }}" data-text="{{ message.author.username }}<">{{ message.author }}</span> : {{ message.content|bbcode|safe|linebreaksbr }}</li>
+        {% endfor %}
+    </ul>
+    <ul>
+        <li>{{ request.total_guestbook }} messages dans le livre d'or</li>
+    </ul>
+    <center><a href="{% url 'guestbook_home' %}#form" class="btn btn-add">Laisser un message</a></center>
+</div>
+<div class="menu">
+    <h2>Stats Site</h2>
+    <ul>
+        <li>Membres : {{ request.total_users }}</li>
+        <li>Dernier inscrit : <a href="{% url 'profile' request.last_user.id %}">{{ request.last_user }}</a></li>
+        <li>Visiteurs : {{ request.visitor_count }}</li>
+        <li>Visites totales : {{ request.total_visitor_count }}</li>
+    </ul>
+</div>
+<div class="menu">
+    <h2>Stats Forum</h2>
+    <ul>
+        <li>Messages : {{ request.total_posts }}</li>
+        <li>Sujets : {{ request.total_topics }}</li>
+        {% if request.last_topic %}
+            <li>Dernier Sujet créer : <a href="{% url 'post_list' request.last_topic.forum.id request.last_topic.id %}">{{ request.last_topic.title }}</a></li>
+        {% else %}
+            <li>Dernier Sujet créer : Aucun</li>
+        {% endif %}
+        {% if request.last_post %}
+            <li>Dernier Message : <a href="{% url 'post_list' request.last_post.topic.forum.id request.last_post.topic.id %}">{{ request.last_post.topic.title }}</a></li>
+        {% else %}
+            <li>Dernier Message : Aucun</li>
+        {% endif %}
+    </ul>
+</div>

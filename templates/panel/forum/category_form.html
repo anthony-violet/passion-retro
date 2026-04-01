@@ -1,0 +1,25 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>{{ action }} une catégorie</h2>
+    <a href="{% url 'panel_forum' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-group">
+            <label>Nom</label>
+            <input type="text" name="name" value="{{ category.name|default:'' }}" required>
+        </div>
+        <div class="panel-form-group">
+            <label>Description</label>
+            <textarea name="description" rows="2">{{ category.description|default:'' }}</textarea>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">{{ action }}</button>
+            <a href="{% url 'panel_forum' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

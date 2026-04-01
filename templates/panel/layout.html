@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="panel-wrapper">
+    <aside class="panel-sidebar">
+        <div class="panel-sidebar-header">
+            <span>⚙ Administration</span>
+        </div>
+        <nav class="panel-nav">
+            <a href="{% url 'panel_dashboard' %}" class="panel-nav-item {% if request.resolver_match.url_name == 'panel_dashboard' %}active{% endif %}">
+                📊 Tableau de bord
+            </a>
+            <a href="{% url 'panel_user_list' %}" class="panel-nav-item {% if 'panel_user' in request.resolver_match.url_name %}active{% endif %}">
+                👤 Utilisateurs
+            </a>
+            <a href="{% url 'panel_forum' %}" class="panel-nav-item {% if 'panel_forum' in request.resolver_match.url_name %}active{% endif %}">
+                💬 Forum
+            </a>
+            <a href="{% url 'panel_posts' %}" class="panel-nav-item {% if 'panel_post' in request.resolver_match.url_name %}active{% endif %}">
+                📰 Articles
+            </a>
+            <a href="{% url 'panel_quiz' %}" class="panel-nav-item {% if 'panel_quiz' in request.resolver_match.url_name %}active{% endif %}">
+                ❓ Quiz
+            </a>
+            <a href="{% url 'panel_shop' %}" class="panel-nav-item {% if 'panel_shop' in request.resolver_match.url_name %}active{% endif %}">
+                🛒 Boutique
+            </a>
+            <a href="{% url 'panel_guestbook' %}" class="panel-nav-item {% if 'panel_guestbook' in request.resolver_match.url_name %}active{% endif %}">
+                📖 Livre d'or
+            </a>
+            <a href="{% url 'panel_games' %}" class="panel-nav-item {% if 'panel_games' in request.resolver_match.url_name %}active{% endif %}">
+                🎮 Jeux
+            </a>
+            <a href="{% url 'panel_maintenance' %}" class="panel-nav-item {% if 'panel_maintenance' in request.resolver_match.url_name %}active{% endif %}">
+                🔧 Maintenance
+            </a>
+            <div class="panel-nav-separator"></div>
+            <a href="{% url 'home' %}" class="panel-nav-item">← Retour au site</a>
+        </nav>
+    </aside>
+    <main class="panel-main">
+        {% if messages %}
+            <div class="notification">
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="{{ message.tags }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        {% block panel_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

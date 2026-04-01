@@ -1,0 +1,53 @@
+<!-- Ajout du bouton burger -->
+<div class="burger-menu">
+    <button class="burger-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+</div>
+<!-- Menu horizontal existant -->
+<div class="menu-horizontal">
+    <ul>
+        <li><a href="{% url 'home' %}">Accueil</a></li>
+        <li><a href="{% url 'forum_home' %}">Forum</a></li>
+        <li>
+            <a href="{% url 'portal_games' %}">
+                Portail des jeux
+                {% if request.user.is_staff and pending_quizes_count > 0 %}
+                    <span class="badge badge-warning">{{ pending_quizes_count }}</span>
+                {% endif %}
+            </a>
+        </li>
+        <li><a href="{% url 'shop_home' %}" class="new-item-menu">Boutique</a></li>
+        <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
+        <li><a href="">Technologies</a>
+            <ul class="dropdown">
+                {% for tech in request.posts_tech %}
+                    <li><a href="{% url 'view_post' tech.slug %}">{{ tech.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li><a href="">Musique</a>
+            <ul>
+                {% for music in request.posts_music %}
+                    <li><a href="{% url 'view_post' music.slug %}">{{ music.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li><a href="">Films & Series</a>
+            <ul>
+                {% for movies in request.posts_movies %}
+                    <li><a href="{% url 'view_post' movies.slug %}">{{ movies.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </li>
+        <li><a href="">Jeux</a>
+            <ul class="dropdown">
+                {% for games in request.posts_games %}
+                    <li><a href="{% url 'view_post' games.slug %}">{{ games.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </li>
+    </ul>
+</div>

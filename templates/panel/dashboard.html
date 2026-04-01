@@ -1,0 +1,111 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Tableau de bord</h2>
+</div>
+
+<div class="panel-stats-grid">
+    <div class="panel-stat-card">
+        <div class="panel-stat-icon">👤</div>
+        <div class="panel-stat-body">
+            <div class="panel-stat-value">{{ total_users }}</div>
+            <div class="panel-stat-label">Utilisateurs</div>
+            <div class="panel-stat-sub">{{ active_users }} actifs · {{ inactive_users }} inactifs</div>
+        </div>
+    </div>
+    <div class="panel-stat-card {% if pending_posts > 0 %}panel-stat-warning{% endif %}">
+        <div class="panel-stat-icon">📰</div>
+        <div class="panel-stat-body">
+            <div class="panel-stat-value">{{ total_posts }}</div>
+            <div class="panel-stat-label">Articles</div>
+            <div class="panel-stat-sub">
+                {% if pending_posts > 0 %}
+                    <a href="{% url 'panel_posts' %}?status=pending">{{ pending_posts }} en attente</a>
+                {% else %}
+                    Aucun en attente
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="panel-stat-card">
+        <div class="panel-stat-icon">💬</div>
+        <div class="panel-stat-body">
+            <div class="panel-stat-value">{{ total_forum_posts }}</div>
+            <div class="panel-stat-label">Messages forum</div>
+            <div class="panel-stat-sub">{{ total_forum_topics }} sujets</div>
+        </div>
+    </div>
+    <div class="panel-stat-card {% if pending_quizzes > 0 %}panel-stat-warning{% endif %}">
+        <div class="panel-stat-icon">❓</div>
+        <div class="panel-stat-body">
+            <div class="panel-stat-value">{{ total_quizzes }}</div>
+            <div class="panel-stat-label">Quiz</div>
+            <div class="panel-stat-sub">
+                {% if pending_quizzes > 0 %}
+                    <a href="{% url 'panel_quiz' %}">{{ pending_quizzes }} inactifs</a>
+                {% else %}
+                    Tous actifs
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="panel-stat-card {% if pending_guestbook > 0 %}panel-stat-warning{% endif %}">
+        <div class="panel-stat-icon">📖</div>
+        <div class="panel-stat-body">
+            <div class="panel-stat-value">{{ total_guestbook }}</div>
+            <div class="panel-stat-label">Livre d'or</div>
+            <div class="panel-stat-sub">
+                {% if pending_guestbook > 0 %}
+                    <a href="{% url 'panel_guestbook' %}">{{ pending_guestbook }} masqués</a>
+                {% else %}
+                    Aucun masqué
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="panel-stat-card">
+        <div class="panel-stat-icon">🛒</div>
+        <div class="panel-stat-body">
+            <div class="panel-stat-value">{{ total_items }}</div>
+            <div class="panel-stat-label">Items boutique</div>
+        </div>
+    </div>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header">
+        <h3>Derniers inscrits</h3>
+    </div>
+    <table class="panel-table">
+        <thead>
+            <tr>
+                <th>Pseudo</th>
+                <th>Email</th>
+                <th>Inscrit le</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in new_users %}
+            <tr>
+                <td><strong>{{ user.username }}</strong></td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.date_joined|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if user.active %}
+                        <span class="panel-badge panel-badge-success">Actif</span>
+                    {% else %}
+                        <span class="panel-badge panel-badge-danger">Inactif</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'panel_user_edit' user.id %}" class="btn btn-small">Éditer</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

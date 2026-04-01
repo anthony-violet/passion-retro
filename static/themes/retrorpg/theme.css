@@ -1,0 +1,1307 @@
+/* ================================================================
+   Thème Retro RPG NES — Passion Rétro
+   Inspiration : Final Fantasy I, Dragon Quest, Zelda II,
+   Ultima, Wizardry, Megami Tensei — Ère NES/Famicom (1985-1995)
+   Fenêtres texte blanches, bordures noires épaisses,
+   fond sombre bleu nuit, couleurs limitées NES
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('./banner.css');
+
+/* ================================================================
+   VARIABLES CSS — Palette NES
+   ================================================================ */
+:root {
+    /* --- Fonds — bleu nuit NES profond --- */
+    --bg-body:                #0c0c1d;
+    --bg-container:           #0c0c1d;
+    --bg-menu:                #0c0c1d;
+    --bg-menu-guestbook:      #080818;
+    --bg-post-card:           #0c0c1d;
+    --bg-notification-success:#0a1a0a;
+    --bg-notification-error:  #1a0a0a;
+    --bg-forum-row:           #101028;
+    --bg-forum-row-even:      #141438;
+    --bg-stats-forum:         #0a0a18;
+    --bg-contribution:        #0c0c1d;
+    --bg-contribution-hover:  #141438;
+
+    /* --- Boutons — style NES --- */
+    --bg-button:
+        linear-gradient(to bottom, #4444aa 0%, #28288c 50%, #181868 100%);
+    --bg-button-hover:
+        linear-gradient(to bottom, #5858cc 0%, #4444aa 50%, #28288c 100%);
+    --bg-button-add:
+        linear-gradient(to bottom, #288828 0%, #187818 50%, #0c5c0c 100%);
+    --bg-button-add-hover:
+        linear-gradient(to bottom, #34a834 0%, #288828 50%, #187818 100%);
+    --bg-button-danger:
+        linear-gradient(to bottom, #cc2828 0%, #a81818 50%, #880c0c 100%);
+    --bg-button-danger-hover:
+        linear-gradient(to bottom, #e83838 0%, #cc2828 50%, #a81818 100%);
+    --bg-button-warning:
+        linear-gradient(to bottom, #cc8800 0%, #aa7000 50%, #885800 100%);
+    --bg-button-warning-hover:
+        linear-gradient(to bottom, #e8a000 0%, #cc8800 50%, #aa7000 100%);
+    --bg-input:               #080818;
+    --bg-page-link:
+        linear-gradient(to bottom, #181848 0%, #101038 100%);
+    --bg-page-link-hover:
+        linear-gradient(to bottom, #282868 0%, #181858 100%);
+    --bg-active-page:
+        linear-gradient(to bottom, #4444aa 0%, #28288c 100%);
+    --bg-disabled-page:       #101028;
+    --bg-footer:
+        linear-gradient(to bottom, #080818 0%, #04040c 100%);
+
+    /* --- Textes — couleurs NES --- */
+    --text-primary:           #fcfcfc;
+    --text-link:              #3cbcfc;
+    --text-link-hover:        #7cd8fc;
+    --text-danger:            #fc5454;
+    --text-admin:             #fcfc54;
+    --text-sadmin:            #fc54fc;
+    --text-menu-header:       #fcfcfc;
+    --text-guestbook-date:    #7878a8;
+    --text-guestbook-author:  #54fc54;
+    --text-badge:             #fcfcfc;
+    --text-notification-success: #54fc54;
+    --text-notification-error:   #fc5454;
+    --text-forum-header:      #fcfcfc;
+    --text-category-name:     #fcfcfc;
+    --text-forum-header-row:  #3cbcfc;
+    --text-unread-badge:      #fc5454;
+    --text-button:            #fcfcfc;
+    --text-button-add:        #fcfcfc;
+    --text-button-danger:     #fcfcfc;
+    --text-button-warning:    #fcfcfc;
+    --text-button-warning-hover: #fcfcfc;
+    --text-page-link:         #3cbcfc;
+    --text-page-link-hover:   #fcfcfc;
+    --text-active-page:       #fcfcfc;
+    --text-disabled-page:     #3c3c5c;
+    --text-footer:            #3c3c5c;
+    --text-footer-hover:      #3cbcfc;
+
+    /* --- Bordures — noires épaisses style NES --- */
+    --border-container:       #fcfcfc;
+    --border-menu-header:     #fcfcfc;
+    --border-menu-guestbook:  #3c3c5c;
+    --border-badge:           #885818;
+    --border-post-card:       #fcfcfc;
+    --border-notification-success: #288828;
+    --border-notification-error:   #cc2828;
+    --border-stats-forum:     #3c3c5c;
+    --border-contribution:    #fcfcfc;
+    --border-button:          #fcfcfc;
+    --border-button-add:      #fcfcfc;
+    --border-button-danger:   #fcfcfc;
+    --border-button-warning:  #fcfcfc;
+    --border-input:           #3c3c5c;
+    --border-input-focus:     #3cbcfc;
+    --border-page-link:       #3c3c5c;
+    --border-active-page:     #fcfcfc;
+
+    /* --- Dégradés --- */
+    --gradient-menu-header:
+        linear-gradient(to bottom, #28288c 0%, #181868 50%, #0c0c48 100%);
+    --gradient-post-card-header:
+        linear-gradient(to bottom, #181868 0%, #0c0c48 100%);
+    --gradient-forum-category:
+        linear-gradient(to bottom, #882828 0%, #681818 100%);
+    --gradient-forum-header:
+        linear-gradient(to bottom, #28288c 0%, #181868 100%);
+
+    /* --- Ombres — nettes, pas de flou NES --- */
+    --shadow-container:
+        4px 4px 0 0 #000,
+        inset 0 0 0 2px rgba(0,0,0,0.3);
+    --shadow-button:
+        3px 3px 0 0 #000;
+    --shadow-button-hover:
+        2px 2px 0 0 #000;
+    --shadow-button-add:      3px 3px 0 0 #000;
+    --shadow-button-add-hover:2px 2px 0 0 #000;
+    --shadow-button-danger:   3px 3px 0 0 #000;
+    --shadow-button-danger-hover: 2px 2px 0 0 #000;
+    --shadow-button-warning:  3px 3px 0 0 #000;
+    --shadow-button-warning-hover: 2px 2px 0 0 #000;
+    --shadow-input:           inset 2px 2px 0 0 rgba(0,0,0,0.5);
+    --shadow-input-focus:
+        inset 2px 2px 0 0 rgba(0,0,0,0.5),
+        0 0 0 2px #3cbcfc;
+
+    /* --- Text shadows --- */
+    --text-shadow-menu-header: 2px 2px 0 #000;
+    --text-shadow-button:     2px 2px 0 #000;
+    --text-shadow-button-warning: 2px 2px 0 #000;
+}
+
+/* ================================================================
+   FOND — Grille pixel subtile
+   ================================================================ */
+html, body {
+    background-color: #0c0c1d;
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 3px,
+            rgba(255, 255, 255, 0.008) 3px,
+            rgba(255, 255, 255, 0.008) 4px
+        );
+    background-attachment: fixed;
+}
+
+/* Scanlines CRT */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 1px,
+        rgba(0, 0, 0, 0.04) 1px,
+        rgba(0, 0, 0, 0.04) 2px
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ================================================================
+   TYPOGRAPHIE — Pixel font NES
+   ================================================================ */
+body {
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-size: 9px;
+    line-height: 2;
+    color: #fcfcfc;
+    position: relative;
+    z-index: 1;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Press Start 2P', monospace;
+    color: #fcfc54;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #000;
+    line-height: 1.8;
+}
+
+a {
+    color: #3cbcfc;
+    text-decoration: none;
+    font-weight: normal;
+    transition: none;
+    text-shadow: 1px 1px 0 #000;
+}
+
+a:hover {
+    color: #7cd8fc;
+    text-decoration: none;
+    text-shadow: 1px 1px 0 #000;
+}
+
+a:visited {
+    color: #2888b0;
+}
+
+a.danger {
+    color: #fc5454;
+}
+
+.text-admin {
+    color: var(--text-admin);
+    font-weight: bold;
+}
+
+.text-sadmin {
+    color: var(--text-sadmin);
+    font-weight: bold;
+}
+
+/* ================================================================
+   NAVIGATION (header-list) — Barre menu NES
+   ================================================================ */
+.header-list {
+    background: #181848;
+    border-top: 3px solid #fcfcfc;
+    border-bottom: 3px solid #fcfcfc;
+    box-shadow:
+        0 3px 0 0 #000;
+    position: relative;
+}
+
+.header-list a {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: #fcfcfc;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 0 #000;
+    transition: none;
+}
+
+.header-list a:hover {
+    color: #fcfc54;
+    text-shadow: 1px 1px 0 #885818;
+}
+
+/* ================================================================
+   CONTENEURS ET MENUS — Fenêtres texte NES
+   ================================================================ */
+.container, .menu {
+    background-color: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow:
+        4px 4px 0 0 #000,
+        inset 0 0 0 1px rgba(0,0,0,0.3);
+    overflow: visible;
+    position: relative;
+}
+
+.container h2, .menu h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #fcfcfc;
+    background: linear-gradient(to bottom, #28288c 0%, #181868 100%);
+    border-bottom: 3px solid #fcfcfc;
+    text-shadow: 2px 2px 0 #000;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    margin: 0;
+}
+
+/* --- Items de menu --- */
+.menu ul li {
+    border-bottom: 1px dashed #3c3c5c;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    line-height: 2.2;
+}
+
+.menu ul li:last-child {
+    border-bottom: none;
+}
+
+.menu ul li a {
+    color: #3cbcfc;
+    transition: none;
+    display: block;
+    padding: 2px 0;
+}
+
+.menu ul li a:hover {
+    color: #fcfc54;
+    text-shadow: 1px 1px 0 #885818;
+    padding-left: 8px;
+}
+
+/* Menu horizontal — navigation top NES */
+.menu-horizontal {
+    width: 100%;
+    background: linear-gradient(to bottom, #28288c 0%, #181868 100%);
+    border-bottom: 3px solid #fcfcfc;
+}
+
+.menu-horizontal > ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0;
+    margin: 0;
+    gap: 0;
+}
+
+.menu-horizontal > ul > li {
+    position: relative;
+    padding: 0;
+    border-bottom: none;
+}
+
+.menu-horizontal > ul > li > a {
+    display: block;
+    padding: 10px 14px;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    font-weight: normal;
+    text-decoration: none;
+    text-shadow: 1px 1px 0 #000;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-right: 2px solid #3c3c6c;
+    transition: none;
+}
+
+.menu-horizontal > ul > li > a:hover {
+    color: #fcfc54;
+    background: rgba(252, 252, 84, 0.1);
+    text-decoration: none;
+}
+
+/* Sous-menus dropdown */
+.menu-horizontal > ul > li > ul {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 180px;
+    background: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 200;
+}
+
+.menu-horizontal > ul > li:hover > ul {
+    display: block;
+}
+
+.menu-horizontal > ul > li > ul > li {
+    border-bottom: 1px dashed #3c3c5c;
+    padding: 0;
+}
+
+.menu-horizontal > ul > li > ul > li > a {
+    display: block;
+    padding: 8px 12px;
+    color: #3cbcfc;
+    text-decoration: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.menu-horizontal > ul > li > ul > li > a:hover {
+    background: #181848;
+    color: #fcfc54;
+}
+
+/* Burger menu */
+.burger-menu {
+    display: none;
+}
+
+@media screen and (max-width: 768px) {
+    .burger-menu {
+        display: flex;
+        align-items: center;
+        padding: 8px;
+    }
+
+    .burger-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding: 4px;
+    }
+
+    .burger-icon span {
+        display: block;
+        width: 20px;
+        height: 3px;
+        background: #fcfcfc;
+    }
+
+    .menu-horizontal > ul {
+        display: none;
+        flex-direction: column;
+        padding: 0;
+        gap: 0;
+    }
+
+    .menu-horizontal > ul > li > a {
+        padding: 12px 16px;
+        border-bottom: 1px solid #3c3c5c;
+        border-right: none;
+    }
+}
+
+/* ================================================================
+   BOUTONS — Style NES
+   ================================================================ */
+.btn, button, .btn-default {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 3px solid #fcfcfc;
+    background: linear-gradient(to bottom, #4444aa 0%, #28288c 100%);
+    color: #fcfcfc;
+    text-shadow: 2px 2px 0 #000;
+    box-shadow: 3px 3px 0 0 #000;
+    transition: none;
+    cursor: pointer;
+    padding: 8px 16px;
+    position: relative;
+}
+
+.btn:hover, button:hover, .btn-default:hover {
+    border-color: #fcfc54;
+    color: #fcfc54;
+    box-shadow: 2px 2px 0 0 #000;
+    transform: translate(1px, 1px);
+}
+
+.btn:active, button:active, .btn-default:active {
+    box-shadow: 1px 1px 0 0 #000;
+    transform: translate(2px, 2px);
+}
+
+.btn-add {
+    background: linear-gradient(to bottom, #288828 0%, #187818 100%) !important;
+    border-color: #fcfcfc !important;
+    color: #fcfcfc !important;
+}
+
+.btn-add:hover {
+    border-color: #54fc54 !important;
+    color: #54fc54 !important;
+}
+
+.btn-danger {
+    background: linear-gradient(to bottom, #cc2828 0%, #a81818 100%) !important;
+    border-color: #fcfcfc !important;
+    color: #fcfcfc !important;
+}
+
+.btn-danger:hover {
+    border-color: #fc5454 !important;
+    color: #fc5454 !important;
+}
+
+.btn-warning {
+    background: linear-gradient(to bottom, #cc8800 0%, #aa7000 100%) !important;
+    border-color: #fcfcfc !important;
+    color: #fcfcfc !important;
+}
+
+.btn-warning:hover {
+    border-color: #fcfc54 !important;
+    color: #fcfc54 !important;
+}
+
+.btn-small {
+    font-size: 6px;
+    padding: 4px 8px;
+}
+
+.btn-large {
+    font-size: 10px;
+    padding: 12px 24px;
+}
+
+/* ================================================================
+   CHAMPS DE SAISIE
+   ================================================================ */
+input, textarea, select {
+    background-color: #080818;
+    color: #fcfcfc;
+    border: 2px solid #3c3c5c;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    caret-color: #fcfc54;
+    box-shadow: inset 2px 2px 0 0 rgba(0,0,0,0.5);
+    transition: none;
+    padding: 8px;
+    line-height: 1.8;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #3cbcfc;
+    box-shadow: inset 2px 2px 0 0 rgba(0,0,0,0.5), 0 0 0 2px #3cbcfc;
+}
+
+input::placeholder, textarea::placeholder {
+    color: #3c3c5c;
+}
+
+select option {
+    background-color: #0c0c1d;
+    color: #fcfcfc;
+}
+
+label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: #fcfcfc;
+    margin-bottom: 4px;
+    display: block;
+    text-shadow: 1px 1px 0 #000;
+}
+
+/* ================================================================
+   FORUM
+   ================================================================ */
+.forum .category-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.forum-header {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.forum-row {
+    border-bottom: 1px dashed #282858;
+    transition: none;
+}
+
+.forum-row:hover {
+    background-color: #181848 !important;
+    border-left: 4px solid #fcfc54;
+}
+
+.forum-row .topic-title a {
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.forum-row .topic-title a:hover {
+    color: #fcfc54;
+}
+
+.forum-column, .forum-column-detail {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+/* ================================================================
+   PROFIL UTILISATEUR
+   ================================================================ */
+.profile-header {
+    background: linear-gradient(to bottom, #181848 0%, #0c0c30 100%);
+    border-bottom: 3px solid #fcfcfc;
+}
+
+.profile-avatar img {
+    border: 3px solid #fcfcfc;
+    box-shadow:
+        4px 4px 0 0 #000;
+    transition: none;
+    image-rendering: pixelated;
+}
+
+.profile-avatar img:hover {
+    box-shadow:
+        2px 2px 0 0 #000;
+}
+
+.level-badge {
+    background: linear-gradient(to bottom, #288828 0%, #185818 100%);
+    border: 3px solid #fcfcfc;
+    box-shadow: 3px 3px 0 0 #000;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+}
+
+.level-number {
+    font-family: 'Press Start 2P', monospace;
+}
+
+.username {
+    font-family: 'Press Start 2P', monospace;
+    color: #fcfc54;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.profile-name {
+    font-family: 'Press Start 2P', monospace;
+    color: #fcfc54;
+}
+
+.stat-item {
+    background: #101028;
+    border: 2px solid #3c3c5c;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.stat-value {
+    color: #fcfc54;
+    font-family: 'Press Start 2P', monospace;
+}
+
+.stat-label {
+    color: #7878a8;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+}
+
+.profile-bio {
+    border-left: 4px solid #fcfc54;
+    background-color: #101028;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    line-height: 2;
+}
+
+/* ================================================================
+   CARTES POSTS / NEWS
+   ================================================================ */
+.post-card, .news {
+    background-color: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+}
+
+.post-card .header, .news-header, .post-card-header {
+    background: linear-gradient(to bottom, #28288c 0%, #181868 100%);
+    border-bottom: 3px solid #fcfcfc;
+}
+
+.post-card .header h3, .news-header h3, .post-card-header h3 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #fcfc54;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.guestbook p {
+    background-color: #101028;
+    border: 2px solid #3c3c5c;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+}
+
+/* ================================================================
+   CARTES JEU / QUIZ
+   ================================================================ */
+.card-game, .card-quiz {
+    background-color: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+    transition: none;
+}
+
+.card-game:hover, .card-quiz:hover {
+    border-color: #fcfc54;
+    box-shadow: 2px 2px 0 0 #000;
+    transform: translate(2px, 2px);
+}
+
+.card-game .header, .card-quiz .header {
+    background: linear-gradient(to bottom, #882828 0%, #681818 100%);
+    border-bottom: 3px solid #fcfcfc;
+}
+
+.card-game .header h3 a, .card-quiz .header h3 a {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: #fcfc54;
+}
+
+.card-game .body, .card-quiz .body {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    line-height: 2;
+}
+
+/* ================================================================
+   BREADCRUMB
+   ================================================================ */
+ul.breadcrumbs {
+    background: #101028;
+    border-top: 2px solid #3c3c5c;
+    border-bottom: 2px solid #3c3c5c;
+    color: #7878a8;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+}
+
+ul.breadcrumbs li::after {
+    content: ' >';
+    color: #fcfc54;
+}
+
+ul.breadcrumbs li:last-child::after {
+    content: '';
+}
+
+ul.breadcrumbs a {
+    color: #3cbcfc;
+}
+
+/* ================================================================
+   MENU POST (postmenu)
+   ================================================================ */
+.postmenu {
+    background-color: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+}
+
+.postmenu .header {
+    background: linear-gradient(to bottom, #28288c 0%, #181868 100%);
+    color: #fcfcfc;
+    border-bottom: 3px solid #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.postmenu .body ul li {
+    border-bottom: 1px dashed #3c3c5c;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.postmenu .body ul li a {
+    color: #3cbcfc;
+}
+
+.postmenu .body ul li:hover {
+    color: #fcfc54;
+}
+
+/* ================================================================
+   PAGINATION
+   ================================================================ */
+ul.pagination li a {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    border: 2px solid #3c3c5c;
+    background: #181848;
+    color: #3cbcfc;
+    padding: 4px 8px;
+}
+
+ul.pagination li a:hover {
+    background: #282868;
+    color: #fcfc54;
+    border-color: #fcfc54;
+}
+
+li.active span {
+    background: #4444aa;
+    color: #fcfcfc;
+    border-color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    box-shadow: 2px 2px 0 0 #000;
+}
+
+li.disabled span {
+    background: #101028;
+    color: #3c3c5c;
+    border-color: #282848;
+}
+
+/* ================================================================
+   NOTIFICATIONS
+   ================================================================ */
+.notification li.success {
+    background-color: #0a1a0a;
+    border-left: 4px solid #288828;
+    color: #54fc54;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    box-shadow: 3px 3px 0 0 #000;
+}
+
+.notification li.error {
+    background-color: #1a0a0a;
+    border-left: 4px solid #cc2828;
+    color: #fc5454;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    box-shadow: 3px 3px 0 0 #000;
+}
+
+/* ================================================================
+   ÉDITEUR BBCODE
+   ================================================================ */
+.bbcode-bar {
+    background: #181848;
+    border: 2px solid #3c3c5c;
+    border-bottom: none;
+}
+
+.bbcode-bar-item {
+    background: #101038;
+    border: 2px solid #3c3c5c;
+    color: #3cbcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    transition: none;
+}
+
+.bbcode-bar-item:hover {
+    background: #282868;
+    border-color: #fcfc54;
+    color: #fcfc54;
+}
+
+.bbcode-draggable-window {
+    background-color: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+}
+
+.bbcode-draggable-window .bbcode-window-header {
+    background: linear-gradient(to bottom, #28288c 0%, #181868 100%);
+    border-bottom: 3px solid #fcfcfc;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.bbcode-quote-block {
+    background: #101028;
+    border-left: 4px solid #fcfc54;
+    color: #a8a8c8;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.bbcode-quote-block .bbcode-quote-author {
+    color: #fcfc54;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+/* Fenêtre draggable */
+.draggable {
+    background-color: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+}
+
+.draggable .header {
+    background: linear-gradient(to bottom, #28288c 0%, #181868 100%);
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.draggable .close-button {
+    color: #fcfc54;
+}
+
+.draggable .close-button:hover {
+    color: #fc5454;
+}
+
+.draggable .content {
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    line-height: 2;
+}
+
+/* Rendu BBCode */
+h1.h1-bbcode {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    color: #fcfc54;
+    border-bottom: 3px solid #fcfcfc;
+    text-shadow: 2px 2px 0 #000;
+}
+
+h2.h2-bbcode {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    color: #fcfc54;
+    border-bottom: 2px solid #3c3c5c;
+}
+
+h3.h3-bbcode {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: #3cbcfc;
+}
+
+fieldset.quote-bbcode {
+    border: 3px solid #3c3c5c;
+    background-color: #101028;
+}
+
+fieldset.quote-bbcode legend {
+    border: 2px solid #3c3c5c;
+    background: #181848;
+    color: #fcfc54;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+/* ================================================================
+   LIVRE D'OR
+   ================================================================ */
+.menu ul.guestbook {
+    background: #080818;
+    border: 2px solid #3c3c5c;
+}
+
+.menu ul.guestbook li span.date {
+    color: #3c3c5c;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+}
+
+.menu ul.guestbook li span.author {
+    color: #54fc54;
+    font-weight: normal;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+/* ================================================================
+   FOOTER
+   ================================================================ */
+.footer {
+    background: linear-gradient(to bottom, #080818 0%, #04040c 100%);
+    border-top: 3px solid #fcfcfc;
+    color: #3c3c5c;
+    position: relative;
+}
+
+.footer p {
+    color: #3c3c5c;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    text-shadow: none;
+}
+
+.footer a {
+    color: #3c3c5c;
+    transition: none;
+}
+
+.footer a:hover {
+    color: #3cbcfc;
+    text-shadow: none;
+}
+
+/* ================================================================
+   STATS FORUM / CONTRIBUTIONS
+   ================================================================ */
+.stats_forum ul {
+    background: #080818;
+    border: 2px solid #3c3c5c;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.contribution {
+    background: #0c0c1d;
+    border-bottom: 1px dashed #282858;
+    transition: none;
+}
+
+.contribution:hover {
+    background: #181848;
+    border-left: 4px solid #fcfc54;
+}
+
+/* ================================================================
+   BADGE & TAGS
+   ================================================================ */
+.badge {
+    background: #fc5454;
+    border: 2px solid #fcfcfc;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    box-shadow: 2px 2px 0 0 #000;
+}
+
+.new-item-menu::after {
+    background: #fc5454;
+    border: 2px solid #fcfcfc;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 5px;
+    box-shadow: 2px 2px 0 0 #000;
+}
+
+/* ================================================================
+   TABLEAU (quiz, messagerie...)
+   ================================================================ */
+table.quiz thead tr, .table .header {
+    background: linear-gradient(to bottom, #28288c 0%, #181868 100%);
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    letter-spacing: 1px;
+    border-bottom: 3px solid #fcfcfc;
+}
+
+table.quiz tbody tr {
+    border-bottom: 1px dashed #282858;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+table.quiz tbody tr:hover {
+    background: #181848;
+    color: #fcfc54;
+}
+
+.table {
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.table .body {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: #fcfcfc;
+}
+
+.table .body:hover {
+    background: #181848;
+}
+
+/* ================================================================
+   BOUTIQUE
+   ================================================================ */
+.shop .card-shop {
+    background-color: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+    transition: none;
+}
+
+.shop .card-shop:hover {
+    border-color: #fcfc54;
+    box-shadow: 2px 2px 0 0 #000;
+    transform: translate(2px, 2px);
+}
+
+.shop .card-shop .card-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: #fcfc54;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.shop .card-shop .card-text {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    color: #fcfcfc;
+}
+
+.btn-shop-primary {
+    background: linear-gradient(to bottom, #4444aa 0%, #28288c 100%);
+    border: 3px solid #fcfcfc;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    box-shadow: 3px 3px 0 0 #000;
+}
+
+.btn-shop-primary:hover {
+    border-color: #fcfc54;
+    color: #fcfc54;
+}
+
+.btn-shop-secondary {
+    background: linear-gradient(to bottom, #cc8800 0%, #aa7000 100%);
+    border: 3px solid #fcfcfc;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    box-shadow: 3px 3px 0 0 #000;
+}
+
+.fa-coins {
+    color: #fcfc54;
+}
+
+/* ================================================================
+   MESSAGERIE
+   ================================================================ */
+.new-message {
+    background-color: #288828;
+    border: 2px solid #fcfcfc;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    box-shadow: 2px 2px 0 0 #000;
+}
+
+/* ================================================================
+   QUIZ
+   ================================================================ */
+.quiz-title {
+    font-family: 'Press Start 2P', monospace;
+    color: #fcfc54;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.quiz-question {
+    background: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+}
+
+.question-header {
+    background: linear-gradient(to bottom, #882828 0%, #681818 100%);
+    border-bottom: 3px solid #fcfcfc;
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.question-content h3 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: #fcfc54;
+}
+
+.choice-item {
+    border: 2px solid #3c3c5c;
+    background-color: #101028;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.choice-item:hover {
+    background-color: #181848;
+    border-color: #fcfc54;
+}
+
+.choice-item label {
+    color: #fcfcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+}
+
+.submit-button {
+    background: linear-gradient(to bottom, #4444aa 0%, #28288c 100%);
+    border: 3px solid #fcfcfc;
+    color: #fcfcfc !important;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    box-shadow: 4px 4px 0 0 #000;
+}
+
+.submit-button:hover {
+    border-color: #fcfc54;
+    color: #fcfc54 !important;
+    box-shadow: 2px 2px 0 0 #000;
+    transform: translate(2px, 2px);
+}
+
+.quiz-result-card {
+    background-color: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+}
+
+.score-details h3 {
+    font-family: 'Press Start 2P', monospace;
+    color: #fcfc54;
+}
+
+.score-number {
+    font-family: 'Press Start 2P', monospace;
+}
+
+.score-message {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+}
+
+/* ================================================================
+   GALERIE
+   ================================================================ */
+.gallery-item {
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+}
+
+/* ================================================================
+   SCROLLBAR — Style NES
+   ================================================================ */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0c0c1d;
+    border-left: 2px solid #3c3c5c;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #28288c;
+    border: 2px solid #fcfcfc;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4444aa;
+    border-color: #fcfc54;
+}
+
+/* ================================================================
+   SÉLECTION DE TEXTE
+   ================================================================ */
+::selection {
+    background: #fcfc54;
+    color: #0c0c1d;
+}
+
+/* ================================================================
+   SÉPARATEUR
+   ================================================================ */
+hr {
+    border: none;
+    height: 3px;
+    background: #3c3c5c;
+    margin: 10px 0;
+}
+
+/* ================================================================
+   TRANSITIONS
+   ================================================================ */
+.container, .menu, .post-card, .news, .forum-row, a {
+    transition: none;
+}
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media screen and (min-width: 768px) {
+    .warning-announce-not-mobile-compatible {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .col-2 {
+        order: 2;
+    }
+
+    .col-7 {
+        order: 1;
+    }
+
+    body {
+        font-size: 8px;
+    }
+
+    .banner-text {
+        font-size: 18px;
+    }
+}

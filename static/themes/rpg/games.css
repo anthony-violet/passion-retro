@@ -1,0 +1,310 @@
+.card-game {
+    margin: 15px;
+}
+
+.card-game .header {
+    padding: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.card-game .body {
+    padding: 10px;
+}
+
+.card-game .footer {
+    padding: 10px;
+    font-size: 0.8rem;
+}
+
+ul.inline {
+    display: flex;
+    flex-direction: row;
+}
+
+ul.inline li {
+    display: flex;
+    list-style: none;
+    margin: 0 10px 0 0;
+}
+
+.countdown {
+    font-size: 20px; 
+    text-align: center;
+}
+
+/* PETIT BAC */
+.game-bac-letter {
+    position: absolute;
+    right: 10px;
+    top: 60px; 
+    margin: auto;
+    padding: 10px;
+    font-size: 1.5rem;
+}
+
+table.bac {
+    width: 90%;
+    margin: auto;
+    border-collapse: collapse;
+}
+
+table.bac th, table.bac td {
+    text-align: center;
+    padding: 5px;
+}
+
+/* QUIZ */
+
+table.quiz {
+    width: 90%;
+    margin: auto;
+    border-collapse: collapse;
+}
+
+table.quiz th, table.quiz td {
+    text-align: center;
+    padding: 5px;
+}
+
+/* QUIZ */
+.quizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+.quiz-item {
+    flex: 1 1 300px;
+    padding: 15px;
+}
+
+.quiz-item h3 {
+    padding-bottom: 10px;
+    margin-top: 0;
+}
+
+.quiz-item p {
+    margin: 8px 0;
+    font-size: 0.9rem;
+}
+
+/* Quiz Styles */
+.quiz-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.quiz-title {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2rem;
+    padding-bottom: 10px;
+}
+
+.quiz-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.quiz-question {
+    margin-bottom: 20px;
+}
+
+.question-header {
+    padding: 10px 15px;
+    font-weight: bold;
+}
+
+.question-content {
+    padding: 20px;
+}
+
+.question-content h3 {
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.choices-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+}
+
+.choice-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 8px 8px 25px;
+}
+
+.choice-item input[type="radio"] {
+    margin-right: 10px;
+}
+
+.choice-item label {
+    cursor: pointer;
+    flex: 1;
+}
+
+.submit-container {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.submit-button {
+    margin: 10px auto;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Quiz Results Styles */
+.quiz-result-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.quiz-result-card {
+    text-align: center;
+    padding: 20px;
+}
+
+.score-number {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+.score-message {
+    font-size: 18px;
+    margin: 15px 0;
+}
+
+.quiz-score {
+    float: right;
+    font-size: 0.9rem;
+    padding: 2px 8px;
+}
+
+.progress-circle {
+    position: relative;
+    width: 200px;
+    height: 200px;
+}
+
+.circular-chart {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg); /* Fait démarrer la progression à midi */
+}
+
+.progress-path {
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.5s ease;
+}
+
+
+.percentage-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.progress-circle-container {
+    display: flex;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.progress-circle {
+    width: 200px;
+    height: 200px;
+    position: relative;
+}
+
+/* Responsive table styles */
+.responsive-table {
+    width: 100%;
+    margin-bottom: 1.5em;
+}
+
+.responsive-table input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+/* Mobile first styles */
+@media screen and (max-width: 600px) {
+    .responsive-table thead {
+        display: none;
+    }
+
+    .responsive-table tr {
+        margin-bottom: 20px;
+        display: block;
+        border: 1px solid #cccccc;
+    }
+
+    .responsive-table td {
+        display: block;
+        text-align: left;
+        border: none;
+        border-bottom: 1px solid #cccccc;
+    }
+
+    .responsive-table td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: inline-block;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .game-bac-letter {
+        position: static;
+        text-align: center;
+        margin: 1em auto;
+        width: fit-content;
+    }
+}
+
+/* Desktop styles */
+@media screen and (min-width: 601px) {
+    .responsive-table {
+        display: table;
+    }
+
+    .responsive-table thead {
+        display: table-header-group;
+    }
+
+    .responsive-table tbody {
+        display: table-row-group;
+    }
+
+    .responsive-table tr {
+        display: table-row;
+    }
+
+    .responsive-table td, 
+    .responsive-table th {
+        display: table-cell;
+    }
+
+    .responsive-table td:before {
+        content: none;
+    }
+
+    .responsive-table input[type="text"] {
+        width: 90%;
+    }
+}

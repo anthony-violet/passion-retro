@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap');
+
+.rpg-banner {
+    background: #000;
+    padding: 20px;
+    min-height: 200px;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.rpg-frame {
+    border: 8px solid #fff;
+    border-radius: 4px;
+    padding: 16px;
+    background: linear-gradient(135deg, #574a08, #0f2027);
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    animation: border-glow 2s infinite alternate;
+    flex: 1;
+    margin-right: 20px;
+    width: 100%;
+}
+
+.rpg-text-box {
+    background: rgba(0, 0, 0, 0.8);
+    border: 4px solid #fff;
+    padding: 20px;
+    color: white;
+    font-family: 'Press Start 2P', monospace;
+    position: relative;
+    z-index: 1;
+}
+
+.rpg-title {
+    font-family: 'IM Fell English SC', serif;
+    font-size: 3em;
+    text-align: center;
+    color: #FFD700;
+    text-shadow: 3px 3px 0 #8B4513,
+                 -1px -1px 0 #000,
+                 1px -1px 0 #000,
+                 -1px 1px 0 #000,
+                 1px 1px 0 #000;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+    transform: scale(1, 1.2);
+    font-weight: bold;
+}
+
+.rpg-message {
+    font-size: 1em;
+    line-height: 1.5;
+    overflow: hidden;
+    white-space: nowrap;
+    animation: textSequence 10s infinite;
+    width: 100%;
+}
+
+@keyframes textSequence {
+    0% {
+        width: 0;
+        opacity: 1;
+    }
+    30% {
+        width: 100%;
+        opacity: 1;
+    }
+    80% {
+        width: 100%;
+        opacity: 1;
+    }
+    100% {
+        width: 100%;
+        opacity: 0;
+    }
+}
+
+/* Supprimez ou commentez l'ancienne animation typing-animation */
+/* .typing-animation {
+    animation: typing 3s steps(40, end);
+} */
+
+/* Supprimez ou commentez l'ancien @keyframes typing */
+/* @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+} */
+
+/* Animation de scintillement pour la bordure */
+@keyframes border-glow {
+    from {
+        box-shadow: 0 0 5px #fff,
+                    0 0 10px #fff,
+                    0 0 15px rgb(155, 108, 39);
+    }
+    to {
+        box-shadow: 0 0 10px #fff,
+                    0 0 20px #fff,
+                    0 0 30px rgb(155, 108, 39);
+    }
+}
+
+.rpg-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: linear-gradient(to bottom, #1a0f2e 0%, #2a1f3e 100%);
+}
+
+.rpg-cloud {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    height: 20px;
+    animation: float 15s infinite linear;
+}
+
+.rpg-cloud:nth-child(1) {
+    width: 100px;
+    top: 20%;
+    left: -100px;
+}
+
+.rpg-cloud:nth-child(2) {
+    width: 60px;
+    top: 40%;
+    left: -60px;
+    animation-delay: -7s;
+}
+
+.rpg-tree {
+    position: absolute;
+    bottom: 0;
+    width: 40px;
+    height: 60px;
+    background: linear-gradient(to bottom, #1a472a 50%, #2d3319 100%);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.rpg-tree:nth-child(3) {
+    left: 10%;
+    height: 80px;
+}
+
+.rpg-tree:nth-child(4) {
+    left: 80%;
+    height: 70px;
+}
+
+.rpg-pointer {
+    text-align: center;
+    color: #FFD700;
+    animation: bounce 1s infinite;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+
+@keyframes float {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(1000px);
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}

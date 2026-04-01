@@ -1,0 +1,883 @@
+:root {
+  --primary-color: #2b90d3;
+  --secondary-color: #393939;
+  --tertiary-color: #f5f5f5;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+
+  --text-primary-color: #393939;
+  --text-secondary-color: #f5f5f5;
+  --text-tertiary-color: #2b90d3;
+
+  --bg-primary-color: #f5f5f5;
+  --bg-secondary-color: #393939;
+  --bg-grey-color: #4c4c4c;
+
+  --link-color: #2b90d3;
+  --link-hover-color: #28a745;
+  --link-danger-color: #dc3545;
+  --link-admin-color: #dc3545;
+  --link-new-item-color: #28a745;
+
+  --border-color-primary: #333639;
+  --border-color-secondary: #b8b8b8;
+}
+
+/* HTML & BODY */
+html, body {
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  color: var(--text-primary-color);
+  background-color: var(--bg-primary-color);
+}
+
+/* NOTIFICATIONS */
+.notification {
+
+}
+
+.notification ul li {
+
+}
+
+.notification li.success {
+
+}
+
+.notification li.error {
+
+}
+
+/* CONTAINER */
+.container {
+  border: 1px solid var(--border-color-primary);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.container h2 {
+  background-color: var(--primary-color);
+  color: var(--text-secondary-color);
+  text-shadow: 0 0 10px rgba(153, 204, 255, 0.5);
+}
+
+.container h2::after {
+  content: '';
+}
+
+/* MENU */
+.menu-horizontal {
+  background: linear-gradient(to bottom, var(--bg-grey-color) 0%, var(--bg-secondary-color) 100%);
+  border: 1px solid #666;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.menu-horizontal ul {
+
+}
+
+.menu-horizontal ul li {
+
+}
+
+.menu-horizontal ul li a {
+  color: var(--text-secondary-color);
+  text-shadow: 1px 1px 0 var(--text-primary-color);
+}
+
+.menu-horizontal ul li a:hover {
+  color: var(--text-tertiary-color);
+}
+
+.menu-horizontal .dropdown {
+
+}
+
+.menu-horizontal li:hover .dropdown {
+  background-color: var(--bg-secondary-color);
+}
+
+.menu-horizontal .dropdown li {
+
+}
+
+.menu-horizontal .dropdown a {
+
+}
+
+.menu {
+  background-color: var(--bg-primary-color);
+  border: 1px solid var(--border-color-secondary);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.menu h2 {
+  background-color: var(--secondary-color);
+  color: var(--text-secondary-color);
+}
+
+.menu ul {
+  
+}
+
+.menu ul li {
+
+}
+
+.menu ul li::before {
+
+}
+
+.menu ul li a {
+
+}
+
+.menu ul li a:hover {
+
+}
+
+.menu ul.guestbook {
+
+}
+
+.menu ul.guestbook li span.date {
+
+}
+
+.menu ul.guestbook li span.author {
+
+}
+
+.guestbook p span.author {
+
+}
+
+.new-item-menu::after {
+
+}
+
+.badge {
+
+}
+
+/* CONTRIB PAGE */
+.contrib {
+
+}
+
+.contrib a {
+
+}
+
+.contrib a:hover {
+
+}
+
+.movies, .musics, .tech {
+
+}
+
+.movies:hover, .musics:hover, .tech:hover {
+
+}
+
+.category {
+
+}
+
+.category:hover {
+
+}
+
+.games, .movies, .musics, .news_contrib, .tech {
+
+}
+
+.games:hover, .movies:hover, .musics:hover, .news_contrib:hover, .tech:hover {
+
+}
+
+.games::before, .movies::before, .musics::before, .news_contrib::before, .tech::before {
+
+}
+
+.games:hover::before, .movies:hover::before, .musics:hover::before, .news_contrib:hover::before, .tech:hover::before {
+
+}
+
+/* BBCODE */
+.bbcode-bar {
+
+}
+
+.draggable {
+
+}
+
+.draggable .header {
+
+}
+
+.draggable .close-button {
+
+}
+
+h2.h2-bbcode {
+
+}
+
+fieldset.quote-bbcode {
+
+}
+
+/* LINKS */
+a {
+
+}
+
+a:hover {
+
+}
+
+a.danger {
+
+}
+
+a.text-admin {
+
+}
+
+a.new-item-menu {
+
+}
+
+a.new-item-menu:hover {
+
+}
+
+a.new-item-menu::after {
+
+}
+
+/* FORUM */
+.forum h3 {
+
+}
+
+.forum .category-name {
+
+}
+
+.forum .forum-row {
+
+}
+
+.forum .forum-row:hover {
+
+}
+
+.forum .forum-header {
+
+}
+
+.stats_forum ul {
+
+}
+
+span.unread-badge {
+
+}
+
+/* Animation pour le badge non-lu */
+@keyframes pulse {
+
+}
+
+/* Animation pour le badge NEW */
+@keyframes blink {
+
+}
+
+/* FORMS */
+.btn {
+
+}
+
+input[type="submit"], button {
+
+}
+
+button, .btn-default {
+
+}
+
+button:hover, .btn-default:hover {
+
+}
+
+.btn::after, input[type="submit"]::after, button::after {
+
+}
+
+.btn:hover::after, input[type="submit"]:hover::after, button:hover::after {
+
+}
+
+.btn-add {
+
+}
+
+.btn-add:hover {
+
+}
+
+.btn-danger {
+
+}
+
+.btn-danger:hover {
+
+}
+
+.btn-warning {
+
+}
+
+.btn-warning:hover {
+
+}
+
+input[type="text"], input[type="password"], input[type="email"], select, textarea {
+
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus, textarea:focus {
+
+}
+
+/* PAGINATION */
+.page-link {
+
+}
+
+li.active span {
+
+}
+
+li.disabled span {
+
+}
+
+/* FOOTER */
+.footer {
+
+}
+
+.footer p {
+
+}
+
+/* GAMES */
+.card-game {
+
+}
+
+.card-game:hover {
+
+}
+
+.card-game .header {
+
+}
+
+.card-game .body {
+
+}
+
+.card-game .footer {
+
+}
+
+.countdown {
+
+}
+
+.game-bac-letter {
+
+}
+
+table.bac, table.bac th, table.bac tr, table.bac td {
+
+}
+
+table.bac th {
+
+}
+
+table.quiz, table.quiz th, table.quiz tr, table.quiz td {
+
+}
+
+table.quiz th {
+
+}
+
+.quiz-item {
+
+}
+
+.quiz-item::after {
+
+}
+
+.quiz-item:hover {
+
+}
+
+.quiz-item h3 {
+
+}
+
+.quiz-item h3 a {
+
+}
+
+.quiz-item h3 a:hover {
+
+}
+
+.quiz-item p {
+
+}
+
+.quiz-item p:last-child {
+
+}
+
+.quiz-container {
+
+}
+
+.quiz-title {
+
+}
+
+.quiz-question {
+
+}
+
+.question-header {
+
+}
+
+.question-content h3 {
+
+}
+
+.choices-container {
+
+}
+
+.choice-item {
+
+}
+
+.choice-item:hover {
+
+}
+
+.choice-item input[type="radio"] {
+
+}
+
+.choice-item label {
+
+}
+
+.submit-container {
+
+}
+
+.submit-button {
+
+}
+
+.submit-button:hover {
+
+}
+
+.breadcrumbs {
+
+}
+
+.breadcrumbs li {
+
+}
+
+.breadcrumbs li a {
+
+}
+
+.breadcrumbs li a:hover {
+
+}
+
+.quiz-container {
+
+}
+
+.quiz-title {
+
+}
+
+.quiz-question {
+
+}
+
+.quiz-header {
+
+}
+
+.choice-item {
+
+}
+
+.choice-item:hover {
+
+}
+
+.choice-item label {
+
+}
+
+.submit-button {
+
+}
+
+.submit-button:hover {
+
+}
+
+.quiz-result-container {
+
+}
+
+.score-number {
+
+}
+
+.score-number.high { }
+.score-number.medium { }
+.score-number.low { }
+
+.score-message {
+
+}
+
+.quiz-score {
+
+}
+
+.progress-path {
+
+}
+
+.progress-path.high {
+
+}
+
+.progress-path.medium {
+
+}
+
+.progress-path.low {
+
+}
+
+.high { }
+
+.medium { }
+
+.low { }
+
+/* PM */
+.table .header {
+
+}
+
+.table .body {
+
+}
+
+.new-message {
+
+}
+
+/* POSTS */
+.postmenu {
+
+}
+
+.postmenu .header {
+
+}
+
+.postmenu .body ul li:hover {
+
+}
+
+.post-card {
+
+}
+
+.post-card-header {
+
+}
+
+.news-header {
+
+}
+
+/* PROFILE */
+.profile-avatar {
+
+}
+
+.profile-avatar:hover {
+
+}
+
+.profile-name {
+
+}
+
+.username {
+
+}
+
+.profile-stats {
+
+}
+
+.stat-value {
+
+}
+
+.stat-label {
+
+}
+
+.profile-bio {
+
+}
+
+.contact-button {
+
+}
+
+.contact-button:hover {
+
+}
+
+.profile-main {
+
+}
+
+.level-badge {
+
+}
+
+.joined-date {
+
+}
+
+.bio-content {
+
+}
+
+.stats-card, .achievements-card {
+
+}
+
+.stat-item {
+
+}
+
+.stat-value {
+
+}
+
+.stat-label {
+
+}
+
+.badge-name {
+
+}
+
+.inventory {
+
+}
+
+.inventory-item {
+
+}
+
+.inventory-item:hover {
+
+}
+
+.inventory-item a {
+
+}
+
+.inventory-item a:hover {
+
+}
+
+.item-quantity {
+
+}
+
+/* SHOP */
+.card-shop {
+
+}
+
+.card-shop:hover {
+
+}
+
+.card-shop .card-title {
+
+}
+
+.card-shop .card-text {
+
+}
+
+.btn-shop-primary {
+
+}
+
+.btn-shop-primary:hover {
+
+}
+
+.btn-shop-secondary {
+
+}
+
+.btn-shop-secondary:hover {
+
+}
+
+/* COMMONS */
+.deactivate {
+
+}
+
+/* Animation pixel pour les hovers */
+@keyframes pixel-pulse {
+
+}
+
+/* Animation supplémentaire pour les interactions */
+@keyframes item-hover {
+
+}
+
+/* QUIZ RESULTS */
+.quiz-result-card {
+
+}
+
+.progress-circle-container {
+
+}
+
+.progress-circle {
+
+}
+
+.circular-chart {
+
+}
+
+.circular-chart path {
+
+}
+
+.progress-path {
+
+}
+
+.progress-path.high {
+
+}
+
+.progress-path.medium {
+
+}
+
+.progress-path.low {
+
+}
+
+.percentage-text {
+
+}
+
+.score-details {
+
+}
+
+.score-details h3 {
+
+}
+
+.score-number {
+
+}
+
+.score-number.high {
+
+}
+
+.score-number.medium {
+
+}
+
+.score-number.low {
+
+}
+
+.score-message {
+
+}
+
+.actions {
+
+}
+
+.actions .btn {
+
+}
+
+.actions .btn:hover {
+
+}
+
+@keyframes glow-green {
+
+}
+
+@keyframes glow-yellow {
+
+}
+
+@keyframes glow-red {
+
+}

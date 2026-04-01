@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:10.6
+    container_name: passion_retro_db
+    restart: always
+    environment:
+      MARIADB_DATABASE: ${DATABASE_NAME}
+      MARIADB_USER: ${DATABASE_USER}
+      MARIADB_PASSWORD: ${DATABASE_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD}
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - internal
+
+  web:
+    build: .
+    container_name: passion_retro_web
+    restart: always
+    command: >
+      bash -c "python manage.py migrate &&
+               python manage.py collectstatic --noinput &&
+               gunicorn passion_retro.wsgi:application --bind 0.0.0.0:5500 --workers 4 --timeout 60"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - ./media:/app/media
+    environment:
+      - DATABASE_HOST=passion_retro_db
+      - DATABASE_ENGINE=django.db.backends.mysql
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - GOOGLE_PUBLIC_KEY=${GOOGLE_PUBLIC_KEY}
+      - GOOGLE_PRIVATE_KEY=${GOOGLE_PRIVATE_KEY}
+      - SITE_URL=${SITE_URL}
+      - SITE_NAME=${SITE_NAME}
+    depends_on:
+      - db
+    networks:
+      - internal
+      - global_network
+
+networks:
+  internal:
+  global_network:
+    external: true
+
+volumes:
+  mariadb_data:
+  static_volume:

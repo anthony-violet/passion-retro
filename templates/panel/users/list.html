@@ -1,0 +1,57 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Utilisateurs</h2>
+    <form method="get" class="panel-search-form">
+        <input type="text" name="q" value="{{ q }}" placeholder="Rechercher un pseudo…">
+        <button type="submit" class="btn">Chercher</button>
+    </form>
+</div>
+
+<div class="panel-section">
+    <table class="panel-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Pseudo</th>
+                <th>Email</th>
+                <th>Inscrit le</th>
+                <th>Staff</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td><strong>{{ user.username }}</strong></td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.date_joined|date:"d/m/Y" }}</td>
+                <td>{% if user.is_staff %}<span class="panel-badge panel-badge-info">Staff</span>{% endif %}</td>
+                <td>
+                    {% if user.active %}
+                        <span class="panel-badge panel-badge-success">Actif</span>
+                    {% else %}
+                        <span class="panel-badge panel-badge-danger">Inactif</span>
+                    {% endif %}
+                </td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_user_edit' user.id %}" class="btn btn-small">Éditer</a>
+                    <a href="{% url 'panel_user_toggle' user.id %}" class="btn btn-small btn-warning">
+                        {% if user.active %}Désactiver{% else %}Activer{% endif %}
+                    </a>
+                    <form method="post" action="{% url 'panel_user_delete' user.id %}" style="display:inline" onsubmit="return confirm('Supprimer {{ user.username }} ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="panel-empty">Aucun utilisateur trouvé.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

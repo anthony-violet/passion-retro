@@ -1,0 +1,57 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Boutique</h2>
+    <div>
+        <a href="{% url 'panel_shop_category_create' %}" class="btn btn-add">+ Catégorie</a>
+        <a href="{% url 'panel_shop_item_create' %}" class="btn btn-add">+ Item</a>
+    </div>
+</div>
+
+{% for category in categories %}
+<div class="panel-section">
+    <div class="panel-section-header">
+        <h3>{{ category.name }} {% if not category.is_active %}<span class="panel-badge panel-badge-danger">Inactive</span>{% endif %}</h3>
+        <div>
+            <a href="{% url 'panel_shop_category_edit' category.id %}" class="btn btn-small">Éditer</a>
+            <form method="post" action="{% url 'panel_shop_category_delete' category.id %}" style="display:inline" onsubmit="return confirm('Supprimer ?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+            </form>
+        </div>
+    </div>
+    <table class="panel-table">
+        <thead>
+            <tr><th>Item</th><th>Prix</th><th>Actif</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for item in category.items.all %}
+            <tr>
+                <td>{{ item.name }}</td>
+                <td>{{ item.price }} 🪙</td>
+                <td>
+                    {% if item.is_active %}
+                        <span class="panel-badge panel-badge-success">Oui</span>
+                    {% else %}
+                        <span class="panel-badge panel-badge-danger">Non</span>
+                    {% endif %}
+                </td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_shop_item_edit' item.id %}" class="btn btn-small">Éditer</a>
+                    <form method="post" action="{% url 'panel_shop_item_delete' item.id %}" style="display:inline" onsubmit="return confirm('Supprimer cet item ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="panel-empty">Aucun item.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% empty %}
+<div class="panel-empty-state">Aucune catégorie.</div>
+{% endfor %}
+{% endblock %}

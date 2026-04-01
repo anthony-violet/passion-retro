@@ -1,0 +1,38 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Éditer l'article</h2>
+    <a href="{% url 'panel_posts' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-group">
+            <label>Titre</label>
+            <input type="text" name="title" value="{{ post.title }}" required>
+        </div>
+        <div class="panel-form-group">
+            <label>Catégorie</label>
+            <select name="category">
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if post.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="panel-form-group panel-form-full">
+            <label>Contenu</label>
+            <textarea name="content" rows="12">{{ post.content }}</textarea>
+        </div>
+        <div class="panel-form-checkboxes">
+            <label class="panel-checkbox">
+                <input type="checkbox" name="active" {% if post.active %}checked{% endif %}> Publié
+            </label>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">Enregistrer</button>
+            <a href="{% url 'panel_posts' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

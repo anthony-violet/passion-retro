@@ -1,0 +1,1548 @@
+/* =============================================================
+   Thème "Années 2000" — Passion Rétro
+   Dark flash portal / gaming site 2003-2006
+   Inspiré de Newgrounds, Miniclip, sites gaming MySpace era,
+   forums Counter-Strike / Warcraft, portails nocturnes Flash.
+   Métal brossé, orange feu, fond noir, biseaux 3D.
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Tahoma:wght@400;700&display=swap');
+@import url('./banner.css');
+
+/* ===== VARIABLES ===== */
+:root {
+    /* Fonds sombres — panneau métal / écran d'ordi de gamer */
+    --bg-body:                #0d0d0d;
+    --bg-container:           #1a1a1a;
+    --bg-menu:                #161616;
+    --bg-menu-guestbook:      rgba(255, 68, 0, 0.05);
+    --bg-post-card:           #1a1a1a;
+    --bg-notification-success:#001a08;
+    --bg-notification-error:  #1a0500;
+    --bg-forum-row:           #181818;
+    --bg-forum-row-even:      #1e1e1e;
+    --bg-stats-forum:         #161616;
+    --bg-contribution:        #1a1a1a;
+    --bg-contribution-hover:  #222222;
+
+    /* Boutons biseautés 3D — orange feu, effet cliqué old-school */
+    --bg-button:
+        linear-gradient(to bottom,
+            #ff7722 0%,
+            #ee5500 45%,
+            #cc3300 46%,
+            #dd4411 100%
+        );
+    --bg-button-hover:
+        linear-gradient(to bottom,
+            #ff9944 0%,
+            #ff6611 45%,
+            #dd4400 46%,
+            #ee5511 100%
+        );
+    --bg-button-add:
+        linear-gradient(to bottom,
+            #44cc44 0%,
+            #22aa22 45%,
+            #118811 46%,
+            #229922 100%
+        );
+    --bg-button-add-hover:
+        linear-gradient(to bottom,
+            #66dd66 0%,
+            #33bb33 45%,
+            #229922 46%,
+            #33aa33 100%
+        );
+    --bg-button-danger:
+        linear-gradient(to bottom,
+            #dd3333 0%,
+            #bb1111 45%,
+            #990000 46%,
+            #aa1111 100%
+        );
+    --bg-button-danger-hover:
+        linear-gradient(to bottom,
+            #ee4444 0%,
+            #cc2222 45%,
+            #aa1111 46%,
+            #bb2222 100%
+        );
+    --bg-button-warning:
+        linear-gradient(to bottom,
+            #ddaa00 0%,
+            #bb8800 45%,
+            #996600 46%,
+            #aa7711 100%
+        );
+    --bg-button-warning-hover:
+        linear-gradient(to bottom,
+            #eebb11 0%,
+            #cc9900 45%,
+            #aa7700 46%,
+            #bb8811 100%
+        );
+    --bg-input:               #111111;
+    --bg-page-link:
+        linear-gradient(to bottom, #1e1e1e 0%, #181818 100%);
+    --bg-page-link-hover:
+        linear-gradient(to bottom, #2a2a2a 0%, #222222 100%);
+    --bg-active-page:
+        linear-gradient(to bottom, #ff5500 0%, #cc2200 100%);
+    --bg-disabled-page:       #222222;
+    --bg-footer:
+        linear-gradient(to bottom, #111111 0%, #080808 100%);
+
+    /* Textes */
+    --text-primary:           #cccccc;
+    --text-link:              #ff6600;
+    --text-link-hover:        #ff9933;
+    --text-danger:            #ff4444;
+    --text-admin:             #ff8800;
+    --text-sadmin:            #ff4444;
+    --text-menu-header:       #ffffff;
+    --text-guestbook-date:    #555555;
+    --text-guestbook-author:  #ff6600;
+    --text-badge:             #ffffff;
+    --text-notification-success: #00dd44;
+    --text-notification-error:   #ff4444;
+    --text-forum-header:      #ffffff;
+    --text-category-name:     #ffffff;
+    --text-forum-header-row:  #ff8844;
+    --text-unread-badge:      #ff6600;
+    --text-button:            #ffffff;
+    --text-button-add:        #ffffff;
+    --text-button-danger:     #ffffff;
+    --text-button-warning:    #ffffff;
+    --text-button-warning-hover: #ffffff;
+    --text-page-link:         #aaaaaa;
+    --text-page-link-hover:   #ffffff;
+    --text-active-page:       #ffffff;
+    --text-disabled-page:     #444444;
+    --text-footer:            #444444;
+    --text-footer-hover:      #ff6600;
+
+    /* Bordures */
+    --border-container:       #333333;
+    --border-menu-header:     #551100;
+    --border-menu-guestbook:  #333333;
+    --border-badge:           #cc3300;
+    --border-post-card:       #333333;
+    --border-notification-success: #00aa33;
+    --border-notification-error:   #cc2200;
+    --border-stats-forum:     #333333;
+    --border-contribution:    #333333;
+    --border-button:          #441100;
+    --border-button-add:      #116611;
+    --border-button-danger:   #660000;
+    --border-button-warning:  #664400;
+    --border-input:           #333333;
+    --border-input-focus:     #ff5500;
+    --border-page-link:       #333333;
+    --border-active-page:     #880000;
+
+    /* Dégradés — métal brossé sombre */
+    --gradient-menu-header:
+        linear-gradient(to bottom, #3a1800 0%, #2a1000 50%, #1a0800 100%);
+    --gradient-post-card-header:
+        linear-gradient(to bottom, #222222 0%, #1a1a1a 100%);
+    --gradient-forum-category:
+        linear-gradient(to bottom, #3a1800 0%, #1a0800 100%);
+    --gradient-forum-header:
+        linear-gradient(to bottom, #202020 0%, #1a1a1a 100%);
+
+    /* Ombres — biseaux 3D et lueur orange */
+    --shadow-container:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        inset 0 -1px 0 rgba(0,0,0,0.6),
+        1px 1px 0 rgba(0,0,0,0.8),
+        0 2px 8px rgba(0,0,0,0.5);
+    --shadow-button:
+        inset 0 2px 0 rgba(255,255,255,0.2),
+        inset 0 -2px 0 rgba(0,0,0,0.4),
+        0 3px 6px rgba(0,0,0,0.5),
+        0 0 8px rgba(255,68,0,0.2);
+    --shadow-button-hover:
+        inset 0 2px 0 rgba(255,255,255,0.25),
+        inset 0 -2px 0 rgba(0,0,0,0.4),
+        0 4px 10px rgba(0,0,0,0.6),
+        0 0 16px rgba(255,100,0,0.35);
+    --shadow-button-add:
+        inset 0 2px 0 rgba(255,255,255,0.2),
+        inset 0 -2px 0 rgba(0,0,0,0.4),
+        0 3px 6px rgba(0,0,0,0.5);
+    --shadow-button-add-hover:
+        inset 0 2px 0 rgba(255,255,255,0.2),
+        0 4px 10px rgba(0,0,0,0.5);
+    --shadow-button-danger:
+        inset 0 2px 0 rgba(255,255,255,0.15),
+        inset 0 -2px 0 rgba(0,0,0,0.5),
+        0 3px 6px rgba(0,0,0,0.5);
+    --shadow-button-danger-hover:
+        inset 0 2px 0 rgba(255,255,255,0.15),
+        0 4px 10px rgba(0,0,0,0.5);
+    --shadow-button-warning:
+        inset 0 2px 0 rgba(255,255,255,0.2),
+        0 3px 6px rgba(0,0,0,0.5);
+    --shadow-button-warning-hover:
+        inset 0 2px 0 rgba(255,255,255,0.2),
+        0 4px 10px rgba(0,0,0,0.5);
+    --shadow-input:
+        inset 1px 1px 4px rgba(0,0,0,0.6);
+    --shadow-input-focus:
+        inset 1px 1px 4px rgba(0,0,0,0.6),
+        0 0 8px rgba(255,85,0,0.4);
+
+    /* Text-shadow */
+    --text-shadow-menu-header:  0 1px 2px rgba(0,0,0,0.8);
+    --text-shadow-button:       0 -1px 1px rgba(0,0,0,0.5);
+    --text-shadow-button-warning: 0 -1px 1px rgba(0,0,0,0.4);
+}
+
+/* ===== CORPS ===== */
+html, body {
+    background-color: #0d0d0d;
+    background-image:
+        /* Diagonales très fines façon carbone */
+        repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 3px,
+            rgba(255,255,255,0.015) 3px,
+            rgba(255,255,255,0.015) 4px
+        );
+}
+
+body {
+    font-family: Tahoma, 'Arial Narrow', Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #cccccc;
+}
+
+/* ===== TYPOGRAPHIE ===== */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Black Ops One', Impact, 'Arial Black', sans-serif;
+    color: #ff6600;
+    text-shadow: 0 0 6px rgba(255, 100, 0, 0.4), 1px 1px 0 #220000;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+a {
+    color: #ff6600;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:visited {
+    color: #ff6600;
+}
+
+a:hover {
+    color: #ff9933;
+    text-decoration: underline;
+    text-shadow: 0 0 6px rgba(255, 150, 50, 0.5);
+}
+
+/* ===== HEADER / NAVIGATION ===== */
+.header-list {
+    background:
+        linear-gradient(to bottom,
+            #2a2a2a 0%,
+            #1e1e1e 40%,
+            #141414 100%
+        );
+    border-top: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 2px solid #ff4400;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.05),
+        0 2px 12px rgba(255,68,0,0.25);
+}
+
+.header-list a {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: #cccccc;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    text-decoration: none;
+    padding: 0 4px;
+}
+
+.header-list a:hover {
+    color: #ff6600;
+    text-shadow: 0 0 8px rgba(255,100,0,0.6);
+    text-decoration: none;
+}
+
+/* ===== CONTENEURS — panneau métal brossé ===== */
+.container, .menu {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 2px;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.06),
+        inset 0 -1px 0 rgba(0,0,0,0.5),
+        1px 1px 0 rgba(0,0,0,0.8),
+        0 2px 8px rgba(0,0,0,0.5);
+}
+
+/* Ligne orange en haut des containers comme un onglet actif */
+.container::before, .menu::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ff5500, #ff8800, #ff5500);
+}
+
+.container, .menu {
+    position: relative;
+}
+
+/* En-têtes des sections */
+.container h2 {
+    font-family: 'Black Ops One', Impact, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: #ff8844;
+    background:
+        linear-gradient(to bottom,
+            #2a2a2a 0%,
+            #1e1e1e 50%,
+            #181818 100%
+        );
+    border-bottom: 1px solid #ff4400;
+    padding: 8px 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 6px rgba(255,100,0,0.4);
+}
+
+.menu h2 {
+    font-family: 'Black Ops One', Impact, sans-serif;
+    font-size: 11px;
+    color: #ff8844;
+    background:
+        linear-gradient(to bottom,
+            #2a2a2a 0%,
+            #1e1e1e 50%,
+            #181818 100%
+        );
+    border-bottom: 1px solid #ff4400;
+    padding: 6px 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 6px rgba(255,100,0,0.3);
+}
+
+.menu ul li {
+    border-bottom: 1px solid #252525;
+    font-size: 11px;
+    font-family: Tahoma, Arial, sans-serif;
+}
+
+.menu ul li a {
+    color: #aaaaaa;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.menu ul li a:hover {
+    color: #ff6600;
+    text-shadow: 0 0 6px rgba(255, 100, 0, 0.4);
+}
+
+/* ===== BOUTONS — biseau 3D années 2000 ===== */
+.btn, input[type="submit"], button {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: none;
+}
+
+.btn:active, input[type="submit"]:active, button:active {
+    box-shadow:
+        inset 0 2px 4px rgba(0,0,0,0.6),
+        inset 0 -1px 0 rgba(255,255,255,0.1) !important;
+    transform: translateY(1px);
+}
+
+a.btn {
+    color: #fff;
+}
+
+a.btn:visited {
+    color: #fff;
+}
+
+/* ===== INPUTS ===== */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+textarea,
+select {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 12px;
+    background: #111111;
+    border: 1px solid #333333;
+    border-radius: 2px;
+    color: #cccccc;
+    box-shadow: inset 1px 1px 4px rgba(0,0,0,0.6);
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #444444;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: #ff5500;
+    box-shadow: inset 1px 1px 4px rgba(0,0,0,0.6), 0 0 8px rgba(255,85,0,0.35);
+    color: #eeeeee;
+}
+
+/* ===== FOOTER ===== */
+.footer {
+    background: linear-gradient(to bottom, #111111 0%, #080808 100%);
+    color: #444444;
+    border-top: 2px solid #ff4400;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 10px;
+    text-align: center;
+    padding: 10px;
+    box-shadow: 0 0 16px rgba(255,68,0,0.15) inset;
+}
+
+.footer p { color: #444444; }
+
+.footer a {
+    color: #555555;
+    text-shadow: none;
+    font-weight: bold;
+}
+
+.footer a:hover {
+    color: #ff6600;
+    text-shadow: 0 0 6px rgba(255,100,0,0.4);
+}
+
+/* ===== STATUTS — style "online status" forum gaming ===== */
+.status-online {
+    color: #00dd44;
+    font-weight: bold;
+    text-shadow: 0 0 6px rgba(0,220,68,0.5);
+}
+
+.status-offline {
+    color: #555555;
+}
+
+/* ===== BADGES ===== */
+.badge-new {
+    background:
+        linear-gradient(to bottom, #ff6600 0%, #cc3300 100%);
+    color: #ffffff;
+    border: 1px solid #881100;
+    border-radius: 2px;
+    font-family: Impact, Arial, sans-serif;
+    font-size: 0.55rem;
+    font-weight: bold;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.2),
+        0 1px 3px rgba(0,0,0,0.5);
+    letter-spacing: 1px;
+}
+
+/* ===== PSEUDOS SPÉCIAUX ===== */
+.pseudo-admin {
+    color: #ff8800 !important;
+    text-shadow: 0 0 6px rgba(255,136,0,0.4);
+}
+
+.pseudo-sadmin {
+    color: #ff4444 !important;
+    text-shadow: 0 0 6px rgba(255,68,68,0.4);
+}
+
+.pseudomodo {
+    color: #00aaff !important;
+    text-shadow: 0 0 4px rgba(0,170,255,0.4);
+}
+
+/* ===== SHOP ===== */
+.card-shop {
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 2px;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.05),
+        0 2px 6px rgba(0,0,0,0.5);
+}
+
+.card-shop:hover {
+    border-color: #ff5500;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.05),
+        0 0 12px rgba(255,85,0,0.2);
+}
+
+.card-shop .card-title {
+    font-family: 'Black Ops One', Impact, sans-serif;
+    color: #ff8844;
+    font-size: 0.85rem;
+    text-shadow: 0 0 6px rgba(255,100,0,0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.card-shop .card-text {
+    font-family: Tahoma, Arial, sans-serif;
+    color: #888888;
+    font-size: 11px;
+}
+
+/* ===== SÉLECTION DE TEXTE ===== */
+::selection {
+    background: #ff4400;
+    color: #ffffff;
+}
+
+/* ===== MENU HORIZONTAL — barre de nav dark gaming portal ===== */
+.menu-horizontal {
+    background:
+        linear-gradient(to bottom, #222222 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #ff4400;
+    box-shadow:
+        0 2px 10px rgba(0,0,0,0.6),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.menu-horizontal > ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 8px;
+    margin: 0;
+    gap: 2px;
+}
+
+.menu-horizontal > ul > li {
+    position: relative;
+    border-bottom: none;
+    padding: 0;
+    margin: 0;
+    font-size: 11px;
+}
+
+.menu-horizontal > ul > li > a {
+    display: block;
+    padding: 9px 14px;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    color: #aaaaaa;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.menu-horizontal > ul > li > a:hover {
+    color: #ff6600;
+    border-bottom-color: #ff4400;
+    text-shadow: 0 0 8px rgba(255,100,0,0.5);
+    text-decoration: none;
+}
+
+/* Bouton Contribuer dans la nav */
+.menu-horizontal .btn-add,
+.menu-horizontal .btn.btn-add {
+    background: linear-gradient(to bottom, #44cc44 0%, #22aa22 45%, #118811 46%, #229922 100%);
+    color: #ffffff !important;
+    border: 1px solid #116611;
+    padding: 5px 12px;
+    margin: 4px 4px;
+    border-radius: 3px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Sous-menus dropdown */
+.menu-horizontal > ul > li > ul {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 160px;
+    background: #1e1e1e;
+    border: 1px solid #333333;
+    border-top: 2px solid #ff4400;
+    box-shadow: 2px 4px 12px rgba(0,0,0,0.7);
+    list-style: none;
+    padding: 4px 0;
+    margin: 0;
+    z-index: 200;
+}
+
+.menu-horizontal > ul > li:hover > ul {
+    display: block;
+}
+
+.menu-horizontal > ul > li > ul > li {
+    border-bottom: 1px solid #252525;
+    padding: 0;
+}
+
+.menu-horizontal > ul > li > ul > li > a {
+    display: block;
+    padding: 6px 12px;
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    color: #aaaaaa;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.menu-horizontal > ul > li > ul > li > a:hover {
+    background: #2a1000;
+    color: #ff6600;
+    text-shadow: 0 0 6px rgba(255,100,0,0.4);
+}
+
+/* Burger — caché sur desktop */
+.burger-menu {
+    display: none;
+}
+
+/* ===== PROFILS UTILISATEUR ===== */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: linear-gradient(to bottom, #1e1e1e 0%, #161616 100%);
+    border-bottom: 1px solid #333333;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 4px;
+    object-fit: cover;
+    border: 2px solid #ff6600;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 0 12px rgba(255, 102, 0, 0.2);
+}
+
+.profile-avatar:hover {
+    transform: scale(1.03);
+    transition: transform 0.2s;
+}
+
+.avatar-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.level-badge {
+    position: absolute;
+    background: linear-gradient(to bottom, #ff6600 0%, #cc3300 100%);
+    color: white;
+    padding: 4px;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    border: 2px solid #ffaa00;
+    bottom: -5px;
+    right: -5px;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.level-text {
+    font-size: 0.45rem;
+    text-transform: uppercase;
+}
+
+.level-number {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-name, .username {
+    font-family: 'Black Ops One', Impact, sans-serif;
+    font-size: 1.5rem;
+    color: #ff8844;
+    text-shadow: 0 0 8px rgba(255, 136, 0, 0.4);
+    margin-bottom: 4px;
+}
+
+.joined-date {
+    color: #666666;
+    font-size: 0.8rem;
+}
+
+.profile-bio {
+    line-height: 1.6;
+    color: #cccccc;
+    margin: 1rem 0;
+    padding: 10px 14px;
+    border-left: 3px solid #ff6600;
+    background-color: #181818;
+    border-radius: 0 4px 4px 0;
+    font-size: 0.85rem;
+}
+
+.bio-content {
+    line-height: 1.6;
+    color: #cccccc;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.profile-main {
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin: 1rem 0;
+    padding: 1rem;
+}
+
+.stats-card, .achievements-card {
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 10px;
+    background: linear-gradient(to bottom, #222222 0%, #1a1a1a 100%);
+    border: 1px solid #333333;
+    border-radius: 3px;
+}
+
+.stat-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #ff8844;
+    display: block;
+    text-shadow: 0 0 6px rgba(255, 136, 0, 0.3);
+}
+
+.stat-label {
+    color: #888888;
+    font-size: 0.75rem;
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.badge-item {
+    text-align: center;
+    padding: 8px;
+    background: #222222;
+    border: 1px solid #333333;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.badge-item:hover {
+    border-color: #ff6600;
+    box-shadow: 0 0 8px rgba(255, 102, 0, 0.2);
+}
+
+.badge-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.badge-name {
+    display: block;
+    font-size: 0.65rem;
+    color: #aaaaaa;
+    margin-top: 4px;
+}
+
+.no-badges {
+    color: #555555;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 10px;
+}
+
+.inventory {
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    padding: 12px;
+    width: 98%;
+    margin: 8px auto;
+}
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    padding: 10px;
+}
+
+.inventory-item {
+    text-align: center;
+    padding: 10px;
+    background: linear-gradient(to bottom, #222222 0%, #1a1a1a 100%);
+    border: 1px solid #333333;
+    border-radius: 3px;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.inventory-item:hover {
+    border-color: #ff5500;
+    box-shadow: 0 0 8px rgba(255, 85, 0, 0.2);
+}
+
+.inventory-item img {
+    max-width: 60px;
+    max-height: 60px;
+    object-fit: contain;
+}
+
+.item-quantity {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #ff8844;
+    display: block;
+}
+
+.no-items {
+    color: #555555;
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 10px;
+}
+
+.profile-actions {
+    margin-top: 1rem;
+    display: flex;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(to bottom, #ff7722 0%, #ee5500 45%, #cc3300 46%, #dd4411 100%);
+    color: #ffffff !important;
+    border: 1px solid #441100;
+}
+
+.btn-secondary {
+    background: linear-gradient(to bottom, #333333 0%, #222222 100%);
+    color: #cccccc;
+    border-color: #444444;
+}
+
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ===== CARTES DE JEU / QUIZ ===== */
+.card-game {
+    border: 1px solid #333333;
+    margin: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #1a1a1a;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.card-game.deactivate {
+    opacity: 0.7;
+}
+
+.card-game .header {
+    border-bottom: 1px solid #333333;
+    padding: 8px 12px;
+    background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ff8844;
+}
+
+.card-game .header a { color: #ff8844; }
+.card-game .header a:hover { color: #ffaa66; }
+
+.card-game .body {
+    padding: 10px;
+    color: #cccccc;
+}
+
+.card-game .footer {
+    border-top: 1px solid #333333;
+    background: linear-gradient(to bottom, #222222 0%, #1a1a1a 100%);
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    color: #888888;
+}
+
+/* ===== QUIZ LIST TABLE ===== */
+table.quiz, table.quiz th, table.quiz tr, table.quiz td {
+    border: 1px solid #333333;
+}
+
+table.quiz {
+    width: 90%;
+    margin: auto;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+table.quiz th {
+    background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
+    color: #ff8844;
+    padding: 8px;
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+table.quiz th, table.quiz td {
+    text-align: center;
+    padding: 6px;
+}
+
+table.quiz tr:nth-child(even) td {
+    background-color: #1a1a1a;
+}
+
+/* ===== QUIZ FORM ===== */
+.quiz-title {
+    color: #ff8844;
+    text-align: center;
+    margin-bottom: 20px;
+    font-family: 'Black Ops One', Impact, sans-serif;
+    font-size: 1.4rem;
+    text-shadow: 0 0 8px rgba(255, 136, 0, 0.4);
+}
+
+.quiz-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.quiz-question {
+    background: #1a1a1a;
+    border: 1px solid #333333;
+    margin-bottom: 12px;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.question-header {
+    background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
+    padding: 8px 14px;
+    color: #ff8844;
+    font-weight: bold;
+    font-size: 0.85rem;
+    font-family: 'Black Ops One', sans-serif;
+    border-bottom: 1px solid #333333;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.question-content {
+    padding: 16px;
+}
+
+.question-content h3 {
+    color: #ffaa66;
+    margin-bottom: 12px;
+    font-size: 1rem;
+    text-shadow: 0 0 4px rgba(255, 170, 102, 0.3);
+}
+
+.choices-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px 0;
+}
+
+.choice-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 3px;
+    border: 1px solid #333333;
+    background-color: #181818;
+    transition: all 0.15s;
+    cursor: pointer;
+}
+
+.choice-item:hover {
+    background-color: #222222;
+    border-color: #ff5500;
+    box-shadow: 0 0 8px rgba(255, 85, 0, 0.2);
+}
+
+.choice-item input[type="radio"] {
+    margin-right: 6px;
+    accent-color: #ff6600;
+}
+
+.choice-item label {
+    color: #cccccc;
+    cursor: pointer;
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.submit-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.submit-button {
+    background: linear-gradient(to bottom, #ff7722 0%, #ee5500 45%, #cc3300 46%, #dd4411 100%);
+    color: #fff !important;
+    border: 1px solid #441100;
+    padding: 10px 28px;
+    font-size: 0.9rem;
+    font-family: 'Black Ops One', sans-serif;
+    cursor: pointer;
+    border-radius: 3px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 12px rgba(255, 102, 0, 0.2);
+    transition: all 0.15s ease;
+}
+
+.submit-button:hover {
+    background: linear-gradient(to bottom, #ff9944 0%, #ff6611 45%, #dd4400 46%, #ee5511 100%);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 102, 0, 0.3);
+}
+
+/* ===== QUIZ RESULTS ===== */
+.quiz-result-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 16px;
+}
+
+.quiz-result-card {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    padding: 24px;
+    text-align: center;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.progress-circle-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.progress-circle {
+    width: 180px;
+    height: 180px;
+    position: relative;
+}
+
+.circular-chart {
+    display: block;
+    margin: 0 auto;
+    max-height: 180px;
+}
+
+.progress-path {
+    transition: stroke-dasharray 1s ease-in-out;
+}
+
+.progress-path.high {
+    stroke: #44cc44;
+}
+
+.progress-path.medium {
+    stroke: #cc8800;
+}
+
+.progress-path.low {
+    stroke: #cc2222;
+}
+
+.percentage-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 28px;
+    color: #ff8844;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255, 136, 0, 0.4);
+}
+
+.score-details {
+    margin: 20px 0;
+}
+
+.score-details h3 {
+    color: #ff8844;
+    font-size: 1.1rem;
+    font-family: 'Black Ops One', sans-serif;
+    margin-bottom: 10px;
+    text-shadow: 0 0 6px rgba(255, 136, 0, 0.3);
+}
+
+.score-number {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 12px 0;
+}
+
+.score-number.high {
+    color: #44cc44;
+    text-shadow: 0 0 6px rgba(68, 204, 68, 0.4);
+}
+
+.score-number.medium {
+    color: #cc8800;
+    text-shadow: 0 0 6px rgba(204, 136, 0, 0.4);
+}
+
+.score-number.low {
+    color: #cc2222;
+    text-shadow: 0 0 6px rgba(204, 34, 34, 0.4);
+}
+
+.score-message {
+    color: #aaaaaa;
+    font-size: 1rem;
+    margin: 12px 0;
+}
+
+.quiz-score {
+    float: right;
+    color: #ff8844;
+    font-size: 0.85rem;
+    padding: 2px 6px;
+    background-color: #222222;
+    border: 1px solid #333333;
+    border-radius: 3px;
+}
+
+/* ===== FORUM ===== */
+.forum h3 {
+    color: #ff8844;
+    text-shadow: 0 0 6px rgba(255, 136, 0, 0.4);
+}
+
+.forum .category-name {
+    background: linear-gradient(to bottom, #3a1800 0%, #1a0800 100%);
+    color: #ff8844;
+    font-family: 'Black Ops One', Impact, sans-serif;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #ff4400;
+}
+
+.forum .forum-body {
+    border: 0;
+}
+
+.forum .forum-row {
+    border-color: #333333;
+    padding: 0;
+    background-color: #181818;
+    border-bottom: 0;
+}
+
+.forum .forum-row:nth-child(even) {
+    background-color: #1e1e1e;
+}
+
+.forum .forum-row:hover {
+    background-color: #222222;
+}
+
+.forum .forum-header {
+    color: #fff;
+    font-weight: bold;
+    font-family: Tahoma, sans-serif;
+    font-size: 0.85rem;
+    border: 0;
+    padding: 6px 8px 0 8px;
+}
+
+.forum .forum-header .forum-column {
+    background: linear-gradient(to bottom, #ff6600 0%, #1a1a1a 100%);
+}
+
+.forum-column {
+    border-color: #333333;
+}
+
+.stats_forum ul {
+    background-color: #161616;
+    border-color: #333333;
+    color: #cccccc;
+    padding: 8px 12px;
+    border-radius: 3px;
+}
+
+span.unread-badge {
+    color: #ff6600;
+    text-shadow: 0 0 6px rgba(255, 102, 0, 0.4);
+    font-weight: bold;
+    font-size: 0.75rem;
+    background-color: #331a00;
+    padding: 1px 5px;
+    border-radius: 2px;
+}
+
+/* ===== BARRE BBCODE ===== */
+.bbcode-bar, .bbcode-bar ul {
+    display: flex;
+}
+
+.bbcode-bar {
+    flex-direction: column;
+    background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
+    border: 1px solid #333333;
+    border-radius: 3px 3px 0 0;
+    margin: 0 0 0 0;
+    width: 99%;
+}
+
+.bbcode-bar ul {
+    flex-direction: row;
+    flex-wrap: wrap;
+    list-style-type: none;
+    padding: 4px 6px;
+    margin: 0;
+    gap: 2px;
+}
+
+.bbcode-bar li {
+    margin: 0;
+    font-family: Tahoma, sans-serif;
+}
+
+.bbcode-bar button {
+    margin: 1px;
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    background: linear-gradient(to bottom, #333333 0%, #222222 100%);
+    color: #ff8844;
+    border: 1px solid #444444;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.1s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.bbcode-bar button:hover {
+    background: linear-gradient(to bottom, #ff6600 0%, #cc3300 100%);
+    border-color: #ff5500;
+    color: #ffffff;
+}
+
+/* ===== FENETRE DRAGGABLE (aide bbcode) ===== */
+.draggable {
+    width: 600px;
+    height: 300px;
+    overflow: auto;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    background-color: #1a1a1a;
+    border: 2px solid #ff5500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 85, 0, 0.2);
+    border-radius: 3px;
+    z-index: 1000;
+    display: none;
+}
+
+.draggable .header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background: linear-gradient(to bottom, #2a2a2a 0%, #1a1a1a 100%);
+    color: #ff8844;
+    padding: 6px 10px;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: bold;
+    font-family: 'Black Ops One', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #ff4400;
+}
+
+.draggable .close-button {
+    color: #ff6600;
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.draggable .close-button:hover {
+    color: #ffaa66;
+}
+
+.draggable .content {
+    padding: 14px;
+    overflow-y: auto;
+    color: #cccccc;
+    font-size: 0.85rem;
+}
+
+/* ===== RENDU BBCODE ===== */
+ul.bbcode-list {
+    margin-left: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+h1.h1-bbcode {
+    font-family: 'Black Ops One', Impact, sans-serif;
+    font-size: 1.6rem;
+    color: #ff8844;
+    border-bottom: 2px solid #333333;
+    padding-bottom: 4px;
+    text-shadow: 0 0 6px rgba(255, 136, 0, 0.3);
+}
+
+h2.h2-bbcode {
+    font-family: 'Black Ops One', Impact, sans-serif;
+    font-size: 1.3rem;
+    color: #ff8844;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid #333333;
+    padding-bottom: 4px;
+    text-shadow: 0 0 4px rgba(255, 136, 0, 0.3);
+}
+
+h3.h3-bbcode {
+    font-family: Tahoma, sans-serif;
+    font-size: 1.1rem;
+    color: #ffaa66;
+}
+
+fieldset.quote-bbcode {
+    padding: 10px 14px;
+    border: 1px solid #333333;
+    background-color: #181818;
+    border-radius: 3px;
+    margin: 8px 0;
+}
+
+fieldset.quote-bbcode legend {
+    border: 1px solid #333333;
+    padding: 2px 8px;
+    background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
+    color: #ff8844;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ===== ARTICLES / NEWS ===== */
+.post-card, .news, .guestbook p {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    margin: 8px;
+}
+
+.post-card-header, .news-header {
+    border-bottom: 1px solid #333333;
+    background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.post-card-header h3, .news-header h3 {
+    color: #ff8844;
+    font-family: 'Black Ops One', sans-serif;
+    font-size: 0.95rem;
+    text-shadow: 0 0 6px rgba(255, 136, 0, 0.4);
+    margin: 0;
+    padding: 0;
+}
+
+.news, .post-card {
+    margin: 8px;
+    padding: 0;
+    border: 1px solid #333333;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.guestbook p {
+    margin: 8px;
+    padding: 8px;
+    font-size: 0.8rem;
+}
+
+.contrib {
+    border: 1px solid #333333;
+    margin: 8px;
+    padding: 10px;
+    border-radius: 4px;
+    background: #1a1a1a;
+}
+
+.contrib a {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ff6600;
+}
+
+.contrib a:hover {
+    color: #ffaa66;
+}
+
+/* ===== CONTRIBUTION PAGE ===== */
+.games, .movies, .musics, .tech, .category, .news_contrib {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    transition: all 0.2s;
+}
+
+.games:hover, .movies:hover, .musics:hover, .tech:hover, .category:hover, .news_contrib:hover {
+    background-color: #222222;
+    border-color: #ff5500;
+}
+
+/* ===== NOTIFICATIONS ===== */
+.notification li.success {
+    border-color: #00aa33;
+    color: #00dd44;
+    background-color: #001a08;
+    border-left: 4px solid #00aa33;
+}
+
+.notification li.error {
+    border-color: #cc2200;
+    color: #ff4444;
+    background-color: #1a0500;
+    border-left: 4px solid #cc2200;
+}
+
+.notification {
+    margin: 8px;
+}
+
+.notification ul {
+    list-style-type: none;
+}
+
+.notification ul li {
+    padding: 8px 12px;
+    border: 1px solid;
+    margin: 4px 0;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+/* ===== GUESTBOOK ===== */
+.menu ul.guestbook {
+    background-color: rgba(255, 68, 0, 0.05);
+    border-color: #333333;
+}
+
+.menu ul.guestbook li span.date {
+    color: #555555;
+}
+
+.menu ul.guestbook li span.author {
+    color: #ff6600;
+    font-weight: bold;
+}
+
+.guestbook p span.author {
+    color: #ff6600;
+    font-weight: bold;
+}

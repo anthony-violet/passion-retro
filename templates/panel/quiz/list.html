@@ -1,0 +1,43 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Quiz</h2>
+</div>
+<div class="panel-section">
+    <table class="panel-table">
+        <thead>
+            <tr><th>Nom</th><th>Auteur</th><th>Questions</th><th>Créé le</th><th>Statut</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for quiz in quizzes %}
+            <tr>
+                <td><strong>{{ quiz.name }}</strong></td>
+                <td>{{ quiz.author }}</td>
+                <td>{{ quiz.questions.count }}</td>
+                <td>{{ quiz.created|date:"d/m/Y" }}</td>
+                <td>
+                    {% if quiz.is_active %}
+                        <span class="panel-badge panel-badge-success">Actif</span>
+                    {% else %}
+                        <span class="panel-badge panel-badge-warning">Inactif</span>
+                    {% endif %}
+                </td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_quiz_detail' quiz.id %}" class="btn btn-small">Voir</a>
+                    <a href="{% url 'panel_quiz_toggle' quiz.id %}" class="btn btn-small btn-warning">
+                        {% if quiz.is_active %}Désactiver{% else %}Activer{% endif %}
+                    </a>
+                    <form method="post" action="{% url 'panel_quiz_delete' quiz.id %}" style="display:inline" onsubmit="return confirm('Supprimer ce quiz ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="panel-empty">Aucun quiz.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

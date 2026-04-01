@@ -1,0 +1,16 @@
+{% extends 'account/base.html' %}
+
+{% block inner %}
+<h2>Inscription</h2>
+
+<form method="post" action="{% url 'account_signup' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+    {% endif %}
+    <button type="submit">S'inscrire</button>
+</form>
+
+<p>Déjà inscrit ? <a href="{% url 'account_login' %}">Se connecter</a></p>
+{% endblock %}

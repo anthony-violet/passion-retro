@@ -1,0 +1,30 @@
+.postmenu {
+    width: 300px;
+    margin: 10px;
+    float: right;
+    display: flex;
+    flex-direction: column;
+}
+
+.postmenu .header {
+    padding: 5px;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.postmenu .body {
+    padding: 10px;
+    color: #333333;
+}
+
+.postmenu .body ul {
+    display: flex;
+    flex-direction: column;
+}
+
+.postmenu .body ul li {
+    display: flex;
+    flex-direction: column;
+    list-style-type: none;
+    padding: 5px 0;
+}
