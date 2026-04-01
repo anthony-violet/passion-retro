@@ -7,6 +7,18 @@
         {% if request.user.is_authenticated %}
             <center><div class="{{ request.user.border_avatar }}"><img src="/media/{{ request.user.avatar }}" style="width:150px;" alt="Avatar de {{ request.user.username }}"></div></center>
             <li>Bonjour <strong><span class="{{ request.user.username_decoration }}" data-text="{{ request.user.username }}">{{ request.user.username }}</span></strong></li>
+            <li>
+                <label for="theme-select" style="font-weight: normal;">Thème :</label>
+                <select id="theme-select" onchange="window.location.href='/users/theme/set/' + this.value + '/'">
+                    <option value="default" {% if request.theme_active == 'default' %}selected{% endif %}>Default</option>
+                    <option value="rpg" {% if request.theme_active == 'rpg' %}selected{% endif %}>RPG</option>
+                    <option value="retrorpg" {% if request.theme_active == 'retrorpg' %}selected{% endif %}>RetroRPG</option>
+                    <option value="80s" {% if request.theme_active == '80s' %}selected{% endif %}>80s</option>
+                    <option value="00s" {% if request.theme_active == '00s' %}selected{% endif %}>00s</option>
+                    <option value="vhs" {% if request.theme_active == 'vhs' %}selected{% endif %}>VHS</option>
+                    <option value="modern" {% if request.theme_active == 'modern' %}selected{% endif %}>Modern</option>
+                </select>
+            </li>
             <li><a href="{% url 'profile' %}">Mon Profil</a></li>
             <li>
                 <a href="{% url 'pm_home' %}">Messagerie privée</a>
@@ -24,14 +36,14 @@
             <!-- Si c'est un admin -->
             {% if request.user.is_staff %}
                 <li>
-                    <a href="/admin/posts/post/?active__exact=0">
+                    <a href="/panel/posts/?status=pending">
                         Articles en attente
                     </a>
                     {% if pending_posts_count > 0 %}
                         <span class="badge badge-warning">{{ pending_posts_count }}</span>
                     {% endif %}
                 </li>
-                <li><a href="/admin" target="_blank" class="danger">Administration</a></li>
+                <li><a href="/panel" class="danger">Administration</a></li>
             {% endif %}
         <!-- Si le membre n'est pas connecté -->
         {% else %}
@@ -50,8 +62,8 @@
 <div class="menu">
     <h2>Livre d'Or</h2>
     <ul class="guestbook">
-        {% for message in request.guestbook %}    
-            <li><span class="date">[{{ message.created }}]</span> <span class="author {{ message.author.username_decoration }}" data-text="{{ message.author.username }}<">{{ message.author }}</span> : {{ message.content|bbcode|safe|linebreaksbr }}</li>
+        {% for message in request.guestbook %}
+            <li><span class="date">[{{ message.created }}]</span> <span class="author {{ message.author.username_decoration }}" data-text="{{ message.author.username }}<">{{ message.author }}</span> : {{ message.content|bbcode_or_md|safe|linebreaksbr }}</li>
         {% endfor %}
     </ul>
     <ul>
@@ -63,7 +75,7 @@
     <h2>Stats Site</h2>
     <ul>
         <li>Membres : {{ request.total_users }}</li>
-        <li>Dernier inscrit : <a href="{% url 'profile' request.last_user.id %}">{{ request.last_user }}</a></li>
+        <li>Dernier inscrit : {% if request.last_user %}<a href="{% url 'profile' request.last_user.id %}">{{ request.last_user }}</a>{% else %}Aucun{% endif %}</li>
         <li>Visiteurs : {{ request.visitor_count }}</li>
         <li>Visites totales : {{ request.total_visitor_count }}</li>
     </ul>
