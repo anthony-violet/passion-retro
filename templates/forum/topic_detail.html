@@ -5,6 +5,112 @@
 {% load bbcode_tags %}
 
 {% block forum_content %}
+
+{% if request.theme_active == 'vhs' %}
+
+<div class="vhs-forum">
+    <nav class="vhs-breadcrumb">
+        <a href="{% url 'forum_home' %}">{{ topic.forum.category.name }}</a>
+        <span class="vhs-breadcrumb__sep">›</span>
+        <a href="{% url 'topic_list' topic.forum.id %}">{{ topic.forum.name }}</a>
+        <span class="vhs-breadcrumb__sep">›</span>
+        <span>{{ topic.title }}</span>
+    </nav>
+
+    <div class="vhs-playback-bar">
+        <span class="vhs-playback-icon">▶</span>
+        <span class="vhs-playback-title">{{ topic.title }}</span>
+        <span class="vhs-playback-counter" id="vhs-post-counter">00:{{ posts|length|stringformat:"02d" }}:00</span>
+    </div>
+
+    {% for post in posts %}
+    <div class="vhs-segment" id="{{ post.id }}">
+        <div class="vhs-segment__info">
+            <div class="{{ post.author.border_avatar }}">
+                <img class="vhs-segment__avatar"
+                     src="/media/{{ post.author.avatar }}"
+                     alt="{{ post.author.username }}"
+                     width="80" height="80">
+            </div>
+
+            <span id="author-post-{{ post.id }}"
+                  class="vhs-segment__username {{ post.author.username_decoration }}">
+                {{ post.author.username }}
+            </span>
+
+            <div class="vhs-segment__date">{{ post.created|date:"d/m/y H:i" }}</div>
+
+            <ul class="vhs-segment__meta">
+                {% for group in post.author.groups.all %}
+                <li>
+                    <span class="vhs-segment__group{% if group.name == 'Administrateurs' %} vhs-segment__group--admin{% elif group.name == 'Super Admin' %} vhs-segment__group--sadmin{% endif %}">
+                        {{ group.name }}
+                    </span>
+                </li>
+                {% endfor %}
+                <li>{{ count_posts|get_item:post.author.id }} msgs</li>
+            </ul>
+
+            {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
+            <div class="vhs-segment__admin-actions">
+                <a href="{% url 'deactivate_post' post.id %}" class="btn-vhs btn-vhs--danger">■ DÉSACT.</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="vhs-segment__content">
+            <div class="vhs-segment__text" id="post-{{ post.id }}">
+                {{ post.content|bbcode|safe|linebreaksbr }}
+            </div>
+
+            <div class="vhs-segment__bio">
+                {{ post.author.biography|bbcode|safe|linebreaksbr }}
+            </div>
+
+            <div class="vhs-segment__actions">
+                {% if post.created|date:"Y-m-d H:i:s" != post.updated|date:"Y-m-d H:i:s" %}
+                <span class="vhs-segment__edited">⚙ modifié le {{ post.updated }}</span>
+                {% endif %}
+                <a class="btn-vhs" id="quote" target="{{ post.id }}">❝ CITER</a>
+                {% if request.user == post.author or request.user.is_staff %}
+                <a href="{% url 'forum_edit_post' post.id %}" class="btn-vhs">✎ MODIFIER</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    <div style="padding: 10px 18px; border-bottom: 1px solid #1a1a1a;">{% paginate %}</div>
+
+    {% if user.is_authenticated %}
+        {% if topic.state == "closed" %}
+        <div class="vhs-closed">
+            TOPIC FERMÉ
+            {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
+            &nbsp;—&nbsp;<a href="{% url 'unlock_topic' topic.id %}" class="btn-vhs" style="display:inline-flex;">▶ OUVRIR</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="vhs-rec-form">
+            <div class="vhs-rec-header">
+                <span class="vhs-rec-indicator">ENREGISTREMENT</span>
+                <span class="vhs-rec-title">RÉPONDRE AU SUJET</span>
+                {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
+                <a href="{% url 'lock_topic' topic.id %}" class="btn-vhs btn-vhs--danger" style="margin-left:auto;">■ FERMER</a>
+                {% endif %}
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">{{ post_form.as_p }}</div>
+                <button class="btn" style="margin: 0 16px 14px 16px;">▶ REC — Envoyer</button>
+            </form>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+{% else %}
+
         <div class="forum">
             <h2>{{ topic.title }}</h2>
             <ul class="breadcrumbs">
@@ -47,21 +153,19 @@
                                 <hr>
                                 <p style="padding: 10px;">{{ post.author.biography|bbcode|safe|linebreaksbr }}</p>
                                 {% if post.created|date:"Y-m-d H:i:s" != post.updated|date:"Y-m-d H:i:s" %}
-                                    <span style="font-style:italic;font-size: 0.8rem;">modifié le {{ post.updated }}</span>  
+                                    <span style="font-style:italic;font-size: 0.8rem;">modifié le {{ post.updated }}</span>
                                 {% endif %}
                                 <a style="float:right" id="quote" target="{{ post.id }}" class="btn btn-small">Citer</a>
-                                <!-- Ajouter ceci dans la boucle des posts, près des autres actions -->
                                 {% if request.user == post.author or request.user.is_staff %}
                                     <a href="{% url 'forum_edit_post' post.id %}" style="float:right" id="edit" class="btn btn-small">Modifier</a>
                                 {% endif %}
-                            </div>                        
+                            </div>
                         </div>
                     </div><br>
                 </div>
             {% endfor %}
             {% paginate %}
             {% if user.is_authenticated %}
-            <!-- On affiche la possibilité de clore le topic si l'utilisateur est admin -->
             {% if topic.state == "closed" %}
                 <h2>Topic fermé</h2>
                 {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
@@ -82,4 +186,6 @@
                 {% endif %}
             {% endif %}
         </div>
+
+{% endif %}
 {% endblock %}

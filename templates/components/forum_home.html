@@ -56,6 +56,53 @@
         {% endfor %}
     </div>
 
+    {% elif request.theme_active == 'vhs' %}
+
+    <div class="vhs-forum">
+        <div class="vhs-store-header">
+            <div class="vhs-store-title">▶ VIDEO CLUB</div>
+            <div class="vhs-store-badge">● REC EN COURS</div>
+        </div>
+
+        {% for category in categories %}
+        <div class="vhs-shelf-section">
+            <div class="vhs-shelf-label">
+                <span class="vhs-shelf-label__text">{{ category.name }}</span>
+                <span class="vhs-shelf-label__line"></span>
+            </div>
+            <div class="vhs-cassettes-grid">
+                {% for forum in forums %}
+                    {% if forum.category.id == category.id %}
+                    <a href="{% url 'topic_list' forum.id %}"
+                       class="vhs-cassette{% if unread_topics|get_item:forum.id %} vhs-cassette--unread{% endif %}">
+                        <div class="vhs-cassette__spine"></div>
+                        <div class="vhs-cassette__body">
+                            <div class="vhs-cassette__name">{{ forum.name }}</div>
+                            {% if forum.description %}
+                            <div class="vhs-cassette__desc">{{ forum.description|safe }}</div>
+                            {% endif %}
+                            <div class="vhs-cassette__stats">
+                                <span class="vhs-cassette__count">
+                                    ◈ {{ count_topics|get_item:forum.id|default_if_none:'0' }} sujet{% if count_topics|get_item:forum.id != 1 %}s{% endif %}
+                                </span>
+                                {% if unread_topics|get_item:forum.id %}
+                                <span class="vhs-cassette__status">● NEW</span>
+                                {% endif %}
+                                {% with last_post=last_posts|get_item:forum.id %}
+                                    {% if last_post %}
+                                    <span class="vhs-cassette__last">{{ last_post.author.username }} · {{ last_post.created }}</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
     {% else %}
 
     <h2>Forum</h2>
