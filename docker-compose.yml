@@ -28,9 +28,9 @@ services:
                python manage.py collectstatic --noinput &&
                python manage.py create_default_superuser &&
                python manage.py create_initial_data &&
-               python manage.py runserver 0.0.0.0:5500"
+               gunicorn passion_retro.wsgi:application --bind 0.0.0.0:5500 --workers 4 --timeout 60"
     ports:
-      - "8000:5500"
+      - "5500:5500"
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
