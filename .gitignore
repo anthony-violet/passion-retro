@@ -10,3 +10,5 @@ CLAUDE.md
 test_preview.py
 mariadb_fixture.json
 convert_mariadb_to_fixture.py
+Dockerfile
+docker-compose.yml
