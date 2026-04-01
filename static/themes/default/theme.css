@@ -2,6 +2,7 @@
 :root {
     /* Couleurs de fond */
     --bg-body: #d6dde8;
+    --bg-card: rgba(0, 0, 0, 0.08);
     --bg-container: #ffffff;
     --bg-menu: #f5f7fa;
     --bg-menu-guestbook: #f0f4fa;
@@ -32,6 +33,7 @@
     --text-primary: #2c2c2c;
     --text-link: #1464b4;
     --text-link-hover: #d94f00;
+    --text-link-alternative: #199190;
     --text-danger: #bb1111;
     --text-admin: #d94f00;
     --text-sadmin: #bb1111;
@@ -118,11 +120,15 @@ a:hover {
 }
 
 a:visited {
-    color: var(--text-link);
+
 }
 
 a.danger {
     color: var(--text-danger);
+}
+
+a.alternative{
+    color: var(--text-link-alternative);
 }
 
 .text-admin { color: var(--text-admin); font-weight: bold; }
@@ -2725,3 +2731,124 @@ fieldset.quote-bbcode legend {
 
 /* ===== MISC ===== */
 .panel-text-danger { color: #cc0000; }
+
+/* Éphémérides Styles */
+
+.ephemerides-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--body-fg);
+}
+
+.ephemerides-header h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--secondary);
+}
+
+.ephemerides-subtitle {
+    font-size: 1.1rem;
+    color: var(--body-quiet-color);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.ephemerides-list {
+    display: grid;
+    gap: 1.5rem;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.ephemeride-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.ephemeride-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.ephemeride-header {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: var(--primary-fg);
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ephemeride-category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-contribution);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.ephemeride-year-badge {
+    background: var(--message-info-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.ephemeride-body {
+    padding: 1.5rem;
+}
+
+.ephemeride-title {
+    color: var(--secondary);
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.ephemeride-content {
+    color: var(--body-fg);
+    line-height: 1.6;
+}
+
+.ephemeride-content p {
+    margin-bottom: 1rem;
+}
+
+.ephemeride-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.ephemerides-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--body-quiet-color);
+    font-size: 1.1rem;
+}
+
+.ephemerides-empty p {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .ephemeride-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .ephemeride-category-badge,
+    .ephemeride-year-badge {
+        width: 100%;
+        text-align: center;
+    }
+}

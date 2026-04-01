@@ -1,28 +1,28 @@
-{% if request.theme_active != '00s' %}
-    <div class="warning-announce-not-mobile-compatible">
-        Le design séléctionné n'est pas compatible avec les appareils mobiles. Veuillez choisir un autre design pour une meilleure expérience utilisateur.
-    </div>
-{% endif %}
+{% load static %}
 {% if request.theme_active == 'rpg' %}
 <div class="banner-container">
     <div class="banner rpg-banner">
+        <canvas id="rpg-stars-canvas" class="rpg-stars-canvas"></canvas>
+        <div class="rpg-gaia-glow"></div>
         <div class="rpg-frame">
-            <div class="rpg-background">
-                <div class="rpg-cloud"></div>
-                <div class="rpg-cloud"></div>
-                <div class="rpg-tree"></div>
-                <div class="rpg-tree"></div>
-            </div>
-            <div class="rpg-text-box">
-                <div class="rpg-title">Passion Retro</div>
-                <div class="rpg-message">
-                    Bienvenue sur le portail web 100% Rétro ! Attention, ce site web n'est pas conseillé aux personnes<br>nées après 2005 sous peine de crise existensielle.
+            <div class="rpg-title">{{ site_name }}</div>
+            <div class="rpg-slogan">Bienvenue sur le portail web 100% Retro ! Attention, ce site web n'est pas conseils aux personnes nees apres 2005 sous peine de crise existensielle.</div>
+        </div>
+        <div class="rpg-dialog-box">
+            <div class="rpg-dialog-inner">
+                <div class="rpg-dialog-face">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2306091e' stroke='%23c8a030' stroke-width='2'/%3E%3Ctext x='32' y='40' text-anchor='middle' font-size='24' fill='%23f0d860'%3E%F0%9F%92%AC%3C/text%3E%3C/svg%3E" alt="Face">
                 </div>
-                <div class="rpg-pointer">▼</div>
+                <div class="rpg-dialog-text">
+                    <span class="rpg-dialog-name">Gaia</span>
+                    <p>Bienvenue voyageur... Le destin t'attend dans ce monde rétro. Prépare-toi à vivre une aventure hors du temps!</p>
+                </div>
+                <div class="rpg-dialog-arrow">▼</div>
             </div>
         </div>
     </div>
 </div>
+<script src="{% static 'js/themes/rpg/banner.js' %}"></script>
 {% else %}
 <div class="banner-container">
     <div class="banner">
@@ -34,8 +34,8 @@
             <div class="engine"></div>
         </div>
         {% endif %}
-        <div class="banner-text" id="bannerText">Passion Retro</div>
-        <div class="slogan">Bienvenue sur le portail web 100% Rétro ! Attention, ce site web n'est pas conseillé aux personnes nées après 2005 sous peine de crise existensielle.</div>
+        <div class="banner-text" id="bannerText">{{ site_name }}</div>
+        <div class="slogan">Bienvenue sur le portail web 100% Retro ! Attention, ce site web n'est pas conseils aux personnes nees apres 2005 sous peine de crise existensielle.</div>
     </div>
 </div>
 {% endif %}

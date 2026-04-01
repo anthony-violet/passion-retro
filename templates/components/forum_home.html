@@ -2,6 +2,62 @@
 {% load forum_extras %}
 
 {% block forum_content %}
+    {% if request.theme_active == 'rpg' %}
+
+    <div class="rpg-board">
+        <div class="rpg-board-header">
+            <div class="rpg-board-title-row">
+                <span class="rpg-board-ornament">⚔</span>
+                <h2 class="rpg-board-title">Guilde des Aventuriers</h2>
+                <span class="rpg-board-ornament">⚔</span>
+            </div>
+            <p class="rpg-board-subtitle">Tableau des Quêtes &amp; Annonces de la Guilde</p>
+        </div>
+
+        {% for category in categories %}
+            <div class="rpg-category-section">
+                <div class="rpg-category-banner">
+                    <span class="rpg-cat-line"></span>
+                    <span class="rpg-cat-label">{{ category.name }}</span>
+                    <span class="rpg-cat-line"></span>
+                </div>
+                <div class="rpg-notices-grid">
+                    {% for forum in forums %}
+                        {% if forum.category.id == category.id %}
+                            <a href="{% url 'topic_list' forum.id %}" class="rpg-notice{% if unread_topics|get_item:forum.id %} rpg-notice--unread{% endif %}">
+                                <div class="rpg-notice-pin"></div>
+                                {% if unread_topics|get_item:forum.id %}
+                                    <span class="rpg-notice-orb"></span>
+                                {% endif %}
+                                <div class="rpg-notice-name">{{ forum.name }}</div>
+                                {% if forum.description %}
+                                    <div class="rpg-notice-desc">{{ forum.description|safe }}</div>
+                                {% endif %}
+                                <div class="rpg-notice-footer">
+                                    <span class="rpg-notice-count">
+                                        <span class="rpg-notice-count-icon">◈</span>
+                                        {{ count_topics|get_item:forum.id|default_if_none:'0' }} quête{% if count_topics|get_item:forum.id != 1 %}s{% endif %}
+                                    </span>
+                                    {% with last_post=last_posts|get_item:forum.id %}
+                                        {% if last_post %}
+                                            <span class="rpg-notice-last">
+                                                {{ last_post.author.username }} · {{ last_post.created }}
+                                            </span>
+                                        {% else %}
+                                            <span class="rpg-notice-last rpg-notice-last--empty">Aucune activité</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+
     <h2>Forum</h2>
     <div class="forum">
         {% for category in categories %}
@@ -33,7 +89,7 @@
                                     {% if last_post %}
                                         <strong><a href="{% url 'profile' last_post.author.id %}" class="{{ last_post.author.username_decoration }}">{{ last_post.author.username }}</a></strong> dans <a href="{% url 'post_list' last_post.topic.forum.id last_post.topic.id %}">{{ last_post.topic.title }}</a>
                                         <br>
-                                        <small>{{ last_post.created }}</small></span>
+                                        <small>{{ last_post.created }}</small>
                                     {% else %}
                                         Aucun message
                                     {% endif %}
@@ -45,4 +101,6 @@
             </div>
         {% endfor %}
     </div>
+
+    {% endif %}
 {% endblock %}

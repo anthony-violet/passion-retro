@@ -72,6 +72,10 @@
     <center><a href="{% url 'guestbook_home' %}#form" class="btn btn-add">Laisser un message</a></center>
 </div>
 <div class="menu">
+    <h2>Éphémérides</h2>
+    {% include './ephemerides.html' %}
+</div>
+<div class="menu">
     <h2>Stats Site</h2>
     <ul>
         <li>Membres : {{ request.total_users }}</li>

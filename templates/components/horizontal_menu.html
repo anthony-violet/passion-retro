@@ -11,6 +11,7 @@
     <ul>
         <li><a href="{% url 'home' %}">Accueil</a></li>
         <li><a href="{% url 'forum_home' %}">Forum</a></li>
+        <li><a href="{% url 'ephemerides_today'  %}" class="new-item-menu">Ce jour là...</a></li>
         <li>
             <a href="{% url 'portal_games' %}">
                 Portail des jeux
@@ -19,7 +20,7 @@
                 {% endif %}
             </a>
         </li>
-        <li><a href="{% url 'shop_home' %}" class="new-item-menu">Boutique</a></li>
+        <li><a href="{% url 'shop_home' %}">Boutique</a></li>
         <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
         <li><a href="">Technologies</a>
             <ul class="dropdown">

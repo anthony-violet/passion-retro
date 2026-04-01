@@ -3,58 +3,126 @@
 {% load paginator_tag %}
 
 {% block forum_content %}
-        <h2>{{ forum.name }}</h2>
-        <ul class="breadcrumbs">
-            <li><a href="{% url 'forum_home' %}">{{ forum.category.name }}</a> »</li>
-            <li>{{ forum.name }}</li>
-        </ul>
-        <div class="forum">
+
+    {% if request.theme_active == 'rpg' %}
+    <div class="rpg-board">
+        <div class="rpg-board-header rpg-board-header--sub">
+            <ul class="breadcrumbs">
+                <li><a href="{% url 'forum_home' %}">{{ forum.category.name }}</a> »</li>
+                <li>{{ forum.name }}</li>
+            </ul>
+            <div class="rpg-board-title-row">
+                <span class="rpg-board-ornament">◈</span>
+                <h2 class="rpg-board-title">{{ forum.name }}</h2>
+                <span class="rpg-board-ornament">◈</span>
+            </div>
+            {% if forum.description %}<p class="rpg-board-subtitle">{{ forum.description|safe }}</p>{% endif %}
             {% if user.is_authenticated %}
-                <a href="{% url 'create_topic' forum.id %}" class="btn btn-add">Nouveau Topic</a>
+                <div class="rpg-board-actions">
+                    <a href="{% url 'create_topic' forum.id %}" class="btn btn-add rpg-btn-quest">✦ Poster une Quête</a>
+                </div>
             {% endif %}
-            <div class="forum-header">
-                <div class="forum-column">Sujet</div>
-                <div class="forum-column">Auteur</div>
-                <div class="forum-column">Messages</div>
-                <div class="forum-column">Dernier Message</div>
-            </div>
-            <div class="forum-body">
-                {% for topic in topics %}
-                    <div class="forum-row">
-                        <div class="forum-column">
-                            {% if unread_topics|get_item:topic.id %}
-                                <span class="unread-badge">•</span>
-                                <strong><a href="{% url 'post_list' topic.forum.id topic.id %}">{{ topic.title }}</a></strong>
-                            {% else %}
-                                <a href="{% url 'post_list' topic.forum.id topic.id %}">{{ topic.title }}</a>
-                            {% endif %}
-                            <br>
-                            <small>{{ topic.created_at }}</small>
-                        </div>
-                        <div class="forum-column">
-                            <span class="{{ topic.author.username_decoration }}">{{ topic.author.username }}</span>
-                        </div>
-                        <div class="forum-column">
-                            {{ count_posts|get_item:topic.id|default_if_none:'Aucun' }}
-                        </div>
-                        <div class="forum-column">
-                            {% with last_post=last_posts|get_item:topic.id %}
-                                {% if last_post %}
-                                    <strong><span class="{{ last_post.author.username_decoration }}">{{ last_post.author.username }}</span></strong>
-                                    <br>
-                                    <small>
-                                        <a href="{% url 'post_list' last_post.topic.forum.id last_post.topic.id %}?page={{ page_numbers|get_item:topic.id }}#{{ last_post.id }}">
-                                            {{ last_post.created }}
-                                        </a>
-                                    </small>
-                                {% else %}
-                                    Aucun message
-                                {% endif %}
-                            {% endwith %}
-                        </div>
-                    </div>
-                {% endfor %}
-                {% paginate %}
-            </div>
         </div>
+
+        <div class="rpg-topic-list">
+            <div class="rpg-topic-list-header">
+                <span class="rpg-tl-col rpg-tl-col--title">Quête</span>
+                <span class="rpg-tl-col rpg-tl-col--author">Explorateur</span>
+                <span class="rpg-tl-col rpg-tl-col--count">Épreuves</span>
+                <span class="rpg-tl-col rpg-tl-col--last">Dernière activité</span>
+            </div>
+            {% for topic in topics %}
+                <a href="{% url 'post_list' topic.forum.id topic.id %}" class="rpg-topic-row{% if unread_topics|get_item:topic.id %} rpg-topic-row--unread{% endif %}">
+                    <span class="rpg-topic-row-cursor">▶</span>
+                    <span class="rpg-tl-col rpg-tl-col--title">
+                        {% if unread_topics|get_item:topic.id %}<span class="rpg-topic-orb"></span>{% endif %}
+                        <span class="rpg-topic-name">{{ topic.title }}</span>
+                        <span class="rpg-topic-date">{{ topic.created_at }}</span>
+                    </span>
+                    <span class="rpg-tl-col rpg-tl-col--author">
+                        <span class="{{ topic.author.username_decoration }}">{{ topic.author.username }}</span>
+                    </span>
+                    <span class="rpg-tl-col rpg-tl-col--count">
+                        {{ count_posts|get_item:topic.id|default_if_none:'0' }}
+                    </span>
+                    <span class="rpg-tl-col rpg-tl-col--last">
+                        {% with last_post=last_posts|get_item:topic.id %}
+                            {% if last_post %}
+                                <span class="rpg-topic-last-author {{ last_post.author.username_decoration }}">{{ last_post.author.username }}</span>
+                                <span class="rpg-topic-last-date">{{ last_post.created }}</span>
+                            {% else %}
+                                <span class="rpg-topic-none">—</span>
+                            {% endif %}
+                        {% endwith %}
+                    </span>
+                </a>
+            {% empty %}
+                <div class="rpg-board-empty">
+                    <span class="rpg-board-empty-icon">◈</span>
+                    <p>Aucune quête sur ce tableau.</p>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="rpg-board-paginate">{% paginate %}</div>
+    </div>
+
+    {% else %}
+
+    <h2>{{ forum.name }}</h2>
+    <ul class="breadcrumbs">
+        <li><a href="{% url 'forum_home' %}">{{ forum.category.name }}</a> »</li>
+        <li>{{ forum.name }}</li>
+    </ul>
+    <div class="forum">
+        {% if user.is_authenticated %}
+            <a href="{% url 'create_topic' forum.id %}" class="btn btn-add">Nouveau Topic</a>
+        {% endif %}
+        <div class="forum-header">
+            <div class="forum-column">Sujet</div>
+            <div class="forum-column">Auteur</div>
+            <div class="forum-column">Messages</div>
+            <div class="forum-column">Dernier Message</div>
+        </div>
+        <div class="forum-body">
+            {% for topic in topics %}
+                <div class="forum-row">
+                    <div class="forum-column">
+                        {% if unread_topics|get_item:topic.id %}
+                            <span class="unread-badge">•</span>
+                            <strong><a href="{% url 'post_list' topic.forum.id topic.id %}">{{ topic.title }}</a></strong>
+                        {% else %}
+                            <a href="{% url 'post_list' topic.forum.id topic.id %}">{{ topic.title }}</a>
+                        {% endif %}
+                        <br>
+                        <small>{{ topic.created_at }}</small>
+                    </div>
+                    <div class="forum-column">
+                        <span class="{{ topic.author.username_decoration }}">{{ topic.author.username }}</span>
+                    </div>
+                    <div class="forum-column">
+                        {{ count_posts|get_item:topic.id|default_if_none:'Aucun' }}
+                    </div>
+                    <div class="forum-column">
+                        {% with last_post=last_posts|get_item:topic.id %}
+                            {% if last_post %}
+                                <strong><span class="{{ last_post.author.username_decoration }}">{{ last_post.author.username }}</span></strong>
+                                <br>
+                                <small>
+                                    <a href="{% url 'post_list' last_post.topic.forum.id last_post.topic.id %}?page={{ page_numbers|get_item:topic.id }}#{{ last_post.id }}">
+                                        {{ last_post.created }}
+                                    </a>
+                                </small>
+                            {% else %}
+                                Aucun message
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            {% endfor %}
+            {% paginate %}
+        </div>
+    </div>
+
+    {% endif %}
+
 {% endblock %}

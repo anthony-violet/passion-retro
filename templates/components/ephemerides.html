@@ -1,8 +1,6 @@
 {% load bbcode_tags %}
 
 {% if ephemerides_today %}
-<div class="menu">
-    <h2>📅 Aujourd'hui dans l'histoire</h2>
     <ul>
         {% for event in ephemerides_today %}
         <li>
@@ -13,5 +11,4 @@
         {% endfor %}
     </ul>
     <center><a href="{% url 'ephemerides_today' %}" class="btn btn-small">Voir tout</a></center>
-</div>
 {% endif %}

@@ -83,13 +83,13 @@ INSTALLED_APPS = [
     "forum",
     "tchat",
     "guestbook",
+    "ephemerides",
     "games",
     "quiz",
     "messagerie",
     "shop",
     "panel",
     "version",
-    "ephemerides"
 ]
 
 SITE_ID = 1
@@ -129,6 +129,7 @@ TEMPLATES = [
                 "quiz.context_processors.pending_quizes_count",
                 "messagerie.context_processors.pending_pm_count",
                 "passion_retro.context_processors.theme_context",
+                "ephemerides.context_processors.ephemerides_today",
             ],
         },
     },

@@ -4,23 +4,33 @@
 {% block content %}
 <div class="container">
     <h2>📅 Éphémérides du {{ today|date:"j F" }}</h2>
-    <p>Retrouvez les événements marquants du monde rétro survenus un {{ today|date:"j F" }}.</p>
+    <div class="ephemerides-header">
+        <p class="ephemerides-subtitle">Retrouvez les événements marquants du monde rétro survenus un {{ today|date:"j F" }}.</p>
+        <p><a href="{% url 'contribute_ephemeride' %}" class="btn btn-add">Proposer</a> </p>
+    </div>
 
     {% if events %}
-        {% for event in events %}
-        <div class="ephemeride-card">
-            <div class="ephemeride-header">
-                <span class="ephemeride-category">{{ event.get_category_display }}</span>
-                <span class="ephemeride-year">Il y a {{ today.year|add:"-1"|add:event.year|add:"-1"|stringformat:"d" }}… en {{ event.year }}</span>
+        <div class="ephemerides-list">
+            {% for event in events %}
+            <div class="ephemeride-card">
+                <div class="ephemeride-header">
+                    <span class="ephemeride-category-badge">{{ event.get_category_display_icon }}</span>
+                    <span class="ephemeride-year-badge">Il y a {{ today.year|add:"-1"|add:event.year|add:"-1"|stringformat:"d" }} ans… en <strong>{{ event.year }}</strong></span>
+                </div>
+                <div class="ephemeride-body">
+                    <h3 class="ephemeride-title">{{ event.title }}</h3>
+                    {% if event.content %}
+                        <div class="ephemeride-content">{{ event.content|bbcode|safe }}</div>
+                    {% endif %}
+                </div>
             </div>
-            <h3>{{ event.title }}</h3>
-            {% if event.content %}
-                <div class="ephemeride-content">{{ event.content|bbcode|safe }}</div>
-            {% endif %}
+            <hr />
+            {% endfor %}
         </div>
-        {% endfor %}
     {% else %}
-        <p class="panel-empty">Aucun événement rétro enregistré pour ce jour. <a href="/ephemerides/">Revenez demain !</a></p>
+        <div class="ephemerides-empty">
+            <p>✨ Aucun événement rétro enregistré pour ce jour. Revenez demain !</p>
+        </div>
     {% endif %}
 </div>
 {% endblock %}
