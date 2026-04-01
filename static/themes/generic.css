@@ -4,11 +4,11 @@ span.money {
 }
 
 span.money::after {
-    content: url('../../img/icons/money_25x25.png');
+    content: url('../img/icons/money_25x25.png');
 }
 
 span.bag::before {
-    content: url('../../img/icons/bag_25x25.png');
+    content: url('../img/icons/bag_25x25.png');
 }
 
 .modal {
@@ -86,4 +86,13 @@ code[class*="language-"] {
     gap: 20px;
     width: 100%;
     margin: 0;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.post-card p, .news p, .forum-body p {
+    padding: 10px;
 }

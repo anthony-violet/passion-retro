@@ -428,7 +428,7 @@ p, ul {
     padding-bottom: 10px;
 }
 
-.container > *:not(h2):not(.breadcrumbs) {
+.container > *:not(h2):not(.breadcrumbs):not(.forum) {
     padding-left: 10px;
     padding-right: 10px;
 }

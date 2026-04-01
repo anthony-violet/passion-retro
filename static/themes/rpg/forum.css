@@ -20,22 +20,12 @@
     position: relative;
     text-align: center;
     padding: 12px 60px;
-    background:
-        linear-gradient(to right,
-            #04060f 0%,
-            #080e28 15%,
-            #0e1648 40%,
-            #0e1648 60%,
-            #080e28 85%,
-            #04060f 100%
-        );
-    border-top: 1px solid rgba(48, 96, 160, 0.8);
-    border-bottom: 1px solid rgba(30, 56, 112, 0.6);
+    background: var(--bg-container);
+    border-top: 1px solid var(--border-container);
+    border-bottom: 1px solid var(--border-menu-header);
     margin-top: 24px;
     overflow: visible;
-    box-shadow:
-        inset 0 1px 0 rgba(80, 140, 255, 0.06),
-        0 2px 15px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-container);
 }
 
 /* Ligne or à gauche */
@@ -49,8 +39,8 @@
     height: 1px;
     background: linear-gradient(to right,
         transparent,
-        rgba(200, 160, 48, 0.2) 20%,
-        rgba(200, 160, 48, 0.7) 100%
+        var(--border-button-warning) 20%,
+        var(--border-button-warning) 100%
     );
     pointer-events: none;
 }
@@ -66,8 +56,8 @@
     height: 1px;
     background: linear-gradient(to left,
         transparent,
-        rgba(200, 160, 48, 0.2) 20%,
-        rgba(200, 160, 48, 0.7) 100%
+        var(--border-button-warning) 20%,
+        var(--border-button-warning) 100%
     );
     pointer-events: none;
 }
@@ -77,7 +67,7 @@
     font-family: 'Cinzel', Georgia, serif;
     font-size: 0.78rem;
     font-weight: 700;
-    color: #f0d860;
+    color: var(--text-link);
     letter-spacing: 6px;
     text-transform: uppercase;
     text-shadow:
@@ -93,7 +83,7 @@
     content: '⚔';
     margin-right: 14px;
     font-size: 0.72rem;
-    color: #c8a030;
+    color: var(--border-button-warning);
     opacity: 0.85;
     text-shadow: 0 0 10px rgba(200, 160, 48, 0.5);
 }
@@ -102,7 +92,7 @@
     content: '⚔';
     margin-left: 14px;
     font-size: 0.72rem;
-    color: #c8a030;
+    color: var(--border-button-warning);
     opacity: 0.85;
     text-shadow: 0 0 10px rgba(200, 160, 48, 0.5);
 }
@@ -111,15 +101,15 @@
    EN-TÊTE DE COLONNES — Inscription sur pierre
    ================================================================ */
 .theme-rpg .forum .forum-header {
-    background: linear-gradient(to bottom, #06091e 0%, #080d28 100%);
-    border-top: 2px solid #3060a0;
-    border-bottom: 1px solid #1e3070;
+    background: var(--bg-container);
+    border-top: 2px solid var(--border-container);
+    border-bottom: 1px solid var(--border-input);
     font-family: 'Cinzel', Georgia, serif;
     font-size: 0.6rem;
     font-weight: 600;
     letter-spacing: 3px;
     text-transform: uppercase;
-    color: #506898;
+    color: var(--text-guestbook-date);
     padding: 7px 12px;
     position: relative;
 }
@@ -135,9 +125,9 @@
     height: 1px;
     background: linear-gradient(90deg,
         transparent,
-        rgba(200, 160, 48, 0.4) 30%,
-        rgba(240, 216, 96, 0.7) 50%,
-        rgba(200, 160, 48, 0.4) 70%,
+        var(--border-button-warning) 30%,
+        var(--text-link) 50%,
+        var(--border-button-warning) 70%,
         transparent
     );
 }
@@ -147,7 +137,7 @@
    ================================================================ */
 .theme-rpg .forum .forum-body {
     background: transparent;
-    border: 2px solid #1e3870;
+    border: 2px solid var(--border-menu-header);
     border-radius: 0 0 3px 3px;
     position: relative;
     overflow: hidden;
@@ -161,8 +151,8 @@
     height: 1px;
     background: linear-gradient(90deg,
         transparent 5%,
-        rgba(80, 140, 220, 0.2) 30%,
-        rgba(80, 140, 220, 0.2) 70%,
+        var(--border-container) 30%,
+        var(--border-container) 70%,
         transparent 95%
     );
     pointer-events: none;
@@ -172,8 +162,8 @@
    LIGNES DE FORUM / QUÊTES
    ================================================================ */
 .theme-rpg .forum .forum-row {
-    background: linear-gradient(to right, #07091e 0%, #06091e 40%, #07091e 100%);
-    border-bottom: 1px solid rgba(30, 56, 112, 0.35);
+    background: var(--bg-contribution);
+    border-bottom: 1px solid var(--border-stats-forum);
     padding: 10px 12px 10px 42px;
     position: relative;
     transition: background 0.15s, border-left-color 0.15s;
@@ -181,7 +171,7 @@
 }
 
 .theme-rpg .forum .forum-row:nth-child(even) {
-    background: linear-gradient(to right, #06091e 0%, #080d28 40%, #06091e 100%);
+    background: var(--bg-menu);
 }
 
 .theme-rpg .forum .forum-row:last-child {
@@ -189,8 +179,8 @@
 }
 
 .theme-rpg .forum .forum-row:hover {
-    background: linear-gradient(to right, #0c1240 0%, #0e1448 50%, #0c1240 100%) !important;
-    border-left-color: #c8a030;
+    background: var(--bg-contribution-hover) !important;
+    border-left-color: var(--border-button-warning);
 }
 
 /* Icône parchemin/quête à gauche */
@@ -200,14 +190,14 @@
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: rgba(48, 96, 160, 0.5);
+    color: var(--border-container);
     font-size: 1rem;
     transition: color 0.15s;
     line-height: 1;
 }
 
 .theme-rpg .forum .forum-row:hover::before {
-    color: rgba(200, 160, 48, 0.85);
+    color: var(--border-button-warning);
 }
 
 /* ================================================================
@@ -217,7 +207,7 @@
     display: inline-block;
     width: 10px;
     height: 10px;
-    background: radial-gradient(circle at 35% 35%, #fff8c0, #f0d860, #c8a030);
+    background: radial-gradient(circle at 35% 35%, #fff8c0, var(--text-link), var(--border-button-warning));
     border-radius: 50%;
     font-size: 0;
     vertical-align: middle;
@@ -243,7 +233,7 @@
    DESCRIPTION DU FORUM — Texte narratif RPG
    ================================================================ */
 .theme-rpg .forum-description small {
-    color: #3a5888;
+    color: var(--text-guestbook-date);
     font-style: italic;
     font-family: 'Crimson Text', Georgia, serif;
     font-size: 0.88rem;
@@ -262,7 +252,7 @@
 /* Titre de topic en couleur cristal */
 .theme-rpg .forum .forum-row .forum-column:first-child > a,
 .theme-rpg .forum .forum-row .forum-column:first-child > strong > a {
-    color: #90c0e8;
+    color: var(--text-link);
     font-family: 'Crimson Text', Georgia, serif;
     font-size: 1rem;
     font-weight: 600;
@@ -271,13 +261,13 @@
 
 .theme-rpg .forum .forum-row .forum-column:first-child > a:hover,
 .theme-rpg .forum .forum-row .forum-column:first-child > strong > a:hover {
-    color: #f0d860;
+    color: var(--text-link-hover);
     text-shadow: 0 0 10px rgba(240, 216, 96, 0.5);
 }
 
 /* Date sous le titre */
 .theme-rpg .forum .forum-row .forum-column:first-child small {
-    color: #2a4070;
+    color: var(--text-guestbook-date);
     font-size: 0.72rem;
     display: block;
     margin-top: 2px;
@@ -288,22 +278,22 @@
 .theme-rpg .forum .forum-row .forum-column:nth-child(3) {
     font-family: 'Cinzel', Georgia, serif;
     font-size: 0.82rem;
-    color: #4868a0;
+    color: var(--text-guestbook-date);
     text-align: center;
 }
 
 /* Dernier message */
 .theme-rpg .forum .forum-row .forum-column:last-child {
-    color: #3a5888;
+    color: var(--text-guestbook-date);
     font-size: 0.8rem;
 }
 
 .theme-rpg .forum .forum-row .forum-column:last-child a {
-    color: #6090b8;
+    color: var(--text-link);
 }
 
 .theme-rpg .forum .forum-row .forum-column:last-child small {
-    color: #283858;
+    color: var(--text-footer);
     display: block;
     margin-top: 2px;
 }
@@ -314,9 +304,9 @@
 
 /* En-tête du post — Nameplate du personnage */
 .theme-rpg .forum > .forum-header {
-    background: linear-gradient(to right, #0c1448 0%, #0e1650 40%, #0c1448 100%);
-    border-top: 2px solid #3060a0;
-    border-bottom: 2px solid #1e3870;
+    background: var(--bg-container);
+    border-top: 2px solid var(--border-container);
+    border-bottom: 2px solid var(--border-menu-header);
     padding: 8px 16px;
     position: relative;
     margin-top: 2px;
@@ -330,9 +320,9 @@
     height: 2px;
     background: linear-gradient(90deg,
         transparent 5%,
-        rgba(100, 160, 255, 0.2) 20%,
-        rgba(240, 216, 96, 0.7) 50%,
-        rgba(100, 160, 255, 0.2) 80%,
+        var(--border-container) 20%,
+        var(--text-link) 50%,
+        var(--border-container) 80%,
         transparent 95%
     );
 }
@@ -340,7 +330,7 @@
 /* Flèche de dialogue ▶ avant le nom */
 .theme-rpg .forum > .forum-header .forum-column-detail::before {
     content: '▶';
-    color: #c8a030;
+    color: var(--border-button-warning);
     font-size: 0.65rem;
     margin-right: 8px;
     vertical-align: middle;
@@ -351,21 +341,21 @@
 .theme-rpg .forum > .forum-header .forum-column-detail span {
     font-family: 'Cinzel', Georgia, serif;
     font-size: 1rem;
-    color: #f0d860;
+    color: var(--text-link);
     text-shadow: 0 0 10px rgba(240, 216, 96, 0.35);
 }
 
 .theme-rpg .forum > .forum-header .forum-column-detail small {
-    color: #3a5888;
+    color: var(--text-guestbook-date);
     font-size: 0.72rem;
     margin-left: 10px;
 }
 
 /* Corps du post */
 .theme-rpg .forum > .forum-body {
-    border-left: 2px solid #1e3870;
-    border-right: 2px solid #1e3870;
-    border-bottom: 2px solid #1e3870;
+    border-left: 2px solid var(--border-menu-header);
+    border-right: 2px solid var(--border-menu-header);
+    border-bottom: 2px solid var(--border-menu-header);
     border-top: none;
     background: transparent;
 }
@@ -390,12 +380,8 @@
    Style : fiche de personnage RPG
    ================================================================ */
 .theme-rpg .forum .details {
-    background: linear-gradient(to bottom,
-        #0c1240 0%,
-        #091030 40%,
-        #07091e 100%
-    );
-    border-right: 2px solid #1e3870;
+    background: var(--bg-container);
+    border-right: 2px solid var(--border-menu-header);
     padding: 14px 10px;
     position: relative;
     text-align: center;
@@ -408,26 +394,23 @@
     bottom: 6px;
     right: 8px;
     font-size: 7px;
-    color: rgba(200, 160, 48, 0.3);
+    color: var(--border-button-warning);
     pointer-events: none;
 }
 
 /* Avatar — cadre de portrait RPG */
 .theme-rpg .forum .details img {
-    border: 2px solid #3060a0;
-    box-shadow:
-        0 0 0 1px #06091e,
-        0 0 0 3px #1e3870,
-        0 0 15px rgba(60, 120, 220, 0.2);
+    border: 2px solid var(--border-container);
+    box-shadow: var(--shadow-container);
     display: block;
     margin: 0 auto 8px;
 }
 
 /* Infos joueur */
 .theme-rpg .forum .details ul li {
-    color: #4868a0;
+    color: var(--text-guestbook-date);
     font-size: 0.75rem;
-    border-bottom: 1px dotted rgba(30, 56, 112, 0.3);
+    border-bottom: 1px dotted var(--border-stats-forum);
     padding: 3px 0;
 }
 
@@ -439,7 +422,7 @@
 .theme-rpg .forum .details .username {
     font-family: 'Cinzel', Georgia, serif;
     font-size: 0.8rem;
-    color: #f0d860;
+    color: var(--text-link);
     text-shadow: 0 0 8px rgba(240, 216, 96, 0.3);
 }
 
@@ -447,10 +430,10 @@
    CONTENU DU POST — Fenêtre de dialogue RPG
    ================================================================ */
 .theme-rpg .forum .forum-column-detail:not(.details) {
-    background: linear-gradient(160deg, #080d28 0%, #06091e 100%);
+    background: var(--bg-container);
     padding: 16px 20px;
     position: relative;
-    color: #d0e0f0;
+    color: var(--text-primary);
 }
 
 /* Filet or discret en haut du contenu */
@@ -461,8 +444,8 @@
     height: 1px;
     background: linear-gradient(90deg,
         transparent,
-        rgba(30, 56, 112, 0.5) 30%,
-        rgba(30, 56, 112, 0.5) 70%,
+        var(--border-stats-forum) 30%,
+        var(--border-stats-forum) 70%,
         transparent
     );
 }
@@ -470,41 +453,41 @@
 /* Séparateur horizontal dans le post */
 .theme-rpg .forum .forum-column-detail hr {
     border: none;
-    border-top: 1px solid rgba(30, 56, 112, 0.4);
-    margin: 12px 0;
+    border-top: 1px solid var(--border-stats-forum);
+    margin: 12px -20px;
 }
 
 /* Biographie en pied de post */
 .theme-rpg .forum .footer-post p {
-    color: #2a4070;
+    color: var(--text-guestbook-date);
     font-style: italic;
     font-size: 0.85rem;
-    border-left: 2px solid rgba(30, 56, 112, 0.5);
+    border-left: 2px solid var(--border-stats-forum);
     padding-left: 12px;
     margin: 6px 0;
 }
 
 /* Indicateur "modifié le" */
 .theme-rpg .forum .footer-post span[style*="font-style:italic"] {
-    color: #1e3060;
+    color: var(--text-footer);
 }
 
 /* ================================================================
    STATS FORUM — Parchemin de statistiques
    ================================================================ */
 .theme-rpg .stats_forum {
-    border-top: 1px solid rgba(30, 56, 112, 0.4);
+    border-top: 1px solid var(--border-stats-forum);
     margin-top: 14px;
     padding-top: 10px;
 }
 
 .theme-rpg .stats_forum ul {
-    background: linear-gradient(to right, #06091e, #080d28, #06091e);
-    border: 1px solid #1e3070;
+    background: var(--bg-container);
+    border: 1px solid var(--border-input);
     border-radius: 2px;
     padding: 8px 14px;
     font-size: 0.78rem;
-    color: #3a5888;
+    color: var(--text-guestbook-date);
     position: relative;
 }
 
@@ -516,8 +499,8 @@
     transform: translateY(-50%);
     width: 14px;
     height: 14px;
-    background: #06091e;
-    color: #1e3870;
+    background: var(--bg-body);
+    color: var(--border-menu-header);
     font-size: 0.6rem;
     display: flex;
     align-items: center;
@@ -531,7 +514,7 @@
 .theme-rpg .forum h2:only-of-type {
     font-family: 'Cinzel', Georgia, serif;
     font-size: 0.8rem;
-    color: #c85050;
+    color: var(--text-danger);
     letter-spacing: 4px;
     text-transform: uppercase;
 }
@@ -542,13 +525,13 @@
 .theme-rpg .forum > h2 {
     font-family: 'Cinzel', Georgia, serif;
     font-size: 0.88rem;
-    color: #f0d860;
+    color: var(--text-link);
     letter-spacing: 3px;
     text-transform: uppercase;
     text-shadow: 0 0 15px rgba(240, 216, 96, 0.4);
     padding: 12px 4px 10px;
     margin: 0;
-    border-bottom: 1px solid rgba(30, 56, 112, 0.4);
+    border-bottom: 1px solid var(--border-stats-forum);
     position: relative;
 }
 
@@ -559,7 +542,7 @@
     left: 0;
     width: 40%;
     height: 1px;
-    background: linear-gradient(to right, rgba(200, 160, 48, 0.6), transparent);
+    background: linear-gradient(to right, var(--border-button-warning), transparent);
 }
 
 /* ================================================================

@@ -1,179 +1,210 @@
-@import url('https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap');
+/* ================================================================
+    Banner — Thème FF14 Light UI (Beige & Marron clair)
+    Ciel diurne tamisé, planète Gaia dorée, fenêtre de dialogue FF14
+   ================================================================ */
 
-.rpg-banner {
-    background: #000;
-    padding: 20px;
-    min-height: 200px;
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Cinzel+Decorative:wght@400;700&display=swap');
+
+.banner-container {
     position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.rpg-frame {
-    border: 8px solid #fff;
-    border-radius: 4px;
-    padding: 16px;
-    background: linear-gradient(135deg, #574a08, #0f2027);
-    box-shadow: 0 0 10px rgba(255,255,255,0.5);
-    animation: border-glow 2s infinite alternate;
-    flex: 1;
-    margin-right: 20px;
-    width: 100%;
-}
-
-.rpg-text-box {
-    background: rgba(0, 0, 0, 0.8);
-    border: 4px solid #fff;
-    padding: 20px;
-    color: white;
-    font-family: 'Press Start 2P', monospace;
-    position: relative;
-    z-index: 1;
-}
-
-.rpg-title {
-    font-family: 'IM Fell English SC', serif;
-    font-size: 3em;
-    text-align: center;
-    color: #FFD700;
-    text-shadow: 3px 3px 0 #8B4513,
-                 -1px -1px 0 #000,
-                 1px -1px 0 #000,
-                 -1px 1px 0 #000,
-                 1px 1px 0 #000;
-    margin-bottom: 20px;
-    letter-spacing: 2px;
-    transform: scale(1, 1.2);
-    font-weight: bold;
-}
-
-.rpg-message {
-    font-size: 1em;
-    line-height: 1.5;
     overflow: hidden;
-    white-space: nowrap;
-    animation: textSequence 10s infinite;
+}
+
+.banner.rpg-banner {
     width: 100%;
+    height: 120px;
+    background: linear-gradient(to bottom, #bcae92 0%, #a68b6a 50%, #bcae92 100%);
+    border-top: 2px solid #3060a0;
+    border-bottom: 2px solid #1e3870;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0 4px 30px rgba(70, 59, 46, 0.25),   /* Marron très foncé, très tamisé */
+        inset 0 1px 0 rgba(244, 241, 232, 0.5), /* Beige parchemin très clair */
+        inset 0 -1px 0 rgba(139, 115, 85, 0.15); /* Marron cuir chaud sourd */
 }
 
-@keyframes textSequence {
-    0% {
-        width: 0;
-        opacity: 1;
-    }
-    30% {
-        width: 100%;
-        opacity: 1;
-    }
-    80% {
-        width: 100%;
-        opacity: 1;
-    }
-    100% {
-        width: 100%;
-        opacity: 0;
-    }
-}
-
-/* Supprimez ou commentez l'ancienne animation typing-animation */
-/* .typing-animation {
-    animation: typing 3s steps(40, end);
-} */
-
-/* Supprimez ou commentez l'ancien @keyframes typing */
-/* @keyframes typing {
-    from { width: 0 }
-    to { width: 100% }
-} */
-
-/* Animation de scintillement pour la bordure */
-@keyframes border-glow {
-    from {
-        box-shadow: 0 0 5px #fff,
-                    0 0 10px #fff,
-                    0 0 15px rgb(155, 108, 39);
-    }
-    to {
-        box-shadow: 0 0 10px #fff,
-                    0 0 20px #fff,
-                    0 0 30px rgb(155, 108, 39);
-    }
-}
-
-.rpg-background {
+.rpg-stars-canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
-    background: linear-gradient(to bottom, #1a0f2e 0%, #2a1f3e 100%);
+    pointer-events: none;
 }
 
-.rpg-cloud {
+.rpg-gaia-glow {
     position: absolute;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    height: 20px;
-    animation: float 15s infinite linear;
-}
-
-.rpg-cloud:nth-child(1) {
-    width: 100px;
-    top: 20%;
-    left: -100px;
-}
-
-.rpg-cloud:nth-child(2) {
-    width: 60px;
-    top: 40%;
-    left: -60px;
-    animation-delay: -7s;
-}
-
-.rpg-tree {
-    position: absolute;
-    bottom: 0;
-    width: 40px;
-    height: 60px;
-    background: linear-gradient(to bottom, #1a472a 50%, #2d3319 100%);
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-}
-
-.rpg-tree:nth-child(3) {
-    left: 10%;
+    right: 15%;
+    bottom: 20%;
+    width: 80px;
     height: 80px;
+    background: radial-gradient(circle, rgba(100, 180, 255, 0.4) 0%, rgba(60, 140, 200, 0.2) 40%, transparent 70%);
+    border-radius: 50%;
+    animation: gaia-pulse 8s ease-in-out infinite;
+    pointer-events: none;
 }
 
-.rpg-tree:nth-child(4) {
-    left: 80%;
-    height: 70px;
+@keyframes gaia-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.1); opacity: 0.9; }
 }
 
-.rpg-pointer {
-    text-align: center;
-    color: #FFD700;
-    animation: bounce 1s infinite;
+.rpg-frame {
     position: absolute;
-    bottom: 10px;
-    right: 10px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 2;
 }
 
-@keyframes float {
-    from {
-        transform: translateX(-100%);
+.rpg-title {
+    font-family: 'Press Start 2P', 'Cinzel Decorative', monospace;
+    font-size: 18px;
+    font-weight: 400;
+    color: #f0d860;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow:
+        0 0 6px rgba(255, 240, 100, 0.9),
+        0 0 15px rgba(200, 160, 48, 0.7),
+        0 0 30px rgba(100, 160, 255, 0.3),
+        3px 3px 0 rgba(0, 0, 0, 0.95);
+    animation: title-glow 4s ease-in-out infinite alternate;
+}
+
+.rpg-slogan {
+    color: marron;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 6px;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(80, 140, 220, 0.5);
+    margin-top: 12px;
+    opacity: 0.8;
+}
+
+/* ================================================================
+    Fenêtre de dialogue style FF14
+   ================================================================ */
+
+.rpg-dialog-box {
+    position: absolute;
+    bottom: 6px;
+    left: 85%;
+    transform: translateX(-50%);
+    width: 45%;
+    max-width: 300px;
+    z-index: 10;
+}
+
+.rpg-dialog-inner {
+    /* Fond parchemin clair */
+    background: linear-gradient(180deg, #f4f1e8 0%, #e9e4d5 30%, #d8d2c2 100%);
+    border: 2px solid #8b7355;
+    border-radius: 4px;
+    box-shadow:
+        0 0 0 1px #463b2e,
+        0 0 0 2px #bcae92,
+        0 4px 15px rgba(70, 59, 46, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    padding: 4px 6px 6px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    position: relative;
+}
+
+.rpg-dialog-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    /* Liseré doré FF14 */
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(139, 115, 85, 0.3) 10%,
+        rgba(198, 160, 82, 0.8) 30%,
+        rgba(219, 181, 106, 1) 50%,
+        rgba(198, 160, 82, 0.8) 70%,
+        rgba(139, 115, 85, 0.3) 90%,
+        transparent 100%
+    );
+    border-radius: 3px 3px 0 0;
+}
+
+.rpg-dialog-face {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+}
+
+.rpg-dialog-face img {
+    width: 100%;
+    height: 100%;
+    border: 1px solid #8b7355;
+    border-radius: 3px;
+    box-shadow:
+        0 0 0 1px #463b2e,
+        0 0 4px rgba(139, 115, 85, 0.3);
+}
+
+.rpg-dialog-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.rpg-dialog-name {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #8b5a2b;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 2px;
+}
+
+.rpg-dialog-text p {
+    font-family: 'Crimson Text', Georgia, serif;
+    font-size: 0.75rem;
+    color: #463b2e; /* Texte sombre sur fond clair */
+    line-height: 1.3;
+    margin: 0;
+    text-shadow: none;
+}
+
+.rpg-dialog-arrow {
+    position: absolute;
+    bottom: 2px;
+    right: 5px;
+    color: #8b7355;
+    font-size: 8px;
+    animation: arrow-bounce 1s ease-in-out infinite;
+}
+
+@keyframes arrow-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+}
+
+@keyframes title-glow {
+    0% {
+        text-shadow:
+            0 0 10px rgba(219, 181, 106, 0.4),
+            2px 2px 0 rgba(244, 241, 232, 0.8);
     }
-    to {
-        transform: translateX(1000px);
+    100% {
+        text-shadow:
+            0 0 15px rgba(219, 181, 106, 0.6),
+            2px 2px 0 rgba(244, 241, 232, 0.8);
     }
 }
 
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-5px);
-    }
+.galaxy-background {
+    display: none;
 }
