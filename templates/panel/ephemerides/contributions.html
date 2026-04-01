@@ -1,0 +1,45 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-section">
+    <div class="panel-section-header">
+        <h2>📅 Contributions d'Éphémérides</h2>
+        <p class="panel-section-subtitle">Gérez les contributions des membres en attente de validation</p>
+    </div>
+
+    {% if contributions %}
+    <div class="panel-table-container">
+        <table class="panel-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Titre</th>
+                    <th>Catégorie</th>
+                    <th>Contributeur</th>
+                    <th>Soumis le</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contribution in contributions %}
+                <tr>
+                    <td>{{ contribution.day }}/{{ contribution.month }}/{{ contribution.year }}</td>
+                    <td>{{ contribution.title }}</td>
+                    <td>{{ contribution.get_category_display }}</td>
+                    <td>{{ contribution.user.username }}</td>
+                    <td>{{ contribution.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'panel_ephemeride_contribution_review' contribution.id %}" class="btn btn-small btn-primary">Examiner</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="panel-empty">
+        <p>✨ Aucune contribution en attente de validation.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

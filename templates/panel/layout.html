@@ -38,6 +38,9 @@
             <a href="{% url 'panel_version' %}" class="panel-nav-item {% if 'panel_version' in request.resolver_match.url_name %}active{% endif %}">
                 🏷️ Versions
             </a>
+            <a href="{% url 'panel_ephemerides' %}" class="panel-nav-item {% if 'panel_ephemeride' in request.resolver_match.url_name %}active{% endif %}">
+                📅 Éphémérides
+            </a>
             <div class="panel-nav-separator"></div>
             <a href="{% url 'home' %}" class="panel-nav-item">← Retour au site</a>
         </nav>

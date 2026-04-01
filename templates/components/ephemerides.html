@@ -1,0 +1,14 @@
+{% load bbcode_tags %}
+
+{% if ephemerides_today %}
+    <ul>
+        {% for event in ephemerides_today %}
+        <li>
+            <span class="ephemeride-year-badge">{{ event.year }}</span>
+            <strong>{{ event.title }}</strong>
+            <span class="ephemeride-cat-small">{{ event.get_category_display }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    <center><a href="{% url 'ephemerides_today' %}" class="btn btn-small">Voir tout</a></center>
+{% endif %}

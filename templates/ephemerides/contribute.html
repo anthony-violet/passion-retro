@@ -1,0 +1,228 @@
+{% extends 'layout.html' %}
+{% load bbcode_tags %}
+
+
+{% block content %}
+<div class="container">
+    <div class="contribution-header">
+        <h2>📅 Contribuer aux Éphémérides</h2>
+        <p class="contribution-subtitle">Partagez un événement rétro que vous connaissez ! Votre contribution sera examinée par l'équipe avant publication.</p>
+    </div>
+
+    <div class="contribution-form-container">
+        <form method="post" class="contribution-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="event_date">Date de l'événement</label>
+                <div class="date-picker-wrapper">
+                    <input type="text" name="event_date" id="event_date" required class="form-control date-picker-input" placeholder="Sélectionnez une date" autocomplete="off">
+                </div>
+                <input type="hidden" name="day" id="day" required>
+                <input type="hidden" name="month" id="month" required>
+                <input type="hidden" name="year" id="year" required>
+            </div>
+
+            <div class="form-group">
+                <label for="title">Titre</label>
+                <input type="text" name="title" id="title" required class="form-control" placeholder="Ex: Sortie de Super Mario Bros">
+            </div>
+
+            <div class="form-group">
+                <label for="category">Catégorie</label>
+                <select name="category" id="category" class="form-control">
+                    {% for value, display in categories %}
+                    <option value="{{ value }}">{{ display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="content">Description (optionnelle)</label>
+                <textarea name="content" id="content" class="form-control" rows="5" placeholder="Décrivez l'événement... (BBCode supporté)"></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Soumettre la contribution</button>
+                <a href="{% url 'ephemerides_today' %}" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+<script>
+// Attendre que tout soit chargé y compris les styles
+window.addEventListener('load', function() {
+    setTimeout(initDatePicker, 100);
+});
+
+function initDatePicker() {
+    const eventDateInput = document.getElementById('event_date');
+    
+    if (!eventDateInput) {
+        console.error("Element #event_date not found!");
+        return;
+    }
+    
+    console.log("Element found, initializing Flatpickr...");
+    
+    // Vérifier que flatpickr est disponible
+    if (typeof flatpickr === 'undefined') {
+        console.error("Flatpickr library not loaded!");
+        return;
+    }
+    
+    // Configurer la localisation
+    if (flatpickr.l10ns && flatpickr.l10ns.fr) {
+        flatpickr.localize(flatpickr.l10ns.fr);
+    }
+    
+    // Initialiser avec configuration complète
+    const fp = flatpickr(eventDateInput, {
+        dateFormat: "d/m/Y",
+        maxDate: "today",
+        locale: "fr",
+        allowInput: true,
+        clickOpens: true,
+        static: false,
+        monthSelectorType: 'dropdown',
+        onReady: function() {
+            console.log("Flatpickr is ready!");
+        },
+        onChange: function(selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                const date = selectedDates[0];
+                document.getElementById('day').value = date.getDate();
+                document.getElementById('month').value = date.getMonth() + 1;
+                document.getElementById('year').value = date.getFullYear();
+                console.log("Date selected:", date.getDate(), date.getMonth() + 1, date.getFullYear());
+            }
+        }
+    });
+    
+    console.log("Flatpickr instance:", fp);
+}
+</script>
+{% endblock %}
+
+{% block extracss %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+.date-picker-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.date-picker-input {
+    background: white;
+    cursor: pointer;
+    padding-right: 30px;
+}
+
+.date-picker-wrapper::after {
+    content: "📅";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #666;
+}
+
+.flatpickr-calendar {
+    z-index: 10000;
+}
+
+.flatpickr-day.selected {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+.contribution-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--body-fg);
+}
+
+.contribution-header h2 {
+    font-size: 1.8rem;
+    color: var(--secondary);
+}
+
+.contribution-subtitle {
+    font-size: 1.1rem;
+    color: var(--body-quiet-color);
+}
+
+.contribution-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--body-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.contribution-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.contribution-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--body-fg);
+}
+
+.contribution-form .form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.contribution-form textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--primary-fg);
+}
+
+.btn-primary:hover {
+    background-color: var(--button-hover-bg);
+}
+
+.btn-secondary {
+    background-color: var(--darkened-bg);
+    color: var(--body-fg);
+}
+
+.btn-secondary:hover {
+    background-color: var(--selected-bg);
+}
+</style>
+{% endblock %}

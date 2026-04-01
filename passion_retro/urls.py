@@ -35,6 +35,7 @@ urlpatterns = [
     path("shop/", include("shop.urls")),
     path("panel/", include("panel.urls")),
     path("version/", include("version.urls")),
+    path("ephemerides/", include("ephemerides.urls")),
 
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]

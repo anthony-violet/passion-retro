@@ -9,6 +9,7 @@
         {% for v in versions %}
             <h3>{{ v.name }}</h3>
             <hr />
+            <strong>en {{ v.created_at|date:"F Y" }}</strong>
             <p>{{ v.content }}</p>
         {% endfor %}
     {% endif %}

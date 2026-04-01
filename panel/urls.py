@@ -1,5 +1,5 @@
 from django.urls import path
-from panel.views import dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version
+from panel.views import dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides
 
 urlpatterns = [
     # Dashboard
@@ -68,4 +68,14 @@ urlpatterns = [
     path('games/category/create/', games.category_create, name='panel_games_category_create'),
     path('games/category/<int:category_id>/edit/', games.category_edit, name='panel_games_category_edit'),
     path('games/category/<int:category_id>/delete/', games.category_delete, name='panel_games_category_delete'),
+
+    # Ephemerides
+    path('ephemerides/', ephemerides.ephemeride_list, name='panel_ephemerides'),
+    path('ephemerides/create/', ephemerides.ephemeride_create, name='panel_ephemeride_create'),
+    path('ephemerides/<int:event_id>/edit/', ephemerides.ephemeride_edit, name='panel_ephemeride_edit'),
+    path('ephemerides/<int:event_id>/delete/', ephemerides.ephemeride_delete, name='panel_ephemeride_delete'),
+    
+    # Contributions
+    path('ephemerides/contributions/', ephemerides.contributed_ephemeride_list, name='panel_ephemerides_contributions'),
+    path('ephemerides/contributions/<int:contribution_id>/review/', ephemerides.contributed_ephemeride_review, name='panel_ephemeride_contribution_review'),
 ]

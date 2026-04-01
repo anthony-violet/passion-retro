@@ -394,10 +394,8 @@ textarea,
 select {
     font-family: Tahoma, Arial, sans-serif;
     font-size: 12px;
-    background: #111111;
     border: 1px solid #333333;
     border-radius: 2px;
-    color: #cccccc;
     box-shadow: inset 1px 1px 4px rgba(0,0,0,0.6);
 }
 
@@ -412,7 +410,6 @@ select:focus {
     outline: none;
     border-color: #ff5500;
     box-shadow: inset 1px 1px 4px rgba(0,0,0,0.6), 0 0 8px rgba(255,85,0,0.35);
-    color: #eeeeee;
 }
 
 /* ===== FOOTER ===== */

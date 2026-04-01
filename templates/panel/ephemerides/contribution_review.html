@@ -1,0 +1,178 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-section">
+    <div class="panel-section-header">
+        <h2>📅 Examen de la Contribution</h2>
+        <p class="panel-section-subtitle">Évaluez cette contribution avant de la publier</p>
+    </div>
+
+    <div class="contribution-review-container">
+        <div class="contribution-details">
+            <div class="contribution-meta">
+                <span class="contribution-category-badge">{{ contribution.get_category_display_icon }} {{ contribution.get_category_display }}</span>
+                <span class="contribution-date">{{ contribution.day }}/{{ contribution.month }}/{{ contribution.year }}</span>
+                <span class="contribution-author">Proposé par {{ contribution.user.username }}</span>
+            </div>
+
+            <h3 class="contribution-title">{{ contribution.title }}</h3>
+
+            {% if contribution.content %}
+            <div class="contribution-content">
+                <h4>Description :</h4>
+                <div class="bbcode-content">{{ contribution.content|bbcode|safe }}</div>
+            </div>
+            {% endif %}
+
+            <div class="contribution-info">
+                <p><strong>Soumis le :</strong> {{ contribution.created_at|date:"d/m/Y H:i" }}</p>
+            </div>
+        </div>
+
+        <div class="review-actions">
+            <form method="post" class="review-form">
+                {% csrf_token %}
+
+                <div class="review-buttons">
+                    <button type="submit" name="action" value="approve" class="btn btn-success">
+                        ✅ Approuver et publier
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="reject-button">
+                        ❌ Rejeter
+                    </button>
+                </div>
+
+                <div id="rejection-reason" style="display: none; margin-top: 1rem;">
+                    <label for="rejection_reason">Raison du rejet (optionnelle) :</label>
+                    <textarea name="rejection_reason" id="rejection_reason" class="form-control" rows="3" placeholder="Expliquez pourquoi cette contribution est rejetée..."></textarea>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger" style="margin-top: 0.5rem;">
+                        Confirmer le rejet
+                    </button>
+                </div>
+            </form>
+
+            <a href="{% url 'panel_ephemerides_contributions' %}" class="btn btn-secondary" style="margin-top: 1rem;">
+                ← Retour à la liste
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.contribution-review-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.contribution-details {
+    background: var(--body-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.contribution-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--hairline-color);
+}
+
+.contribution-category-badge {
+    background: var(--primary);
+    color: var(--primary-fg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.contribution-date {
+    background: var(--darkened-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.contribution-author {
+    background: var(--darkened-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.contribution-title {
+    color: var(--secondary);
+    margin-top: 0;
+    font-size: 1.5rem;
+}
+
+.contribution-content {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--darkened-bg);
+    border-radius: 4px;
+}
+
+.contribution-info {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--body-quiet-color);
+}
+
+.review-actions {
+    background: var(--body-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.review-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+#reject-button {
+    background-color: #6c757d;
+    color: white;
+}
+
+#reject-button:hover {
+    background-color: #5a6268;
+}
+</style>
+
+{% block extra_js %}
+<script>
+document.getElementById('reject-button').addEventListener('click', function() {
+    document.getElementById('rejection-reason').style.display = 'block';
+    this.style.display = 'none';
+});
+</script>
+{% endblock %}
+{% endblock %}
