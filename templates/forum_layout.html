@@ -8,13 +8,13 @@
             <div class="col col-5">
                 <ul>
                     <li>{{ request.total_users }} utilisateurs enregistrés</li>
-                    <li>Bienvenue à notre dernier membre : <a href="{% url 'profile' request.last_user.id %}">{{ request.last_user.username }}</a></li>
+                    <li>Bienvenue à notre dernier membre : {% if request.last_user %}<a href="{% url 'profile' request.last_user.id %}">{{ request.last_user.username }}</a>{% else %}Aucun{% endif %}</li>
                 </ul>
             </div>
             <div class="col col-5">
                 <ul>
-                    <li>Bravo à <a href="{% url 'profile' request.user_with_most_posts.id %}">{{ request.user_with_most_posts }}</a> qui compte {{ request.most_posts }} messages à son actif !</li>
-                    <li>Bravo à <a href="{% url 'profile' request.user_with_most_topics.id %}">{{ request.user_with_most_topics }}</a> qui cumule {{ request.most_topics }} sujets !</li>
+                    <li>Bravo à {% if request.user_with_most_posts %}<a href="{% url 'profile' request.user_with_most_posts.id %}">{{ request.user_with_most_posts }}</a> qui compte {{ request.most_posts }} messages à son actif !{% else %}Aucun message{% endif %}</li>
+                    <li>Bravo à {% if request.user_with_most_topics %}<a href="{% url 'profile' request.user_with_most_topics.id %}">{{ request.user_with_most_topics }}</a> qui cumule {{ request.most_topics }} sujets !{% else %}Aucun sujet{% endif %}</li>
                 </ul>
             </div>
         </div>

@@ -280,7 +280,9 @@ def new_feature_user(request):
         return render(request, "features/new_feature_user_level.html")
 
     if not request.user.inventory.exists():
-        request.user.inventory.create(item_id=1, quantity=100)
+        from shop.models import Item
+        if Item.objects.filter(pk=1).exists():
+            request.user.inventory.create(item_id=1, quantity=100)
     return render(request, "features/new_feature_user_inventory.html")
 
 @login_required
@@ -306,3 +308,13 @@ def use_item(request, item_id):
     else:
         messages.error(request, f"Vous n'avez pass de {item.item.name}.")
     return redirect('profile')
+
+@login_required
+def set_theme(request, theme_name):
+    """Vue pour changer le thème directement depuis le menu"""
+    available_themes = ["default", "rpg", "retrorpg", "80s", "00s", "vhs", "modern"]
+    if theme_name in available_themes:
+        request.user.theme = theme_name
+        request.user.save()
+        request.theme_active = theme_name
+    return redirect(request.META.get("HTTP_REFERER", "/"))

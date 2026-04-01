@@ -26,6 +26,10 @@ if os.getenv('DATABASE_ENGINE') == "django.db.backends.mysql":
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Nom du site - peut être surchargé via .env
+SITE_NAME = os.getenv("SITE_NAME", "Passion Retro")
+SITE_URL = os.getenv("SITE_URL", "http://localhost:5500")
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -67,12 +71,14 @@ INSTALLED_APPS = [
     "quiz",
     "messagerie",
     "shop",
+    "panel",
 ]
 
 SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -104,6 +110,7 @@ TEMPLATES = [
                 "posts.context_processors.pending_posts_count",
                 "quiz.context_processors.pending_quizes_count",
                 "messagerie.context_processors.pending_pm_count",
+                "passion_retro.context_processors.theme_context",
             ],
         },
     },
