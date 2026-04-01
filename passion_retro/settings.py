@@ -45,7 +45,6 @@ LOGGING = {
 SITE_NAME = os.getenv("SITE_NAME", "NostalGeek")
 SITE_URL = os.getenv("SITE_URL", "http://localhost:5500")
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
