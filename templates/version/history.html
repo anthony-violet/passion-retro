@@ -7,7 +7,9 @@
 
     {% if versions %}
         {% for v in versions %}
-            {{ v.name }} : {{ v.content }}
+            <h3>{{ v.name }}</h3>
+            <hr />
+            <p>{{ v.content }}</p>
         {% endfor %}
     {% endif %}
 
