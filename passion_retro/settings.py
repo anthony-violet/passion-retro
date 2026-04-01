@@ -26,8 +26,23 @@ if os.getenv('DATABASE_ENGINE') == "django.db.backends.mysql":
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# DEBUG
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'ERROR',
+    },
+}
+
 # Nom du site - peut être surchargé via .env
-SITE_NAME = os.getenv("SITE_NAME", "Passion Retro")
+SITE_NAME = os.getenv("SITE_NAME", "NostalGeek")
 SITE_URL = os.getenv("SITE_URL", "http://localhost:5500")
 
 
@@ -38,6 +53,8 @@ SITE_URL = os.getenv("SITE_URL", "http://localhost:5500")
 SECRET_KEY = os.getenv('SECRET_KEY')
 GOOGLE_PUBLIC_KEY = os.getenv('GOOGLE_PUBLIC_KEY')
 GOOGLE_PRIVATE_KEY = os.getenv('GOOGLE_PRIVATE_KEY')
+
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
