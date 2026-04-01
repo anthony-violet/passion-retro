@@ -16,6 +16,7 @@
     --bg-body:                #d8d2c2; /* Beige sable doux */
     --bg-container:           #f4f1e8; /* Papier parchemin clair */
     --bg-menu:                #e9e4d5; /* Beige menu */
+    --bg-post-footer:         linear-gradient(to bottom, #8b7355 0%, #6d5a42 100%);
     --bg-menu-guestbook:      rgba(139, 115, 85, 0.08);
     --bg-post-card:           #f4f1e8;
     --bg-notification-success:#e8f4e8;
@@ -215,10 +216,6 @@ a {
 a:hover {
     color: var(--text-link-hover);
     text-shadow: 0 0 8px rgba(240, 216, 96, 0.6);
-}
-
-a:visited {
-    color: #fff;
 }
 
 /* ================================================================
@@ -664,6 +661,10 @@ ul.breadcrumbs a:hover {
 
 .postmenu .body ul li a:hover {
     color: var(--text-link-hover);
+}
+
+.post-footer a {
+    color: var(--text-button);
 }
 
 /* ================================================================
