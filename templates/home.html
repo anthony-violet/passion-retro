@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <h2>{{ edito.title }}</h2>
-    <p>{{ edito.content|linebreaksbr }}</p>
+    <p>{{ edito.content|linebreaksbr|bbcode|safe }}</p>
     <p class="date"><em>Dernière mise à jour de l'éditorial le {{ edito.updated|date:" d F Y à H:i" }}</em></p>
 </div>
 <div class="container">
