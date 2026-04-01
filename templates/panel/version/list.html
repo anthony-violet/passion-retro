@@ -1,0 +1,40 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Versions du site</h2>
+    <a href="{% url 'panel_version_create' %}" class="btn btn-add">+ Nouvelle version</a>
+</div>
+<div class="panel-section">
+    <table class="panel-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Version</th>
+                <th>Nom</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in versions %}
+            <tr>
+                <td>{{ v.id }}</td>
+                <td><strong>{{ v.num_version }}</strong></td>
+                <td>{{ v.name }}</td>
+                <td>{{ v.created_at|date:"d/m/Y H:i" }}</td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_version_edit' v.id %}" class="btn btn-small btn-warning">Modifier</a>
+                    <form method="post" action="{% url 'panel_version_delete' v.id %}" style="display:inline" onsubmit="return confirm('Supprimer la version {{ v.num_version }} ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="panel-empty">Aucune version enregistrée.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

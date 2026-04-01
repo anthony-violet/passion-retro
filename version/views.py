@@ -6,5 +6,5 @@ def version(request):
 
 # Create your views here.
 def history(request):
-    datas = HistoryVersion.objects.all()
-    return render(request, "version/history.html", {"datas": datas})
+    versions = HistoryVersion.objects.all()
+    return render(request, "version/history.html", {"versions": versions})

@@ -1,0 +1,31 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>{{ action }} une version</h2>
+    <a href="{% url 'panel_version' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label>Numéro de version</label>
+                <input type="text" name="num_version" value="{{ version.num_version|default:'' }}" placeholder="ex: 1.2.0" maxlength="5" required>
+            </div>
+            <div class="panel-form-group">
+                <label>Nom</label>
+                <input type="text" name="name" value="{{ version.name|default:'' }}" placeholder="ex: Refonte de la galerie" required>
+            </div>
+            <div class="panel-form-group panel-form-full">
+                <label>Contenu (description des changements)</label>
+                <textarea name="content" rows="8" placeholder="Décrivez les nouveautés, corrections et améliorations...">{{ version.content|default:'' }}</textarea>
+            </div>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">{{ action }}</button>
+            <a href="{% url 'panel_version' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
