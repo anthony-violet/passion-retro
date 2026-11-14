@@ -5,6 +5,77 @@
 {% load bbcode_tags %}
 
 {% block content %}
+    {% if request.theme_active == 'rpg' %}
+
+    <div class="rpg-private-message">
+        <h2>Messagerie privée</h2>
+        <h3>{{ pm_message.subject }}</h3>
+        {% for message in private_messages %}
+        <article class="rpg-post">
+            <header class="rpg-post-header">
+                <div class="rpg-post-author {{ message.author.username_decoration }}">
+                    {{ message.author.username }}
+                </div>
+                <time class="rpg-post-date">{{ message.date_sent|date:"d/m/y H:i" }}</time>
+            </header>
+
+            <div class="rpg-post-content">
+                {{ message.message|bbcode|safe|linebreaksbr }}
+            </div>
+
+            <footer class="rpg-post-footer">
+                {% if message.author.biography %}
+                <p>{{ message.author.biography|bbcode|safe|linebreaksbr }}</p>
+                {% endif %}
+                <div class="rpg-post-actions">
+                    <a href="#" class="rpg-post-action-icon">❝</a>
+                </div>
+            </footer>
+        </article>
+        {% empty %}
+        <p>Aucun message pour le moment.</p>
+        {% endfor %}
+    </div>
+
+    {% elif request.theme_active == 'vhs' %}
+
+    <div class="vhs-private-message">
+        <h2>Messagerie privée</h2>
+        <h3>{{ pm_message.subject }}</h3>
+        {% for message in private_messages %}
+        <div class="vhs-segment">
+            <div class="vhs-segment__info">
+                <div class="forum-avatar-wrap">
+                    <div class="{{ message.author.border_avatar }}"><img src="/media/{{ message.author.avatar }}" alt="{{ message.author.username }}"></div>
+                </div>
+                {% user_level_badge message.author %}
+            </div>
+
+                                <span class="forum-level-title">{{ message.author.level_title }}</span>
+
+            <span id="author-post-{{ message.id }}"
+                  class="vhs-segment__username {{ message.author.username_decoration }}">
+                {{ message.author.username }}
+            </span>
+
+            <div class="vhs-segment__date">{{ message.date_sent|date:"d/m/y H:i" }}</div>
+
+            <ul class="vhs-segment__meta">
+                {% for group in message.author.groups.all %}
+                <li>
+                    <span class="vhs-segment__group{% if group.name == 'Administrateurs' %} vhs-segment__group--admin{% elif group.name == 'Super Admin' %} vhs-segment__group--sadmin{% endif %}">
+                        {{ group.name }}
+                    </span>
+                </li>
+                {% endfor %}
+                <li>{{ count_posts|get_item:message.author.id }} msgs</li>
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+
     <div class="container">
         <h2>Messagerie privée</h2>
         <h3>{{ pm_message.subject }}</h3>
@@ -41,12 +112,14 @@
                         </div>
                     </div><br>
                 </div>
-            </div>
-        {% endfor %}
-        <form action="" method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button>Envoyer</button>
-        </form>
+            {% endfor %}
+            <form action="" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button>Envoyer</button>
+            </form>
+        </div>
     </div>
+
+    {% endif %}
 {% endblock %}

@@ -114,13 +114,72 @@
     {% endif %}
 </div>
 
+{% elif request.theme_active == 'rpg' %}
+
+<div class="rpg-topic-detail">
+    <nav class="rpg-breadcrumbs">
+        <a href="{% url 'forum_home' %}">{{ topic.forum.category.name }}</a>
+        <span class="rpg-breadcrumbs-sep"> ‣ </span>
+        <a href="{% url 'topic_list' topic.forum.id %}">{{ topic.forum.name }}</a>
+        <span class="rpg-breadcrumbs-sep"> ‣ </span>
+        <h2 class="rpg-topic-title">{{ topic.title }}</h2>
+    </nav>
+
+    <div class="rpg-nameplate">
+        <div class="rpg-nameplate-header">
+            <div class="rpg-nameplate-icon">⚔</div>
+            <h2 class="rpg-nameplate-title">{{ topic.title }}</h2>
+            <div class="rpg-nameplate-icon">⚔</div>
+        </div>
+        <p class="rpg-nameplate-subtitle">{{ topic.forum.description|safe }}</p>
+    </div>
+
+    <div class="rpg-posts-list">
+        {% for post in posts %}
+        <article class="rpg-post">
+            <header class="rpg-post-header">
+                <div class="rpg-post-author {{ post.author.username_decoration }}">
+                    {{ post.author.username }}
+                </div>
+                <time class="rpg-post-date">{{ post.created|date:"d/m/y H:i" }}</time>
+            </header>
+
+            <div class="rpg-post-content">
+                {{ post.content|bbcode|safe|linebreaksbr }}
+            </div>
+
+            <footer class="rpg-post-footer">
+                {% if post.author.biography %}
+                <p>{{ post.author.biography|bbcode|safe|linebreaksbr }}</p>
+                {% endif %}
+                {% if post.created|date:"Y-m-d H:i:s" != post.updated|date:"Y-m-d H:i:s" %}
+                <p class="rpg-post-modified">modifié le {{ post.updated }}</p>
+                {% endif %}
+                <div class="rpg-post-actions">
+                    {% if not forloop.first %}
+                    <a href="#" class="rpg-post-action-icon">❝</a>
+                    {% endif %}
+                    {% if request.user == post.author or request.user.is_staff %}
+                    <a href="{% url 'forum_edit_post' post.id %}" class="rpg-post-action-icon">✎</a>
+                    {% endif %}
+                </div>
+            </footer>
+        </article>
+        {% empty %}
+        <p class="rpg-post-empty">Aucun message pour le moment.</p>
+        {% endfor %}
+    </div>
+
+    <nav class="rpg-pagination">{% paginate %}</nav>
+</div>
+
 {% else %}
 
         <div class="forum">
             <h2>{{ topic.title }}</h2>
             <ul class="breadcrumbs">
                 <li><a href="{% url 'forum_home' %}">{{ topic.forum.category.name }}</a> »</li>
-                <li><a href="{% url 'topic_list' topic.forum.id %}">{{ topic.forum.name }}</a> »</li>
+                <li><a href="{% url 'topic_list' topic.forum.id %}}">{{ topic.forum.name }}</a> »</li>
                 <li>{{ topic.title }}</li>
             </ul>
 
@@ -136,7 +195,7 @@
                                     <div class="{{ post.author.border_avatar }}"><img src="/media/{{ post.author.avatar }}" style="width:100px;" alt="Avatar de {{ post.author.username }}"></div>
                                     {% user_level_badge post.author %}
                                 </div>
-            <span class="forum-level-title">{{ post.author.level_title }}</span>
+                            <span class="forum-level-title">{{ post.author.level_title }}</span>
                             </center>
                             <small>
                                 <ul>

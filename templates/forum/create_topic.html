@@ -2,19 +2,49 @@
 {% load forum_extras %}
 
 {% block forum_content %}
-        <div class="forum">
-            <h2>{{ forum.name }}</h2>
-            <ul class="breadcrumbs">
-                <li><a href="{% url 'forum_home' %}">{{ forum.category.name }}</a> »</li>
-                <li>{{ forum.name }}</li>
-            </ul>
-            <h3>Créér un nouveau topic</h3>
-            <form method="post">
-                {% csrf_token %}
-                <div class="form-group">
-                    {{ topic_form.as_p }}
-                </div>
-                <button>Créer topic</button>
-            </form>
-        </div>
+    {% if request.theme_active == 'rpg' %}
+
+    <div class="rpg-create-topic">
+        <h2 class="rpg-board-title">Nouvelle Quête</h2>
+        <form method="post" class="rpg-form">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ topic_form.as_p }}
+            </div>
+            <button class="rpg-btn-quest" type="submit">✦ Poster une Quête</button>
+        </form>
+    </div>
+
+    {% elif request.theme_active == 'vhs' %}
+
+    <div class="vhs-create-topic">
+        <h2>Nouveau Topic</h2>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ topic_form.as_p }}
+            </div>
+            <button>▶ REC — Nouveau Topic</button>
+        </form>
+    </div>
+
+    {% else %}
+
+    <div class="forum">
+        <h2>{{ forum.name }}</h2>
+        <ul class="breadcrumbs">
+            <li><a href="{% url 'forum_home' %}">{{ forum.category.name }}</a> »</li>
+            <li>{{ forum.name }}</li>
+        </ul>
+        <h3>Créér un nouveau topic</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ topic_form.as_p }}
+            </div>
+            <button>Créer topic</button>
+        </form>
+    </div>
+
+    {% endif %}
 {% endblock %}
