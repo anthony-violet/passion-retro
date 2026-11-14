@@ -576,10 +576,7 @@ textarea:focus-visible {
     text-shadow: 0 0 6px rgba(255,100,0,0.4);
 }
 
-/* Burger — caché sur desktop */
-.burger-menu {
-    display: none;
-}
+/* Burger géré par default/theme.css : caché par défaut, visible dans son media query max-width:768px */
 
 /* ===== PROFILS UTILISATEUR ===== */
 .profile-header {
