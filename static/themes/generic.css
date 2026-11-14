@@ -12,9 +12,10 @@ html {
     font-size: var(--font-base-size);
 }
 
-/* Taille de lecture confortable, indépendante du thème actif. */
+/* Taille de lecture confortable, indépendante du thème actif.
+   Un thème peut définir --body-font-size pour choisir sa propre densité. */
 body {
-    font-size: 0.875rem;
+    font-size: var(--body-font-size, 0.875rem);
 }
 
 @media screen and (min-width: 1600px) {

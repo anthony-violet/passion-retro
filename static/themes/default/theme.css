@@ -2889,25 +2889,5 @@ fieldset.quote-bbcode legend {
     }
 }
 
-/* ================================================================
-   GRANDS ÉCRANS — adaptation typographique
-   ================================================================ */
-@media screen and (min-width: 1600px) {
-    html { font-size: 17px; }
-    body { font-size: 14px; }
-}
-
-@media screen and (min-width: 1920px) {
-    html { font-size: 18px; }
-    body { font-size: 15px; }
-}
-
-@media screen and (min-width: 2560px) {
-    html { font-size: 20px; }
-    body { font-size: 17px; }
-}
-
-@media screen and (min-width: 3840px) {
-    html { font-size: 24px; }
-    body { font-size: 19px; }
-}
+/* Grand écrans : les paliers de taille sont gérés par generic.css
+   (--font-base-size), chargé après ce fichier. */

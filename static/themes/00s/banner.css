@@ -1,7 +1,6 @@
 /* Banner 00s — Dark flash portal / gaming site 2003-2006
-   Style Newgrounds / Miniclip / sites gaming era Flash */
-
-@import url('https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Tahoma&display=swap');
+   Style Newgrounds / Miniclip / sites gaming era Flash
+   (polices importées dans theme.css) */
 
 .banner {
     width: 100%;
@@ -111,5 +110,25 @@
     .banner-text,
     .slogan {
         animation: none;
+    }
+}
+
+/* Petit écran : bannière compacte, slogan statique et centré */
+@media (max-width: 600px) {
+    .banner {
+        height: 80px;
+    }
+
+    .banner-text {
+        font-size: 30px;
+        letter-spacing: 2px;
+    }
+
+    .slogan {
+        animation: none;
+        white-space: normal;
+        text-align: center;
+        font-size: 9px;
+        letter-spacing: 1px;
     }
 }

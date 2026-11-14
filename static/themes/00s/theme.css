@@ -209,11 +209,14 @@
     --body-fg:                #cccccc;
     --body-quiet-color:       #999999;
     --message-info-bg:        #222222;
+
+    /* Densité rétro : corps en 12px (generic.css retombe sur 0.875rem sinon) */
+    --body-font-size:         12px;
 }
 
 /* ===== CORPS ===== */
 html, body {
-    background-color: #0d0d0d;
+    background-color: var(--bg-body);
     background-image:
         /* Diagonales très fines façon carbone */
         repeating-linear-gradient(
@@ -227,79 +230,43 @@ html, body {
 
 body {
     font-family: Tahoma, 'Arial Narrow', Arial, sans-serif;
-    font-size: 12px;
+    font-size: var(--body-font-size);
     line-height: 1.5;
-    color: #cccccc;
+    color: var(--text-primary);
 }
 
 /* ===== TYPOGRAPHIE ===== */
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Black Ops One', Impact, 'Arial Black', sans-serif;
-    color: #ff6600;
+    color: var(--text-link);
     text-shadow: 0 0 6px rgba(255, 100, 0, 0.4), 1px 1px 0 #220000;
     letter-spacing: 1px;
     text-transform: uppercase;
 }
 
 a {
-    color: #ff6600;
+    color: var(--text-link);
     text-decoration: none;
     font-weight: bold;
 }
 
 a:visited {
-    color: #ff6600;
+    color: var(--text-link);
 }
 
 a:hover {
-    color: #ff9933;
+    color: var(--text-link-hover);
     text-decoration: underline;
     text-shadow: 0 0 6px rgba(255, 150, 50, 0.5);
 }
 
-/* ===== HEADER / NAVIGATION ===== */
-.header-list {
-    background:
-        linear-gradient(to bottom,
-            #2a2a2a 0%,
-            #1e1e1e 40%,
-            #141414 100%
-        );
-    border-top: 1px solid rgba(255,255,255,0.06);
-    border-bottom: 2px solid #ff4400;
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.05),
-        0 2px 12px rgba(255,68,0,0.25);
-}
-
-.header-list a {
-    font-family: Tahoma, Arial, sans-serif;
-    font-size: 11px;
-    font-weight: bold;
-    color: #cccccc;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    text-decoration: none;
-    padding: 0 4px;
-}
-
-.header-list a:hover {
-    color: #ff6600;
-    text-shadow: 0 0 8px rgba(255,100,0,0.6);
-    text-decoration: none;
-}
-
 /* ===== CONTENEURS — panneau métal brossé ===== */
 .container, .menu {
-    background-color: #1a1a1a;
-    border: 1px solid #333333;
+    position: relative;
+    background-color: var(--bg-container);
+    border: 1px solid var(--border-container);
     border-radius: 2px;
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.06),
-        inset 0 -1px 0 rgba(0,0,0,0.5),
-        1px 1px 0 rgba(0,0,0,0.8),
-        0 2px 8px rgba(0,0,0,0.5);
+    box-shadow: var(--shadow-container);
 }
 
 /* Ligne orange en haut des containers comme un onglet actif */
@@ -311,10 +278,6 @@ a:hover {
     right: 0;
     height: 2px;
     background: linear-gradient(90deg, #ff5500, #ff8800, #ff5500);
-}
-
-.container, .menu {
-    position: relative;
 }
 
 /* En-têtes des sections */
@@ -406,7 +369,7 @@ textarea,
 select {
     font-family: Tahoma, Arial, sans-serif;
     font-size: 12px;
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     border-radius: 2px;
     box-shadow: inset 1px 1px 4px rgba(0,0,0,0.6);
 }
@@ -467,53 +430,10 @@ textarea:focus-visible {
     text-shadow: 0 0 6px rgba(255,100,0,0.4);
 }
 
-/* ===== STATUTS — style "online status" forum gaming ===== */
-.status-online {
-    color: #00dd44;
-    font-weight: bold;
-    text-shadow: 0 0 6px rgba(0,220,68,0.5);
-}
-
-.status-offline {
-    color: #555555;
-}
-
-/* ===== BADGES ===== */
-.badge-new {
-    background:
-        linear-gradient(to bottom, #ff6600 0%, #cc3300 100%);
-    color: #ffffff;
-    border: 1px solid #881100;
-    border-radius: 2px;
-    font-family: Impact, Arial, sans-serif;
-    font-size: 0.55rem;
-    font-weight: bold;
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.2),
-        0 1px 3px rgba(0,0,0,0.5);
-    letter-spacing: 1px;
-}
-
-/* ===== PSEUDOS SPÉCIAUX ===== */
-.pseudo-admin {
-    color: #ff8800 !important;
-    text-shadow: 0 0 6px rgba(255,136,0,0.4);
-}
-
-.pseudo-sadmin {
-    color: #ff4444 !important;
-    text-shadow: 0 0 6px rgba(255,68,68,0.4);
-}
-
-.pseudomodo {
-    color: #00aaff !important;
-    text-shadow: 0 0 4px rgba(0,170,255,0.4);
-}
-
 /* ===== SHOP ===== */
 .card-shop {
-    background: #1a1a1a;
-    border: 1px solid #333333;
+    background: var(--bg-container);
+    border: 1px solid var(--border-container);
     border-radius: 2px;
     box-shadow:
         inset 0 1px 0 rgba(255,255,255,0.05),
@@ -551,7 +471,7 @@ textarea:focus-visible {
 /* ===== MENU HORIZONTAL — barre de nav dark gaming portal ===== */
 .menu-horizontal {
     background:
-        linear-gradient(to bottom, #222222 0%, #1a1a1a 100%);
+        linear-gradient(to bottom, #222222 0%, var(--bg-container) 100%);
     border-bottom: 2px solid #ff4400;
     box-shadow:
         0 2px 10px rgba(0,0,0,0.6),
@@ -621,7 +541,7 @@ textarea:focus-visible {
     left: 0;
     min-width: 160px;
     background: #1e1e1e;
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     border-top: 2px solid #ff4400;
     box-shadow: 2px 4px 12px rgba(0,0,0,0.7);
     list-style: none;
@@ -669,7 +589,7 @@ textarea:focus-visible {
     margin-bottom: 1.5rem;
     padding: 1rem;
     background: linear-gradient(to bottom, #1e1e1e 0%, #161616 100%);
-    border-bottom: 1px solid #333333;
+    border-bottom: 1px solid var(--border-container);
 }
 
 .profile-avatar {
@@ -764,8 +684,8 @@ textarea:focus-visible {
 }
 
 .profile-main {
-    background: #1a1a1a;
-    border: 1px solid #333333;
+    background: var(--bg-container);
+    border: 1px solid var(--border-container);
     border-radius: 4px;
     overflow: hidden;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -780,8 +700,8 @@ textarea:focus-visible {
 }
 
 .stats-card, .achievements-card {
-    background: #1a1a1a;
-    border: 1px solid #333333;
+    background: var(--bg-container);
+    border: 1px solid var(--border-container);
     border-radius: 4px;
     padding: 12px;
     margin-bottom: 10px;
@@ -798,8 +718,8 @@ textarea:focus-visible {
 .stat-item {
     text-align: center;
     padding: 10px;
-    background: linear-gradient(to bottom, #222222 0%, #1a1a1a 100%);
-    border: 1px solid #333333;
+    background: linear-gradient(to bottom, #222222 0%, var(--bg-container) 100%);
+    border: 1px solid var(--border-container);
     border-radius: 3px;
 }
 
@@ -830,7 +750,7 @@ textarea:focus-visible {
     text-align: center;
     padding: 8px;
     background: #222222;
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     border-radius: 3px;
     transition: all 0.2s;
 }
@@ -861,8 +781,8 @@ textarea:focus-visible {
 }
 
 .inventory {
-    background: #1a1a1a;
-    border: 1px solid #333333;
+    background: var(--bg-container);
+    border: 1px solid var(--border-container);
     border-radius: 4px;
     padding: 12px;
     width: 98%;
@@ -879,8 +799,8 @@ textarea:focus-visible {
 .inventory-item {
     text-align: center;
     padding: 10px;
-    background: linear-gradient(to bottom, #222222 0%, #1a1a1a 100%);
-    border: 1px solid #333333;
+    background: linear-gradient(to bottom, #222222 0%, var(--bg-container) 100%);
+    border: 1px solid var(--border-container);
     border-radius: 3px;
     transition: all 0.2s;
     position: relative;
@@ -924,7 +844,7 @@ textarea:focus-visible {
 }
 
 .btn-secondary {
-    background: linear-gradient(to bottom, #333333 0%, #222222 100%);
+    background: linear-gradient(to bottom, var(--border-container) 0%, #222222 100%);
     color: #cccccc;
     border-color: #444444;
 }
@@ -940,11 +860,11 @@ textarea:focus-visible {
 
 /* ===== CARTES DE JEU / QUIZ ===== */
 .card-game {
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     margin: 8px;
     border-radius: 4px;
     overflow: hidden;
-    background-color: #1a1a1a;
+    background-color: var(--bg-container);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
@@ -953,7 +873,7 @@ textarea:focus-visible {
 }
 
 .card-game .header {
-    border-bottom: 1px solid #333333;
+    border-bottom: 1px solid var(--border-container);
     padding: 8px 12px;
     background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
     font-size: 1rem;
@@ -970,8 +890,8 @@ textarea:focus-visible {
 }
 
 .card-game .footer {
-    border-top: 1px solid #333333;
-    background: linear-gradient(to bottom, #222222 0%, #1a1a1a 100%);
+    border-top: 1px solid var(--border-container);
+    background: linear-gradient(to bottom, #222222 0%, var(--bg-container) 100%);
     padding: 8px 12px;
     font-size: 0.8rem;
     color: #888888;
@@ -979,7 +899,7 @@ textarea:focus-visible {
 
 /* ===== QUIZ LIST TABLE ===== */
 table.quiz, table.quiz th, table.quiz tr, table.quiz td {
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
 }
 
 table.quiz {
@@ -1005,7 +925,7 @@ table.quiz th, table.quiz td {
 }
 
 table.quiz tr:nth-child(even) td {
-    background-color: #1a1a1a;
+    background-color: var(--bg-container);
 }
 
 /* ===== QUIZ FORM ===== */
@@ -1025,8 +945,8 @@ table.quiz tr:nth-child(even) td {
 }
 
 .quiz-question {
-    background: #1a1a1a;
-    border: 1px solid #333333;
+    background: var(--bg-container);
+    border: 1px solid var(--border-container);
     margin-bottom: 12px;
     border-radius: 5px;
     overflow: hidden;
@@ -1040,7 +960,7 @@ table.quiz tr:nth-child(even) td {
     font-weight: bold;
     font-size: 0.85rem;
     font-family: 'Black Ops One', sans-serif;
-    border-bottom: 1px solid #333333;
+    border-bottom: 1px solid var(--border-container);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -1069,7 +989,7 @@ table.quiz tr:nth-child(even) td {
     gap: 10px;
     padding: 8px 10px;
     border-radius: 3px;
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     background-color: #181818;
     transition: all 0.15s;
     cursor: pointer;
@@ -1127,8 +1047,8 @@ table.quiz tr:nth-child(even) td {
 }
 
 .quiz-result-card {
-    background-color: #1a1a1a;
-    border: 1px solid #333333;
+    background-color: var(--bg-container);
+    border: 1px solid var(--border-container);
     padding: 24px;
     text-align: center;
     border-radius: 4px;
@@ -1225,7 +1145,7 @@ table.quiz tr:nth-child(even) td {
     font-size: 0.85rem;
     padding: 2px 6px;
     background-color: #222222;
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     border-radius: 3px;
 }
 
@@ -1333,7 +1253,7 @@ span.unread-badge {
 .bbcode-bar {
     flex-direction: column;
     background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     border-radius: 3px 3px 0 0;
     margin: 0 0 0 0;
     width: 99%;
@@ -1357,7 +1277,7 @@ span.unread-badge {
     margin: 1px;
     padding: 3px 8px;
     font-size: 0.7rem;
-    background: linear-gradient(to bottom, #333333 0%, #222222 100%);
+    background: linear-gradient(to bottom, var(--border-container) 0%, #222222 100%);
     color: #ff8844;
     border: 1px solid #444444;
     border-radius: 2px;
@@ -1385,7 +1305,7 @@ span.unread-badge {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #1a1a1a;
+    background-color: var(--bg-container);
     border: 2px solid #ff5500;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 85, 0, 0.2);
     border-radius: 3px;
@@ -1397,7 +1317,7 @@ span.unread-badge {
     position: sticky;
     top: 0;
     width: 100%;
-    background: linear-gradient(to bottom, #2a2a2a 0%, #1a1a1a 100%);
+    background: linear-gradient(to bottom, #2a2a2a 0%, var(--bg-container) 100%);
     color: #ff8844;
     padding: 6px 10px;
     cursor: move;
@@ -1441,7 +1361,7 @@ h1.h1-bbcode {
     font-family: 'Black Ops One', Impact, sans-serif;
     font-size: 1.6rem;
     color: #ff8844;
-    border-bottom: 2px solid #333333;
+    border-bottom: 2px solid var(--border-container);
     padding-bottom: 4px;
     text-shadow: 0 0 6px rgba(255, 136, 0, 0.3);
 }
@@ -1452,7 +1372,7 @@ h2.h2-bbcode {
     color: #ff8844;
     background-color: transparent;
     border: none;
-    border-bottom: 1px solid #333333;
+    border-bottom: 1px solid var(--border-container);
     padding-bottom: 4px;
     text-shadow: 0 0 4px rgba(255, 136, 0, 0.3);
 }
@@ -1465,14 +1385,14 @@ h3.h3-bbcode {
 
 fieldset.quote-bbcode {
     padding: 10px 14px;
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     background-color: #181818;
     border-radius: 3px;
     margin: 8px 0;
 }
 
 fieldset.quote-bbcode legend {
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     padding: 2px 8px;
     background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
     color: #ff8844;
@@ -1485,14 +1405,14 @@ fieldset.quote-bbcode legend {
 
 /* ===== ARTICLES / NEWS ===== */
 .post-card, .news, .guestbook p {
-    background-color: #1a1a1a;
-    border: 1px solid #333333;
+    background-color: var(--bg-container);
+    border: 1px solid var(--border-container);
     border-radius: 4px;
     margin: 8px;
 }
 
 .post-card-header, .news-header {
-    border-bottom: 1px solid #333333;
+    border-bottom: 1px solid var(--border-container);
     background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
     padding: 6px 10px;
     display: flex;
@@ -1512,7 +1432,7 @@ fieldset.quote-bbcode legend {
 .news, .post-card {
     margin: 8px;
     padding: 0;
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     border-radius: 4px;
     overflow: hidden;
 }
@@ -1524,11 +1444,11 @@ fieldset.quote-bbcode legend {
 }
 
 .contrib {
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     margin: 8px;
     padding: 10px;
     border-radius: 4px;
-    background: #1a1a1a;
+    background: var(--bg-container);
 }
 
 .contrib a {
@@ -1543,8 +1463,8 @@ fieldset.quote-bbcode legend {
 
 /* ===== CONTRIBUTION PAGE ===== */
 .games, .movies, .musics, .tech, .category, .news_contrib {
-    background-color: #1a1a1a;
-    border: 1px solid #333333;
+    background-color: var(--bg-container);
+    border: 1px solid var(--border-container);
     transition: all 0.2s;
 }
 
@@ -1587,7 +1507,7 @@ fieldset.quote-bbcode legend {
 /* ===== GUESTBOOK ===== */
 .menu ul.guestbook {
     background-color: rgba(255, 68, 0, 0.05);
-    border-color: #333333;
+    border-color: var(--border-container);
 }
 
 .menu ul.guestbook li span.date {
@@ -1606,7 +1526,7 @@ fieldset.quote-bbcode legend {
 
 /* ===== MESSAGERIE (table .table, hors forum) ===== */
 .table {
-    border-color: #333333;
+    border-color: var(--border-container);
     box-shadow: var(--shadow-container);
 }
 
@@ -1655,7 +1575,7 @@ a.shop { color: var(--text-primary); }
 a.shop:hover { color: var(--text-link); }
 
 .card-shop:hover {
-    background: #1a1a1a;
+    background: var(--bg-container);
 }
 
 .card-img {
@@ -1679,7 +1599,7 @@ a.shop:hover { color: var(--text-link); }
 
 .pseudo-preview {
     font-size: 1.5rem;
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     padding: 5px;
     border-radius: 3px;
 }
@@ -1740,7 +1660,7 @@ a.shop:hover { color: var(--text-link); }
 .auth-form,
 .auth-benefits {
     background: #181818;
-    border: 1px solid #333333;
+    border: 1px solid var(--border-container);
     border-radius: 4px;
     padding: 12px 14px;
 }
@@ -1799,7 +1719,7 @@ a.shop:hover { color: var(--text-link); }
     gap: 1.5rem;
     padding: 1rem;
     background: linear-gradient(to bottom, #1e1e1e 0%, #161616 100%);
-    border-bottom: 1px solid #333333;
+    border-bottom: 1px solid var(--border-container);
 }
 
 .profile-hero-avatar {
@@ -1857,8 +1777,8 @@ a.shop:hover { color: var(--text-link); }
 }
 
 .profile-card {
-    background: #1a1a1a;
-    border: 1px solid #333333;
+    background: var(--bg-container);
+    border: 1px solid var(--border-container);
     border-radius: 4px;
     padding: 12px;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -1929,7 +1849,7 @@ a.shop:hover { color: var(--text-link); }
 }
 
 .panel-page-header {
-    border-bottom: 2px solid #333333;
+    border-bottom: 2px solid var(--border-container);
 }
 
 .panel-page-header h2 {
@@ -1937,13 +1857,13 @@ a.shop:hover { color: var(--text-link); }
 }
 
 .panel-section {
-    background: #1a1a1a;
-    border-color: #333333;
+    background: var(--bg-container);
+    border-color: var(--border-container);
 }
 
 .panel-section-header {
     background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
-    border-bottom-color: #333333;
+    border-bottom-color: var(--border-container);
 }
 
 .panel-section-header h3 {
@@ -1951,8 +1871,8 @@ a.shop:hover { color: var(--text-link); }
 }
 
 .panel-stat-card {
-    background: #1a1a1a;
-    border-color: #333333;
+    background: var(--bg-container);
+    border-color: var(--border-container);
     box-shadow: var(--shadow-container);
 }
 
@@ -1980,7 +1900,7 @@ a.shop:hover { color: var(--text-link); }
 
 .panel-table th {
     color: #ff8844;
-    border-bottom-color: #333333;
+    border-bottom-color: var(--border-container);
 }
 
 .panel-table td {
@@ -1998,8 +1918,8 @@ a.shop:hover { color: var(--text-link); }
 }
 
 .panel-empty-state {
-    background: #1a1a1a;
-    border-color: #333333;
+    background: var(--bg-container);
+    border-color: var(--border-container);
 }
 
 .panel-badge-success { background: #0a2a12; color: #44cc44; border: 1px solid #00aa33; }
@@ -2014,7 +1934,7 @@ a.shop:hover { color: var(--text-link); }
 .panel-form-group input,
 .panel-form-group select,
 .panel-form-group textarea {
-    border-color: #333333;
+    border-color: var(--border-container);
     color: #cccccc;
     background: #111111;
     box-shadow: var(--shadow-input);
@@ -2033,7 +1953,7 @@ a.shop:hover { color: var(--text-link); }
 
 .panel-checkboxes-list {
     background: #161616;
-    border-color: #333333;
+    border-color: var(--border-container);
 }
 
 .panel-form-actions {
@@ -2046,19 +1966,19 @@ a.shop:hover { color: var(--text-link); }
 
 .panel-inline-form input,
 .panel-search-form input {
-    border-color: #333333;
+    border-color: var(--border-container);
     background: #111111;
     color: #cccccc;
 }
 
 .panel-quiz-question {
-    border-color: #333333;
+    border-color: var(--border-container);
 }
 
 .panel-quiz-q-header {
     background: linear-gradient(to bottom, #2a2a2a 0%, #1e1e1e 100%);
     color: #ff8844;
-    border-bottom-color: #333333;
+    border-bottom-color: var(--border-container);
 }
 
 .panel-quiz-choices li {
@@ -2102,8 +2022,8 @@ body.theme-00s .error-btn:hover {
 
 @media screen and (min-width: 768px) {
     body.theme-00s .error-container {
-        background: #1a1a1a;
-        border: 1px solid #333333;
+        background: var(--bg-container);
+        border: 1px solid var(--border-container);
         box-shadow: var(--shadow-container);
     }
 }

@@ -31,9 +31,9 @@ THEME_CONFIGS = {
         },
         "css_vars": {
             "colors": {
-                "primary": "#1a5caa",
-                "bg_body": "#dce6f0",
-                "bg_container": "#ffffff",
+                "primary": "#ff6600",
+                "bg_body": "#0d0d0d",
+                "bg_container": "#1a1a1a",
             },
         },
     },
