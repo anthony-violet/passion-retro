@@ -6,6 +6,8 @@ from . import views
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("decouvrir/", views.discover, name="discover"),
+    path("api/news/", views.api_news, name="api_news"),
 ]
 
 if settings.DEBUG:

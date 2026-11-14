@@ -1,13 +1,29 @@
 {% extends 'layout.html' %}
 {% block content %}
     <div class="container">
-        <h2>Register</h2>
-        <form method="post" class="login-form">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <script src='https://www.google.com/recaptcha/api.js'></script>
-            <div class="g-recaptcha" style="margin-left:50px" data-sitekey="{{ GOOGLE_PUBLIC_KEY }}"></div>
-            <button type="submit" class="btn-submit">S'inscire</button>
-        </form>
+        <h2>Créer un compte</h2>
+        <p class="auth-intro">Rejoins {{ site_name }} gratuitement et participe à une communauté passionnée de culture rétro.</p>
+        <div class="auth-grid">
+            <div class="auth-form">
+                <form method="post" class="login-form">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <script src='https://www.google.com/recaptcha/api.js'></script>
+                    <div class="g-recaptcha" style="margin-left:50px" data-sitekey="{{ GOOGLE_PUBLIC_KEY }}"></div>
+                    <button type="submit" class="btn-submit">S'inscrire</button>
+                </form>
+                <p>Déjà membre ? <a href="{% url 'login' %}">Se connecter</a></p>
+            </div>
+            <aside class="auth-benefits">
+                <h3>Pourquoi nous rejoindre ?</h3>
+                <ul>
+                    <li>Participer aux discussions et créer tes propres sujets.</li>
+                    <li>Jouer au Petit Bac et aux quiz de la communauté.</li>
+                    <li>Personnaliser ton profil, ton avatar et ton thème.</li>
+                    <li>Accéder à la messagerie privée et à la boutique.</li>
+                    <li>Proposer des articles, des quiz et des éphémérides.</li>
+                </ul>
+            </aside>
+        </div>
     </div>
 {% endblock %}

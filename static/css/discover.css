@@ -1,0 +1,230 @@
+.discover-kicker {
+    margin: 0 0 8px;
+    color: var(--text-link);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.discover-lead {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.discover-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.discover-note {
+    font-size: 0.9rem;
+    font-style: italic;
+    opacity: 0.85;
+}
+
+.discover-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 24px;
+    align-items: center;
+}
+
+.discover-teaser-body,
+.discover-hero-content,
+.discover-two-col > *,
+.discover-card {
+    min-width: 0;
+}
+
+.discover-teaser-body {
+    margin-top: 8px;
+}
+
+.discover-features,
+.discover-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.discover-features {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.discover-feature,
+.discover-card,
+.discover-panel,
+.discover-hero-card,
+.auth-benefits {
+    background: var(--bg-post-card, var(--bg-menu));
+    border: 1px solid var(--border-container);
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.discover-feature h3,
+.discover-card h3,
+.discover-panel h3,
+.discover-hero-card h3,
+.auth-benefits h3 {
+    margin: 0 0 8px;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+}
+
+.discover-feature p,
+.discover-card p,
+.discover-panel p,
+.discover-hero-card p,
+.auth-benefits p {
+    margin: 0;
+    padding: 0;
+    line-height: 1.45;
+}
+
+.discover-hero-card,
+.discover-panel {
+    padding: 18px;
+}
+
+.discover-list li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.discover-list li:last-child {
+    margin-bottom: 0;
+}
+
+.discover-section {
+    margin-top: 14px;
+}
+
+.discover-section > h2 {
+    margin-top: 0;
+}
+
+.discover-two-col {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 22px;
+    align-items: start;
+}
+
+.discover-quote {
+    margin: 18px 0 0;
+    padding: 12px 16px;
+    border-left: 4px solid var(--text-link);
+    background: var(--bg-menu);
+    font-style: italic;
+}
+
+.discover-articles {
+    display: grid;
+    gap: 12px;
+}
+
+.discover-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.discover-card h3 {
+    margin-bottom: 0;
+}
+
+.discover-card h3 a {
+    color: var(--text-link);
+    text-decoration: none;
+}
+
+.discover-card h3 a:hover {
+    text-decoration: underline;
+}
+
+.discover-card .btn {
+    align-self: flex-start;
+    margin-top: auto;
+}
+
+.discover-meta {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.discover-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.discover-intro {
+    margin-top: 0;
+}
+
+.discover-final {
+    text-align: center;
+}
+
+.discover-final .discover-actions {
+    justify-content: center;
+}
+
+.auth-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 0.75fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.auth-intro {
+    max-width: 70ch;
+}
+
+.auth-benefits ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.auth-benefits li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.auth-benefits li:last-child {
+    margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+    .discover-hero,
+    .discover-two-col,
+    .auth-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .discover-features {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 540px) {
+    .discover-features {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .discover-actions .btn {
+        width: 100%;
+        text-align: center;
+    }
+}

@@ -1,8 +1,13 @@
 {% extends 'layout.html' %}
+{% load users_custom_tags %}
 
 {% block content %}
 <div class="container">
     <h2 class="quiz-title">{{ quiz.name }}</h2>
+    <p class="level-line">
+        Mon niveau : {% user_level_badge request.user variant='inline' compact=True %}
+        <span class="level-title">{{ request.user.level_title }}</span>
+    </p>
     <ul class="breadcrumbs">
         <li><a href="{% url 'portal_games' %}">Portail de jeux</a> »</li>
         <li><a href="{% url 'quiz_home' %}">Quiz</a> »</li>

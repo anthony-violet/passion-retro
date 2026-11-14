@@ -38,6 +38,7 @@ class LittleBacRounds(models.Model):
     game = models.ForeignKey(LittleBacGames, on_delete=models.CASCADE, related_name='rounds')
     letter = models.CharField(max_length=1)
     round_counter = models.IntegerField(default=1)
+    xp_awarded = models.BooleanField(default=False)
 
 class LittleBacAnswers(models.Model):
     id = models.AutoField(primary_key=True)

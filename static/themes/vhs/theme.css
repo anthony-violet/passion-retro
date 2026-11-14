@@ -1915,6 +1915,26 @@ fieldset.quote-bbcode legend {
     overflow: hidden;
     align-self: center;
     line-height: 1.4;
+    text-shadow: 0 0 6px rgba(0, 229, 255, 0.3);
+}
+
+/* Souffle d'activité sur hover */
+.vhs-guide__row:hover .vhs-guide__last {
+    color: #00e5ff;
+    text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+    transition: color 0.15s, text-shadow 0.15s;
+}
+
+/* Topic actif (dernier post récent) */
+.vhs-guide__row--active .vhs-guide__last {
+    color: #00e5ff;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+    animation: pulse-active 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-active {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
 }
 
 .vhs-guide__last-author {

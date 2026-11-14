@@ -5,23 +5,34 @@ The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
 Examples:
 Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+    1. Add an import: from my_app import views
+    2. Add a URL to urlpatterns: path('', views.home, name='home')
 Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+    1. Add an import: from other_app.views import Home
+    2. Add a URL to urlpatterns: path('', Home.as_view(), name='home')
 Including another URLconf
     1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+    2. Add a URL to urlpatterns: path('blog/', include('blog.urls'))
 """
 
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 from . import views
+from .sitemaps import PostSitemap, StaticViewSitemap, TopicSitemap
+
+sitemaps = {
+    "static": StaticViewSitemap,
+    "posts": PostSitemap,
+    "topics": TopicSitemap,
+}
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="sitemap"),
+    path("robots.txt", views.robots_txt, name="robots_txt"),
+    path("llms.txt", views.llms_txt, name="llms_txt"),
     path("maintenance/", include("maintenance.urls")),
     path("", include("home.urls")),
     path("posts/", include("posts.urls")),
@@ -36,6 +47,7 @@ urlpatterns = [
     path("panel/", include("panel.urls")),
     path("version/", include("version.urls")),
     path("ephemerides/", include("ephemerides.urls")),
+    path('api/forum/', include('forum_api.urls')),
 
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
 ]

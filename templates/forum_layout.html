@@ -8,6 +8,7 @@
             <div class="col col-5">
                 <ul>
                     <li>{{ request.total_users }} utilisateurs enregistrés</li>
+                    <li>{{ request.online_members }} membre{{ request.online_members|pluralize }} en ligne</li>
                     <li>Bienvenue à notre dernier membre : {% if request.last_user %}<a href="{% url 'profile' request.last_user.id %}">{{ request.last_user.username }}</a>{% else %}Aucun{% endif %}</li>
                 </ul>
             </div>

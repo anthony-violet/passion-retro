@@ -1,6 +1,43 @@
+import hashlib
+import secrets
+
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
+from django.utils import timezone
 from shop.models import Item
+
+
+def xp_required(level):
+    """XP cumulée nécessaire pour atteindre le niveau ``level``."""
+    return int(33.33 * (level ** 2) - 16.66 * level)
+
+
+LEVEL_TITLES = (
+    (1, 'Novice'),
+    (5, 'Apprenti'),
+    (10, 'Aventurier'),
+    (15, 'Chevalier'),
+    (20, 'Héros'),
+    (30, 'Maître'),
+    (40, 'Légende'),
+)
+
+
+def level_title(level):
+    """Renvoie le titre associé à un niveau."""
+    try:
+        level = int(level)
+    except (TypeError, ValueError):
+        level = 1
+
+    title = LEVEL_TITLES[0][1]
+    for threshold, label in LEVEL_TITLES:
+        if level >= threshold:
+            title = label
+        else:
+            break
+    return title
+
 
 def user_avatar_path(instance, filename):
     return f'avatars/{instance.id}/{filename}'
@@ -21,6 +58,7 @@ class User(AbstractUser):
     twitter = models.CharField(max_length=100, blank=True, null=True)
     discord = models.CharField(max_length=100, blank=True, null=True)
     youtube = models.CharField(max_length=100, blank=True, null=True)
+    last_seen = models.DateTimeField(blank=True, null=True)
 
     groups = models.ManyToManyField(
         Group,
@@ -40,18 +78,36 @@ class User(AbstractUser):
     @property
     def level(self):
         return self.levels.first()
-    
+
+    @property
+    def level_number(self):
+        level = self.levels.first()
+        return level.level if level else 1
+
+    @property
+    def level_title(self):
+        return level_title(self.level_number)
+
     @property
     def experience(self):
-        return self.levels.get(user=self).experience
-    
+        level = self.levels.first()
+        return level.experience if level else 0
+
+    @property
+    def experience_left(self):
+        level = self.levels.first()
+        if level is None:
+            return xp_required(1)
+        return max(0, xp_required(level.level) - level.experience)
+
     @property
     def inventory(self):
         return self.inventory.all()
-    
+
     @property
     def money(self):
-        return self.inventory.get(item__name='Or').quantity
+        entry = self.inventory.filter(item__name='Or').first()
+        return entry.quantity if entry else 0
 
     def __str__(self):
         return self.username
@@ -71,12 +127,15 @@ class UserLevel(models.Model):
     experience = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return self.level
+        return str(self.level)
 
     class Meta:
         verbose_name = 'Niveau utilisateur'
         verbose_name_plural = 'Niveaux utilisateurs'
         ordering = ['level']
+        constraints = [
+            models.UniqueConstraint(fields=['user'], name='unique_user_level'),
+        ]
 
 class UserInventory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventory')
@@ -90,3 +149,31 @@ class UserInventory(models.Model):
         verbose_name = 'Inventaire utilisateur'
         verbose_name_plural = 'Inventaires utilisateurs'
         ordering = ['item']
+
+
+class APIKey(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='api_keys')
+    name = models.CharField(max_length=100, help_text="Nom identifiant la clé (ex: 'OpenClaw production')")
+    key_hash = models.CharField(max_length=64, help_text="Empreinte SHA-256 de la clé ; la clé brute n'est jamais stockée.")
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True, help_text="Date d'expiration facultative.")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Clé API'
+        verbose_name_plural = 'Clés API'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.name}"
+
+    def is_expired(self):
+        if self.expires_at:
+            from django.utils import timezone
+            return timezone.now() > self.expires_at
+        return False
+
+    def mark_used(self):
+        self.last_used_at = timezone.now()
+        self.save(update_fields=['last_used_at'])

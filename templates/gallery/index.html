@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}
+    <link rel="stylesheet" href="{% static 'css/gallery.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="gallery-content" data-folder="{{ current_folder }}">
+        {% include 'gallery/home.html' %}
+    </div>
+{% endblock %}

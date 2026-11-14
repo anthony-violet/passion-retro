@@ -24,7 +24,7 @@
                             {% endif %}
                         </div>
                         <div class="post-card">
-                            <p>{{ post.content|bbcode|safe|linebreaksbr|truncatewords:25 }} » <a href="{% url 'view_post' post.slug %}">Lire</a></p><br>
+                            <p>{{ post.content|bbcode|safe|linebreaksbr|truncatewords_html:25 }} » <a href="{% url 'view_post' post.slug %}">Lire</a></p><br>
                             <p class="date"><em>Publié le {{ post.created|date:" d F Y à H:i" }}</em> Par <a href="{% url 'profile' post.author.id %}" class="{{ post.author.username_decoration }}">{{ post.author.username }}</a></p>
                             <p><a href="{% url 'edit_post' post.id %}" class="btn btn-warning">Modifier</a></p>
                         </div>

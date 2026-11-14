@@ -1,14 +1,17 @@
 from django.core.paginator import Paginator
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.utils import timezone
+from django.urls import reverse
 from .models import Category, Forum, Topic, Post, TopicRead
 from .forms import CreateTopic, CreatePost, EditPost
 from django.db.models import Max, F
 from users.decorators import groups_required
-from users.models import UserLevel
+from users.leveling import grant_experience
+from passion_retro.seo import breadcrumb_jsonld, discussion_jsonld, plain_text
 
 def forum_home(request):
     categories = Category.objects.all()
@@ -80,13 +83,23 @@ def forum_home(request):
         'last_posts': last_posts,
         'count_topics': count_topics,
         'unread_topics': unread_topics,
+        'page_title': f"Forum - {settings.SITE_NAME}",
+        'page_heading': "Forum",
+        'page_description': (
+            f"Participez aux discussions de la communauté {settings.SITE_NAME} : "
+            "jeux vidéo, films, séries et culture rétro."
+        ),
     }
 
     return render(request, "components/forum_home.html", context)
 
 def topic_list(request, forum_id):
     forum = Forum.objects.get(id=forum_id)
-    topics = Topic.objects.filter(forum=forum).order_by('-created')
+    topics = Topic.objects.filter(forum=forum).select_related(
+        'author'
+    ).annotate(
+        last_post_date=Max('posts__created')
+    ).order_by('-last_post_date')
     paginator = Paginator(topics, 20)
 
     page_number = request.GET.get('page')
@@ -101,7 +114,9 @@ def topic_list(request, forum_id):
         count_post = Post.objects.filter(topic=topic).count()
         count_posts[topic.id] = count_post
 
-        last_post = Post.objects.filter(topic=topic).order_by('-created').first()
+        last_post = Post.objects.select_related(
+            'author'
+        ).filter(topic=topic).order_by('-created').first()
         last_posts[topic.id] = last_post
 
         if request.user.is_authenticated:
@@ -140,6 +155,16 @@ def topic_list(request, forum_id):
         'is_paginated': topics.has_other_pages(),
         'page_obj': topics,
         'paginator': paginator,
+        'page_title': f"{forum.name} - Forum - {settings.SITE_NAME}",
+        'page_heading': forum.name,
+        'page_description': (
+            forum.description
+            or f"Les sujets du forum {forum.name} sur {settings.SITE_NAME}."
+        ),
+        'seo_page_jsonld': breadcrumb_jsonld([
+            ("Forum", reverse("forum_home")),
+            (forum.name, reverse("topic_list", args=[forum.id])),
+        ]),
     }
 
     return render(request, "forum/topic_list.html", context)
@@ -168,7 +193,7 @@ def create_topic(request, forum_id):
         topic.save()
         post.save()
         messages.success(request, 'Topic créer avec succès.')
-        UserLevel.objects.update(user=request.user, experience=F('experience') + 15)
+        grant_experience(request.user, 15)
         # on renvoie l'utilisateur sur la page du topic contenu l'id du forum et du topic créer
         return redirect('post_list', forum_id=forum_id, topic_id=topic.id)
     
@@ -181,6 +206,9 @@ def create_topic(request, forum_id):
     return render(request, "forum/create_topic.html", context)
 
 def topic_detail(request, topic_id, forum_id):
+    if request.method == 'GET':
+        Topic.objects.filter(pk=topic_id).update(views=F('views') + 1)
+
     if request.method == 'POST':
         if not request.user.is_active or not request.user.is_authenticated:
             return HttpResponseForbidden("Vous n'êtes pas autorisé à poster un message.")
@@ -193,11 +221,17 @@ def topic_detail(request, topic_id, forum_id):
                 content=post_form.cleaned_data['content'],
             )
             post.save()
-            UserLevel.objects.update(user=request.user, experience=F('experience') + 10)
+            grant_experience(request.user, 10)
             messages.success(request, 'Message posté avec succès.')
     
-    topic = Topic.objects.get(id=topic_id)
-    posts = Post.objects.filter(topic=topic, active=True)
+    topic = Topic.objects.select_related('author').prefetch_related(
+        'author__levels'
+    ).get(id=topic_id)
+    posts = Post.objects.filter(
+        topic=topic, active=True
+    ).select_related('author').prefetch_related('author__levels').order_by(
+        'created'
+    )
     paginator = Paginator(posts, 20)
 
     page_number = request.GET.get('page')
@@ -225,6 +259,22 @@ def topic_detail(request, topic_id, forum_id):
         'is_paginated': posts.has_other_pages(),
         'page_obj': posts,
         'paginator': paginator,
+        'page_title': f"{topic.title} - Forum - {settings.SITE_NAME}",
+        'page_heading': topic.title,
+        'page_description': plain_text(posts[0].content, 160) if posts else (
+            f"Sujet « {topic.title} » du forum {topic.forum.name}."
+        ),
+        'seo_og_type': 'article',
+        'seo_page_jsonld': discussion_jsonld(
+            request,
+            topic,
+            posts.paginator.count,
+            [
+                ("Forum", reverse("forum_home")),
+                (topic.forum.name, reverse("topic_list", args=[topic.forum.id])),
+                (topic.title, request.path),
+            ],
+        ),
     }
 
     return render(request, "forum/topic_detail.html", context)

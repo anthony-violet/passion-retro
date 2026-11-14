@@ -10,8 +10,9 @@
 <div class="menu-horizontal">
     <ul>
         <li><a href="{% url 'home' %}">Accueil</a></li>
+        <li><a href="{% url 'discover' %}" class="new-item-menu">Découvrir {{ site_name }}</a></li>
         <li><a href="{% url 'forum_home' %}">Forum</a></li>
-        <li><a href="{% url 'ephemerides_today'  %}" class="new-item-menu">Ce jour là...</a></li>
+        <li><a href="{% url 'ephemerides_today'  %}">Ce jour là...</a></li>
         <li>
             <a href="{% url 'portal_games' %}">
                 Portail des jeux
@@ -20,35 +21,16 @@
                 {% endif %}
             </a>
         </li>
-        <li><a href="{% url 'shop_home' %}">Boutique</a></li>
         <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
-        <li><a href="">Technologies</a>
+        <li><a href="{% url 'shop_home' %}">Boutique</a></li>
+        {% for section in request.nav_sections %}
+        <li><a href="">{% if section.icon %}{{ section.icon }} {% endif %}{{ section.label }}</a>
             <ul class="dropdown">
-                {% for tech in request.posts_tech %}
-                    <li><a href="{% url 'view_post' tech.slug %}">{{ tech.title }}</a></li>
+                {% for post in section.posts %}
+                    <li><a href="{% url 'view_post' post.slug %}">{{ post.title }}</a></li>
                 {% endfor %}
             </ul>
         </li>
-        <li><a href="">Musique</a>
-            <ul>
-                {% for music in request.posts_music %}
-                    <li><a href="{% url 'view_post' music.slug %}">{{ music.title }}</a></li>
-                {% endfor %}
-            </ul>
-        </li>
-        <li><a href="">Films & Series</a>
-            <ul>
-                {% for movies in request.posts_movies %}
-                    <li><a href="{% url 'view_post' movies.slug %}">{{ movies.title }}</a></li>
-                {% endfor %}
-            </ul>
-        </li>
-        <li><a href="">Jeux</a>
-            <ul class="dropdown">
-                {% for games in request.posts_games %}
-                    <li><a href="{% url 'view_post' games.slug %}">{{ games.title }}</a></li>
-                {% endfor %}
-            </ul>
-        </li>
+        {% endfor %}
     </ul>
 </div>

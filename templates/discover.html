@@ -1,0 +1,245 @@
+{% extends 'layout.html' %}
+{% load bbcode_tags %}
+
+{% block content %}
+<div class="container">
+    <ul class="breadcrumbs">
+        <li><a href="{% url 'home' %}">Accueil</a></li>
+        <li>Découvrir {{ site_name }}</li>
+    </ul>
+</div>
+<div class="container discover-hero">
+    <div class="discover-hero-content">
+        <p class="discover-kicker">Bienvenue sur {{ site_name }}</p>
+        <h2>Et si on retrouvait le Web d'avant ?</h2>
+        <p class="discover-lead">{{ site_name }} est né de l'envie de retrouver un Internet plus humain, plus libre et plus convivial.</p>
+        <p>
+            Un Web où l'on découvrait des sites personnels, où les forums étaient des lieux de rencontre,
+            où les communautés avaient leur identité et où l'on prenait le temps d'échanger.
+            Loin de la frénésie des réseaux sociaux, des algorithmes et des flux incessants.
+        </p>
+        <p>
+            {{ site_name }} remet les communautés et les passionnés au cœur de l'expérience :
+            jeux vidéo, films, séries, musique et technologies rétro.
+        </p>
+        <div class="discover-actions">
+            {% if user.is_authenticated %}
+                <a href="{% url 'profile' %}" class="btn btn-primary">Accéder à mon profil</a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-primary">Créer mon compte</a>
+            {% endif %}
+            <a href="{% url 'home' %}" class="btn">Explorer le site</a>
+        </div>
+    </div>
+    <aside class="discover-hero-card">
+        <h3>En quelques mots</h3>
+        <ul class="discover-list">
+            <li>Un magazine rétro et participatif</li>
+            <li>Un forum pour échanger et partager</li>
+            <li>Des jeux, des quiz et des classements</li>
+            <li>Un profil, un avatar et un style uniques</li>
+        </ul>
+    </aside>
+</div>
+
+<div class="container discover-section">
+    <h2>L'esprit {{ site_name }}</h2>
+    <div class="discover-two-col">
+        <div>
+            <p>
+                {{ site_name }} est un espace communautaire indépendant consacré à la culture rétro.
+                Ici, on ne fait pas que lire : on joue, on échange, on crée et on construit une communauté.
+            </p>
+            <p>
+                Le projet assume un rythme différent : des conversations qui durent, des contenus que l'on prend
+                le temps de découvrir et une place pour chaque passionné, qu'il soit lecteur, joueur, collectionneur
+                ou rédacteur.
+            </p>
+            <blockquote class="discover-quote">
+                Retrouver l'esprit du Web d'autrefois, sans renoncer à ce qui rend une communauté vivante aujourd'hui.
+            </blockquote>
+        </div>
+        <aside class="discover-panel">
+            <h3>Ici, on prend le temps</h3>
+            <ul class="discover-list">
+                <li>Lire des articles et des dossiers réalisés par la communauté.</li>
+                <li>Participer à des discussions qui ne disparaissent pas en quelques heures.</li>
+                <li>Découvrir des jeux et des quiz créés ou partagés par les membres.</li>
+                <li>Construire une identité visuelle reconnaissable sur le site.</li>
+            </ul>
+        </aside>
+    </div>
+</div>
+
+<div class="container discover-section">
+    <h2>Un magazine participatif</h2>
+    <div class="discover-two-col">
+        <div>
+            <p>
+                {{ site_name }} publie des articles, des dossiers et des actualités consacrés aux jeux vidéo,
+                aux films, aux séries, à la musique et aux technologies rétro.
+            </p>
+            <p>
+                Les membres peuvent proposer leurs propres contenus : souvenirs, collections, rétrospectives,
+                analyses ou découvertes. Chaque proposition est relue par l'équipe avant publication.
+            </p>
+            <div class="discover-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'contribute' %}" class="btn btn-add">Proposer un article</a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-add">Créer un compte pour proposer</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="discover-articles">
+            {% for post in latest_posts %}
+                <article class="discover-card">
+                    <h3><a href="{% url 'view_post' post.slug %}">{{ post.title }}</a></h3>
+                    <p class="discover-meta">
+                        Publié le {{ post.created|date:"d F Y" }} par {{ post.author.username }}
+                    </p>
+                    <p>{{ post.content|bbcode|safe|linebreaksbr|truncatewords_html:28 }}</p>
+                </article>
+            {% empty %}
+                <p class="discover-panel">Les premières publications arrivent bientôt.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="container discover-section">
+    <h2>Des jeux communautaires</h2>
+    <p class="discover-intro">
+        Envie de jouer ou de défier les autres membres ? Le portail des jeux rassemble les activités
+        disponibles sur le site.
+    </p>
+    <div class="discover-cards">
+        <article class="discover-card">
+            <h3>Le Petit Bac</h3>
+            <p>
+                Crée une partie, partage le lien avec les autres membres et affronte-les sur des catégories
+                choisies autour de la culture rétro.
+            </p>
+            <a href="{% url 'bac_games' %}" class="btn">Découvrir le Petit Bac</a>
+        </article>
+        <article class="discover-card">
+            <h3>Les quiz</h3>
+            <p>
+                Teste tes connaissances sur les jeux, les films, les séries et bien d'autres sujets.
+                Les membres peuvent aussi créer leurs propres quiz pour la communauté.
+            </p>
+            <a href="{% url 'quiz_home' %}" class="btn">Voir les quiz</a>
+        </article>
+    </div>
+    <p class="discover-note">Un compte est nécessaire pour jouer aux quiz et au Petit Bac.</p>
+</div>
+
+<div class="container discover-section">
+    <h2>Votre identité, votre style</h2>
+    <div class="discover-two-col">
+        <div>
+            <p>
+                Sur {{ site_name }}, chaque membre peut développer une identité visuelle reconnaissable :
+                avatar personnalisé, cadre inspiré de la Game Boy, d'un écran rétro ou d'un univers RPG,
+                effets visuels sur le pseudo et thème d'affichage.
+            </p>
+            <p>
+                La boutique virtuelle permet de personnaliser son espace avec des éléments décoratifs
+                et des habillages supplémentaires.
+            </p>
+            <div class="discover-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'shop_home' %}" class="btn">Ouvrir la boutique</a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-add">Créer un compte</a>
+                {% endif %}
+            </div>
+        </div>
+        <aside class="discover-panel">
+            <h3>Quelques exemples</h3>
+            <ul class="discover-list">
+                <li>Cadres Game Boy, TV rétro, néon cyber ou RPG.</li>
+                <li>Effets de pseudo : étincelles, pixel, néon et plus encore.</li>
+                <li>Avatars personnalisés et thèmes d'affichage.</li>
+                <li>Boutique virtuelle accessible avec un compte.</li>
+            </ul>
+        </aside>
+    </div>
+</div>
+
+<div class="container discover-section">
+    <h2>Une communauté vivante</h2>
+    <p class="discover-intro">
+        Le forum est le cœur des échanges : discussions, débats, souvenirs, collections, entraide
+        et découvertes. Chacun peut participer à son rythme.
+    </p>
+    <div class="discover-cards">
+        <article class="discover-card">
+            <h3>Le forum</h3>
+            <p>Pose tes questions, partage tes découvertes et retrouve les autres passionnés.</p>
+            <a href="{% url 'forum_home' %}" class="btn">Explorer le forum</a>
+        </article>
+        <article class="discover-card">
+            <h3>Le livre d'or</h3>
+            <p>Laisse un message aux visiteurs et découvre ceux de la communauté.</p>
+            <a href="{% url 'guestbook_home' %}" class="btn">Voir le livre d'or</a>
+        </article>
+        <article class="discover-card">
+            <h3>Les éphémérides</h3>
+            <p>Redécouvre chaque jour les événements marquants de la culture rétro.</p>
+            <a href="{% url 'ephemerides_today' %}" class="btn">Voir les éphémérides</a>
+        </article>
+        <article class="discover-card">
+            <h3>La messagerie privée</h3>
+            <p>Échange en privé avec les autres membres et suis tes conversations.</p>
+            {% if user.is_authenticated %}
+                <a href="{% url 'pm_home' %}" class="btn">Ouvrir la messagerie</a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn">Créer un compte</a>
+            {% endif %}
+        </article>
+    </div>
+</div>
+
+<div class="container discover-section">
+    <h2>Ce que vous pouvez apporter</h2>
+    <p class="discover-intro">
+        {{ site_name }} grandit grâce à ses membres. Voici quelques façons de participer à l'aventure.
+    </p>
+    <div class="discover-cards">
+        <article class="discover-card">
+            <h3>Écrire</h3>
+            <p>Propose des articles, des dossiers, des actus, des souvenirs ou des présentations de collections.</p>
+        </article>
+        <article class="discover-card">
+            <h3>Créer des quiz</h3>
+            <p>Prépare des questions et partage tes connaissances avec le reste de la communauté.</p>
+        </article>
+        <article class="discover-card">
+            <h3>Animer le forum</h3>
+            <p>Lance des sujets, réponds aux discussions et fais vivre les échanges autour de la culture rétro.</p>
+        </article>
+        <article class="discover-card">
+            <h3>Enrichir le site</h3>
+            <p>Propose des éphémérides, des catégories ou laisse un message dans le livre d'or.</p>
+        </article>
+    </div>
+    <p class="discover-note">Les contributions sont relues par l'équipe avant leur publication.</p>
+</div>
+
+<div class="container discover-section discover-final">
+    <h2>Rejoindre l'aventure</h2>
+    <p>
+        {{ site_name }} est un projet communautaire qui grandit grâce à ses membres.
+        Que vous soyez lecteur, joueur, collectionneur ou rédacteur, vous avez votre place ici.
+    </p>
+    <div class="discover-actions">
+        {% if user.is_authenticated %}
+            <a href="{% url 'profile' %}" class="btn btn-primary">Accéder à mon profil</a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn btn-primary">Créer mon compte</a>
+        {% endif %}
+        <a href="{% url 'home' %}" class="btn">Explorer le site</a>
+    </div>
+</div>
+{% endblock %}

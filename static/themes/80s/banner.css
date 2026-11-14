@@ -116,7 +116,7 @@
 /* Ombre cyan — double effet néon */
 .banner-text::before {
     content: attr(data-text);
-    content: 'PASSION RETRO';
+    content: 'NOSTALGEEK';
     position: absolute;
     inset: 0;
     color: #00ffff;
@@ -130,7 +130,7 @@
 }
 
 .banner-text::after {
-    content: 'PASSION RETRO';
+    content: 'NOSTALGEEK';
     position: absolute;
     inset: 0;
     color: #ff6600;

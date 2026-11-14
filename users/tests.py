@@ -119,3 +119,117 @@ class UserThemeTest(TestCase):
         self.assertNotEqual(response.status_code, 500)
         # Le thème peut ne pas être mis à jour pour diverses raisons
         # self.assertEqual(self.user.theme, 'dark')  # Désactivé car peut échouer
+
+
+class LevelingTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='leveluser',
+            email='level@test.com',
+            password='testpass123',
+            active=True
+        )
+
+    def test_xp_required_thresholds(self):
+        from users.models import xp_required
+
+        self.assertEqual(xp_required(1), 16)
+        self.assertEqual(xp_required(2), 100)
+        self.assertEqual(xp_required(3), 249)
+        self.assertLess(xp_required(1), xp_required(2))
+
+    def test_grant_experience_creates_level_row(self):
+        from users.leveling import grant_experience
+
+        self.assertFalse(self.user.levels.exists())
+        grant_experience(self.user, 5)
+
+        user_level = self.user.levels.get(user=self.user)
+        self.assertEqual(user_level.level, 1)
+        self.assertEqual(user_level.experience, 5)
+
+    def test_grant_experience_does_not_level_below_threshold(self):
+        from users.leveling import grant_experience
+
+        self.user.levels.create(level=1, experience=0)
+        gained = grant_experience(self.user, 15)
+
+        self.assertEqual(gained, 0)
+        self.user.level.refresh_from_db()
+        self.assertEqual(self.user.level.level, 1)
+
+    def test_grant_experience_crosses_one_level(self):
+        from users.leveling import grant_experience
+
+        self.user.levels.create(level=1, experience=0)
+        gained = grant_experience(self.user, 20)
+
+        self.assertEqual(gained, 1)
+        user_level = self.user.levels.get(user=self.user)
+        self.assertEqual(user_level.level, 2)
+        self.assertGreaterEqual(self.user.experience_left, 0)
+
+    def test_grant_experience_crosses_multiple_levels(self):
+        from users.leveling import grant_experience
+
+        self.user.levels.create(level=1, experience=0)
+        gained = grant_experience(self.user, 100)
+
+        self.assertEqual(gained, 2)
+        user_level = self.user.levels.get(user=self.user)
+        self.assertEqual(user_level.level, 3)
+        self.assertEqual(self.user.experience_left, 149)
+
+    def test_experience_left_is_never_negative(self):
+        from users.leveling import grant_experience
+
+        self.user.levels.create(level=1, experience=0)
+        grant_experience(self.user, 5000)
+
+        self.assertGreaterEqual(self.user.experience_left, 0)
+
+    def test_user_level_is_unique_per_user(self):
+        from django.db import IntegrityError
+
+        self.user.levels.create(level=1, experience=0)
+        with self.assertRaises(IntegrityError):
+            self.user.levels.create(level=2, experience=50)
+
+    def test_grant_experience_ignores_anonymous(self):
+        from django.contrib.auth.models import AnonymousUser
+        from users.leveling import grant_experience
+
+        self.assertEqual(grant_experience(AnonymousUser(), 10), 0)
+
+
+
+class LevelTitleTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='titleuser',
+            email='title@test.com',
+            password='testpass123',
+            active=True,
+        )
+
+    def test_level_title_tiers(self):
+        from users.models import level_title
+
+        self.assertEqual(level_title(1), 'Novice')
+        self.assertEqual(level_title(4), 'Novice')
+        self.assertEqual(level_title(5), 'Apprenti')
+        self.assertEqual(level_title(10), 'Aventurier')
+        self.assertEqual(level_title(15), 'Chevalier')
+        self.assertEqual(level_title(20), 'Héros')
+        self.assertEqual(level_title(30), 'Maître')
+        self.assertEqual(level_title(40), 'Légende')
+
+    def test_user_level_properties_fallback(self):
+        self.assertEqual(self.user.level_number, 1)
+        self.assertEqual(self.user.level_title, 'Novice')
+
+    def test_user_level_properties_use_existing_level(self):
+        self.user.levels.create(level=12, experience=0)
+
+        self.assertEqual(self.user.level_number, 12)
+        self.assertEqual(self.user.level_title, 'Aventurier')

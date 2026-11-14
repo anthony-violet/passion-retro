@@ -20,6 +20,7 @@
                 </select>
             </li>
             <li><a href="{% url 'profile' %}">Mon Profil</a></li>
+            <li><a href="{% url 'home_gallery' %}">Ma galerie</a></li>
             <li>
                 <a href="{% url 'pm_home' %}">Messagerie privée</a>
                 {% if pending_pm_count > 0 %}
@@ -79,6 +80,7 @@
     <h2>Stats Site</h2>
     <ul>
         <li>Membres : {{ request.total_users }}</li>
+        <li>Membres en ligne : {{ request.online_members }}</li>
         <li>Dernier inscrit : {% if request.last_user %}<a href="{% url 'profile' request.last_user.id %}">{{ request.last_user }}</a>{% else %}Aucun{% endif %}</li>
         <li>Visiteurs : {{ request.visitor_count }}</li>
         <li>Visites totales : {{ request.total_visitor_count }}</li>

@@ -1172,8 +1172,8 @@ span.unread-badge {
     border: 1px solid var(--border-container);
     background-color: var(--bg-menu);
     width: 240px;
-    margin: 8px;
-    float: right;
+    margin: 8px 16px 8px 0;
+    float: left;
     display: flex;
     flex-direction: column;
     border-radius: 4px;
@@ -1219,7 +1219,22 @@ span.unread-badge {
     transition: margin-left 0.1s;
 }
 
+@media (max-width: 700px) {
+.post-layout::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+.postmenu {
+        float: none;
+        width: auto;
+        margin: 8px 0;
+    }
+}
+
 .post-footer {
+    clear: both;
     font-family: 'Cinzel', Georgia, serif;
     font-size: 0.75rem;
     color: var(--text-link-secondary);
@@ -2868,4 +2883,27 @@ fieldset.quote-bbcode legend {
         width: 100%;
         text-align: center;
     }
+}
+
+/* ================================================================
+   GRANDS ÉCRANS — adaptation typographique
+   ================================================================ */
+@media screen and (min-width: 1600px) {
+    html { font-size: 17px; }
+    body { font-size: 14px; }
+}
+
+@media screen and (min-width: 1920px) {
+    html { font-size: 18px; }
+    body { font-size: 15px; }
+}
+
+@media screen and (min-width: 2560px) {
+    html { font-size: 20px; }
+    body { font-size: 17px; }
+}
+
+@media screen and (min-width: 3840px) {
+    html { font-size: 24px; }
+    body { font-size: 19px; }
 }

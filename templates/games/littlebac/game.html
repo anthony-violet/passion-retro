@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% load static %}
+{% load static users_custom_tags %}
 
 {% block extrajs %}
     <script>
@@ -13,12 +13,16 @@
 <div class="container" data-game-id="{{ game.id }}">
     <h2>{{ game.name }}</h2>
     <h3>Partie {{ round.round_counter }}</h3>
+    <p class="level-line">
+        Mon niveau : {% user_level_badge request.user variant='inline' compact=True %}
+        <span class="level-title">{{ request.user.level_title }}</span>
+    </p>
     <h5>Status : <span id="status">{{ game.status }}</span></h5>
     <p style="display:flex;flex-direction:row;">
         <strong>Joueur(s) actuellement connecté(s) : </strong>
         <ul id="playersList" class="inline"></ul>
     </p>
-    <p><strong>Lien de la partie : </strong><input type="text" value="https://www.passion-retro.com/games/bac/party/{{ game.id }}/join"></p>
+    <p><strong>Lien de la partie : </strong><input type="text" value="{{ site_url }}/games/bac/party/{{ game.id }}/join"></p>
     <center>
         <button id="playButton" class="btn btn-default btn-large" style="display:none;" data-player-id="{{ request.user.id }}">Jouer !</button>
         <h4 id="infoNbPlayersReady" style="display: none;">Joueurs prêt: <span id="readyCount">0</span></h4>

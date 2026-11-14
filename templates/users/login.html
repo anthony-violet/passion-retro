@@ -1,13 +1,28 @@
 {% extends 'layout.html' %}
 {% block content %}
     <div class="container">
-        <h2>Login</h2>
-        <p>Pas encore inscrit ? <a href="{% url 'register' %}">Inscrivez-vous</a></p>
-        <p class="login-info">En vous connectant, vous aurez accès à des fonctionnalités exclusives, telles que la gestion de vos cours, la participation aux discussions et la personnalisation de votre profil. Rejoignez notre communauté et profitez pleinement de tout ce que notre site a à offrir.</p>
-        <form method="post" class="login-form">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn-submit">Connexion</button>
-        </form>
+        <h2>Connexion</h2>
+        <p class="auth-intro">Retrouve ton profil, tes discussions et toutes les fonctionnalités de {{ site_name }}.</p>
+        <div class="auth-grid">
+            <div class="auth-form">
+                <p>Pas encore inscrit ? <a href="{% url 'register' %}">Créer un compte</a></p>
+                <p class="login-info">En vous connectant, vous aurez accès à des fonctionnalités exclusives, telles que la participation aux discussions, l'accès à la boutique et la personnalisation de votre profil.</p>
+                <form method="post" class="login-form">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn-submit">Connexion</button>
+                </form>
+            </div>
+            <aside class="auth-benefits">
+                <h3>Ton compte {{ site_name }}</h3>
+                <ul>
+                    <li>Participe au forum et aux jeux de la communauté.</li>
+                    <li>Personnalise ton avatar, ton pseudo et ton thème.</li>
+                    <li>Accède à la messagerie privée et à la boutique.</li>
+                    <li>Propose tes propres articles, quiz et éphémérides.</li>
+                </ul>
+                <p><a href="{% url 'register' %}" class="btn btn-add">Créer un compte</a></p>
+            </aside>
+        </div>
     </div>
 {% endblock %}

@@ -19,8 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
             players.innerHTML = "";
             Object.values(data.players).forEach(player => {
                 const listItem = document.createElement("li");
-                const status = player.status === "playing" ? '<i>En train de jouer...</i>' : 'A fini de jouer';
-                listItem.innerHTML = `${player.username} (${status})`;
+                const badge = createLevelBadge(player.level, player.level_title);
+                if (badge) {
+                    listItem.appendChild(badge);
+                }
+                const status = player.status === "playing" ? 'En train de jouer...' : 'A fini de jouer';
+                listItem.appendChild(document.createTextNode(` ${player.username} (${status})`));
                 players.appendChild(listItem);
             });
 

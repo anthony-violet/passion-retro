@@ -16,6 +16,30 @@ class Category(models.Model):
         verbose_name = 'Categorie'
         verbose_name_plural = 'Categories'
 
+class NavSection(models.Model):
+    id = models.AutoField(primary_key=True)
+    label = models.CharField(max_length=50, verbose_name='Libellé')
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='nav_sections',
+        verbose_name="Catégorie d'articles",
+        help_text="Les articles de cette catégorie apparaîtront dans la section.",
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name='Ordre')
+    visible = models.BooleanField(default=True, verbose_name='Afficher dans la navbar')
+    icon = models.CharField(max_length=50, blank=True, default='', verbose_name='Icône (emoji)')
+
+    def __str__(self):
+        return self.label
+
+    class Meta:
+        ordering = ['order', 'label']
+        verbose_name = 'Section de navbar'
+        verbose_name_plural = 'Sections de navbar'
+
 class Post(models.Model):
     id = models.AutoField(primary_key=True)
     slug = models.SlugField(max_length=200, unique=True, default='default-slug')

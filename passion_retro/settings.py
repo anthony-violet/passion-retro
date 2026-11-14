@@ -44,6 +44,7 @@ LOGGING = {
 # Nom du site - peut être surchargé via .env
 SITE_NAME = os.getenv("SITE_NAME", "NostalGeek")
 SITE_URL = os.getenv("SITE_URL", "http://localhost:5500")
+GTM_CONTAINER_ID = os.getenv("GTM_CONTAINER_ID", "")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -73,6 +74,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sitemaps",
     # "django.contrib.sites",
 
     "maintenance",
@@ -90,8 +92,12 @@ INSTALLED_APPS = [
     "shop",
     "panel",
     "version",
+    "forum_api",
 ]
 
+# Configuration API OpenClaw
+OPENCLAW_API_KEY = os.getenv("OPENCLAW_API_KEY", "test_api_key_default")
+OPENCLAW_API_USER = os.getenv("OPENCLAW_API_USER", "openclaw")
 SITE_ID = 1
 
 MIDDLEWARE = [
@@ -129,6 +135,8 @@ TEMPLATES = [
                 "quiz.context_processors.pending_quizes_count",
                 "messagerie.context_processors.pending_pm_count",
                 "passion_retro.context_processors.theme_context",
+                "passion_retro.context_processors.seo_context",
+                "passion_retro.context_processors.analytics_context",
                 "ephemerides.context_processors.ephemerides_today",
             ],
         },
@@ -213,7 +221,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGOUT_REDIRECT_URL = os.getenv('LOGOUT_REDIRECT_URL', default='/')
 LOGIN_URL = os.getenv('LOGIN_URL', default='/login/')
 
-AUTH_USER_MODEL = os.getenv('AUTH_USER_MODEL', default='users.User')
+AUTH_USER_MODEL = 'users.User'
 
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', default='smtp.gmail.com')

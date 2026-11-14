@@ -1,6 +1,7 @@
-from django.test import TestCase
+from django.test import TestCase, RequestFactory
 from django.urls import reverse
-from posts.models import Post, Category
+from posts.models import Post, Category, NavSection
+from posts.middleware import PostsMiddleware
 from users.models import User
 
 class PostModelTest(TestCase):
@@ -138,3 +139,51 @@ class CategoryModelTest(TestCase):
     def test_category_string_representation(self):
         category = Category.objects.create(name='Test Category')
         self.assertEqual(str(category), 'Test Category')
+
+
+class NavSectionTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            username='navuser',
+            email='nav@test.com',
+            password='testpass123',
+        )
+        self.category = Category.objects.create(name='Nav Category')
+        NavSection.objects.all().delete()
+
+    def _make_post(self, title, active=True, parent=True):
+        return Post.objects.create(
+            title=title,
+            content='content',
+            slug=title.lower().replace(' ', '-'),
+            author=self.user,
+            category=self.category,
+            active=active,
+            parent=parent,
+        )
+
+    def test_nav_sections_only_visible_in_order(self):
+        cat_jeux = Category.objects.create(name='Cat Jeux')
+        cat_musique = Category.objects.create(name='Cat Musique')
+        cat_tech = Category.objects.create(name='Cat Tech')
+        NavSection.objects.create(label='Jeux', category=cat_jeux, order=2)
+        NavSection.objects.create(label='Musique', category=cat_musique, order=1)
+        NavSection.objects.create(label='Caché', category=cat_tech, order=3, visible=False)
+
+        request = self.factory.get('/')
+        PostsMiddleware(lambda r: None).process_request(request)
+
+        labels = [section['label'] for section in request.nav_sections]
+        self.assertEqual(labels, ['Musique', 'Jeux'])
+
+    def test_nav_sections_contains_active_parent_posts(self):
+        NavSection.objects.create(label='Jeux', category=self.category, order=1)
+        active_post = self._make_post('Active Game', active=True)
+        self._make_post('Inactive Game', active=False)
+
+        request = self.factory.get('/')
+        PostsMiddleware(lambda r: None).process_request(request)
+
+        posts = list(request.nav_sections[0]['posts'])
+        self.assertEqual(posts, [active_post])

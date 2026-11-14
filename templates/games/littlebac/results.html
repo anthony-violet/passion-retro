@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% load static %}
 {% load custom_filters %}
+{% load users_custom_tags %}
 
 {% block extrajs %}
     <script>
@@ -13,6 +14,10 @@
 {% block content %}
 <div class="container" data-game-id="{{ game.id }}">
     <h2>{{ game.name }}</h2>
+    <p class="level-line">
+        Mon niveau : {% user_level_badge request.user variant='inline' compact=True %}
+        <span class="level-title">{{ request.user.level_title }}</span>
+    </p>
     <h5>Status : <span id="status">{{ game.status }}</span></h5>
     <p style="display:flex;flex-direction:row;">
         <strong>Joueur(s) actuellement connecté(s) : </strong>
@@ -25,6 +30,7 @@
             <thead>
                 <tr>
                     <th>Joueur</th>
+                    <th>Niveau</th>
                     {% for categorie in categories %}
                         <th>{{ categorie.name }}</th>
                     {% endfor %}
@@ -35,6 +41,7 @@
                 {% for player in players %}
                     <tr>
                         <td>{{ player.user.username }}</td>
+                        <td>{% user_level_badge player.user variant='inline' compact=True %}</td>
                         {% for category in categories %}
                             <td>{{ all_organized_answers|get_item:round.id|get_item:player.id|get_item:category.id }}</td>
                         {% endfor %}
@@ -44,19 +51,23 @@
             </tbody>
         </table>
     {% endfor %}
-    <h3>Score Total</h3>
+    <h3>Classement final</h3>
     <table class="bac">
         <thead>
             <tr>
+                <th>Rang</th>
                 <th>Joueur</th>
+                <th>Niveau</th>
                 <th>Score</th>
             </tr>
         </thead>
         <tbody>
-            {% for player in players %}
+            {% for entry in ranked_players %}
                 <tr>
-                    <td>{{ player.user.username }}</td>
-                    <td>{{ total_scores|get_item:player.id }}</td>
+                    <td>{{ entry.rank }}</td>
+                    <td>{{ entry.player.user.username }}</td>
+                    <td>{% user_level_badge entry.player.user variant='inline' compact=True %}</td>
+                    <td>{{ entry.score }}</td>
                 </tr>
             {% endfor %}
         </tbody>

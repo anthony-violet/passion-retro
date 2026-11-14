@@ -14,6 +14,9 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost"]
 USE_X_FORWARDED_HOST = False
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+SITE_NAME = "TestSite"
+SITE_URL = "http://testserver"
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -21,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sitemaps",
     "django.contrib.sites",
     "allauth",
     "allauth.account",
@@ -33,10 +37,14 @@ INSTALLED_APPS = [
     "forum",
     "tchat",
     "guestbook",
+    "ephemerides",
     "games",
     "quiz",
     "messagerie",
     "shop",
+    "panel",
+    "version",
+    "forum_api",
 ]
 
 SITE_ID = 1
@@ -65,6 +73,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "passion_retro.context_processors.theme_context",
+                "passion_retro.context_processors.seo_context",
+                "passion_retro.context_processors.analytics_context",
             ],
         },
     },
@@ -100,3 +111,7 @@ DEFAULT_FROM_EMAIL = "test@localhost"
 
 GOOGLE_PUBLIC_KEY = "test-public-key"
 GOOGLE_PRIVATE_KEY = "test-private-key"
+
+# Configuration API OpenClaw pour les tests - compte Frce4 existant
+OPENCLAW_API_KEY = "test_api_key_for_tests"
+OPENCLAW_API_USER = "Frce4"

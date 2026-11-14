@@ -1,16 +1,105 @@
-<h4>Galerie de {{ request.user }}</h4>
+{% load static %}
 
-<div class="gallery">
-    {% if images %}
-        {% for image in images %}
-            <div class="gallery-item" style="max-width: 200px; max-height: 300px; overflow: hidden;">
-                <img src="{{ image }}" alt="Image de la galerie" style="width: 100%; height: auto;">
-                <button class="bbcode-bar-item" type="button" data-tag="[img]{{ image }}[/img]" onclick="copyToClipboard(event)">Copier lien</button>
-            </div>
-        {% endfor %}
-    {% else %}
-         <p>Aucune image disponible dans la galerie.</p>
-    {% endif %}
+<div class="gallery-state" data-folder="{{ current_folder }}" hidden></div>
+
+<div class="gallery-header">
+    <h4>Galerie de {{ request.user }}</h4>
+    <div class="gallery-actions">
+        <a href="{% url 'import' %}{% if current_folder %}?folder={{ current_folder|urlencode }}{% endif %}"
+           class="btn btn-add"
+           data-gallery-import
+           data-import-url="{% url 'import' %}{% if current_folder %}?folder={{ current_folder|urlencode }}{% endif %}">
+            Importer une image
+        </a>
+        <a href="{% url 'home_gallery' %}" target="_blank" rel="noopener" class="btn btn-default">Ouvrir la galerie</a>
+    </div>
 </div>
 
-<a href="#" class="btn btn-add" onclick="openPopup('/gallery/import')">Importer une image</a>
+<div class="gallery-import-panel" data-gallery-import-panel>
+    {% include 'gallery/_import_form.html' %}
+</div>
+
+<nav class="gallery-breadcrumb">
+    <a href="{% url 'home_gallery' %}" data-gallery-folder="">Toutes mes images</a>
+    {% if current_folder %}
+        <span>/</span>
+        <span>{{ current_folder }}</span>
+    {% endif %}
+</nav>
+
+<div class="gallery-layout">
+    <aside class="gallery-folders">
+        <h5>Dossiers</h5>
+        <ul>
+            <li>
+                <a href="{% url 'home_gallery' %}"
+                   data-gallery-folder=""
+                   class="{% if not current_folder %}active{% endif %}">Racine</a>
+            </li>
+            {% for folder_item in folders %}
+                <li>
+                    <a href="{% url 'home_gallery' %}?folder={{ folder_item|urlencode }}"
+                       data-gallery-folder="{{ folder_item }}"
+                       class="{% if folder_item == current_folder %}active{% endif %}">{{ folder_item }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <form method="post"
+              action="{% url 'gallery_create_folder' %}"
+              class="gallery-folder-form"
+              data-gallery-action>
+            {% csrf_token %}
+            <label for="gallery-folder-name">Nouveau dossier</label>
+            <input id="gallery-folder-name" type="text" name="name" maxlength="80" required
+                   placeholder="Nom du dossier">
+            <button type="submit" class="btn btn-add">Créer</button>
+        </form>
+    </aside>
+
+    <section class="gallery-images">
+        {% if images %}
+            <div class="gallery">
+                {% for image in images %}
+                    <div class="gallery-item">
+                        <img src="{{ image.url }}" alt="Image de la galerie">
+                        <div class="gallery-item-actions">
+                            <button class="bbcode-bar-item" type="button"
+                                    data-tag="[img]{{ image.url }}[/img]"
+                                    onclick="copyToClipboard(event)">Copier le lien</button>
+
+                            <form method="post"
+                                  action="{% url 'gallery_move_image' %}"
+                                  class="gallery-move-form"
+                                  data-gallery-action>
+                                {% csrf_token %}
+                                <input type="hidden" name="image" value="{{ image.name }}">
+                                <input type="hidden" name="folder" value="{{ current_folder }}">
+                                <select name="target">
+                                    <option value="">Racine</option>
+                                    {% for destination in destinations %}
+                                        <option value="{{ destination }}">{{ destination }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-default">Déplacer</button>
+                            </form>
+
+                            <form method="post"
+                                  action="{% url 'gallery_delete_image' %}"
+                                  class="gallery-delete-form"
+                                  data-gallery-action
+                                  data-confirm="Supprimer définitivement cette image ?">
+                                {% csrf_token %}
+                                <input type="hidden" name="image" value="{{ image.name }}">
+                                <input type="hidden" name="folder" value="{{ current_folder }}">
+                                <button type="submit" class="btn btn-danger">Supprimer</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Aucune image disponible dans la galerie.</p>
+        {% endif %}
+    </section>
+</div>

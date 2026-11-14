@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     let textarea = document.querySelector('textarea');
+    if (!textarea) {
+        return;
+    }
     const quoteButtons = document.querySelectorAll('#quote');
     console.log(quoteButtons);
     quoteButtons.forEach((elem) =>{
@@ -62,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     let draggableWindows = document.querySelector('.draggable');
                     let header = draggableWindows.querySelector('.header');
                     const contentArea = document.querySelector('.content-gallery')
-                    fetch('/gallery/')
+                    fetch('/gallery/embed/')
                         .then(response => {
                             if(response.ok) {
                                 return response.text();

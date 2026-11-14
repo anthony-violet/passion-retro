@@ -7,7 +7,7 @@ class AddImgGallery(forms.Form):
         widget=forms.ClearableFileInput(attrs={'class': 'form-inline'})
     )
 
-    def clean_img(self):
+    def clean_image(self):
         img = self.cleaned_data.get('image')
         if img:
             if not img.name.lower().endswith(('.jpg', '.jpeg', '.png')):

@@ -16,3 +16,27 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     updateStatus();
 })
+/* Construit un badge de niveau identique à celui affiché sur le profil. */
+function createLevelBadge(level, title) {
+    if (!level) {
+        return null;
+    }
+
+    const badge = document.createElement('span');
+    badge.className = 'level-badge level-badge--inline level-badge--compact';
+    const label = title ? `Niveau ${level} — ${title}` : `Niveau ${level}`;
+    badge.title = label;
+    badge.setAttribute('aria-label', label);
+
+    const badgeLabel = document.createElement('span');
+    badgeLabel.className = 'level-text';
+    badgeLabel.textContent = 'LVL';
+
+    const badgeNumber = document.createElement('span');
+    badgeNumber.className = 'level-number';
+    badgeNumber.textContent = level;
+
+    badge.appendChild(badgeLabel);
+    badge.appendChild(badgeNumber);
+    return badge;
+}

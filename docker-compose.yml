@@ -44,6 +44,7 @@ services:
       - GOOGLE_PRIVATE_KEY=${GOOGLE_PRIVATE_KEY}
       - SITE_URL=${SITE_URL}
       - SITE_NAME=${SITE_NAME}
+      - GTM_CONTAINER_ID=${GTM_CONTAINER_ID}
     depends_on:
       - db
     networks:

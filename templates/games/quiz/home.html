@@ -1,9 +1,15 @@
 {% extends 'layout.html' %}
-{% load custom_filters %}
+{% load custom_filters users_custom_tags %}
 
 {% block content %}
 <div class="container">
     <h2>Liste des quiz</h2>
+    {% if request.user.is_authenticated %}
+        <p class="level-line">
+            Mon niveau : {% user_level_badge request.user variant='inline' compact=True %}
+            <span class="level-title">{{ request.user.level_title }}</span>
+        </p>
+    {% endif %}
     <ul class="breadcrumbs">
         <li><a href="{% url 'portal_games' %}">Portail de jeux</a> »</li>
         <li>Quiz</li>
@@ -33,7 +39,7 @@
                         <p>{{ quiz.description }}</p>
                         <p>{{ quiz.questions.count }} questions</p>
                 </div>
-                <div class="footer">Créé par <span class="{{ quiz.author.username_decoration }}">{{ quiz.author }}</span> le {{ quiz.created }}</div>
+                <div class="footer">Créé par {% user_level_badge quiz.author variant='inline' compact=True %} <span class="{{ quiz.author.username_decoration }}">{{ quiz.author }}</span> le {{ quiz.created }}</div>
             </div>
         </div>
         {% endfor %}

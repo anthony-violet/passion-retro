@@ -1,0 +1,43 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Sections de la navbar</h2>
+    <a href="{% url 'panel_nav_section_create' %}" class="btn btn-add">+ Ajouter</a>
+</div>
+<div class="panel-section">
+    <p class="panel-hint">Ces sections alimentent le menu du site. Chaque section affiche les articles de sa catégorie.</p>
+    <table class="panel-table">
+        <thead>
+            <tr><th>Ordre</th><th>Libellé</th><th>Catégorie</th><th>Icône</th><th>Visible</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for section in sections %}
+            <tr>
+                <td>{{ section.order }}</td>
+                <td>{{ section.label }}</td>
+                <td>{{ section.category.name|default:"—" }}</td>
+                <td>{% if section.icon %}{{ section.icon }}{% else %}—{% endif %}</td>
+                <td>
+                    <form method="post" action="{% url 'panel_nav_section_toggle' section.id %}" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small {% if section.visible %}btn-add{% else %}btn-danger{% endif %}">
+                            {% if section.visible %}Visible{% else %}Masquée{% endif %}
+                        </button>
+                    </form>
+                </td>
+                <td>
+                    <a href="{% url 'panel_nav_section_edit' section.id %}" class="btn btn-small">Modifier</a>
+                    <form method="post" action="{% url 'panel_nav_section_delete' section.id %}" style="display:inline" onsubmit="return confirm('Supprimer cette section ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="panel-empty">Aucune section.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

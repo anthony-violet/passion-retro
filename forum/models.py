@@ -35,6 +35,7 @@ class Topic(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     state = models.CharField(max_length=10, default='open')
+    views = models.PositiveIntegerField(default=0)
 
     def save(self, *args, **kwargs):
         if not self.id:

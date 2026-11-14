@@ -92,3 +92,130 @@ class Custom404Test(TestCase):
         response = self.client.get('/url-inexistante/')
         self.assertEqual(response.status_code, 404)
         self.assertTemplateUsed(response, 'errors/404.html')
+
+
+class SeoEndpointsTest(TestCase):
+    def test_robots_txt(self):
+        response = self.client.get('/robots.txt')
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode()
+        self.assertIn('User-agent: *', content)
+        self.assertIn('Sitemap:', content)
+
+    def test_llms_txt(self):
+        response = self.client.get('/llms.txt')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('# TestSite', response.content.decode())
+
+    def test_sitemap_xml(self):
+        response = self.client.get('/sitemap.xml')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('<urlset', response.content.decode())
+
+    def test_home_head_seo(self):
+        response = self.client.get(reverse('home'))
+        html = response.content.decode()
+        self.assertIn('<h1 class="sr-only">', html)
+        self.assertIn('rel="canonical"', html)
+        self.assertIn('application/ld+json', html)
+        self.assertNotIn('name="keywords"', html)
+
+    def test_private_page_is_noindex(self):
+        response = self.client.get('/users/login/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'noindex, nofollow')
+
+
+class DiscoverViewTest(TestCase):
+    def setUp(self):
+        import uuid
+
+        self.user = User.objects.create_user(
+            username='discoveruser',
+            email='discover@test.com',
+            password='testpass123'
+        )
+        from posts.models import Category
+        self.category = Category.objects.create(name='Découverte')
+        self.edito = Post.objects.create(
+            title='Édito découverte',
+            content='Contenu édito découverte',
+            type='edito',
+            active=True,
+            author=self.user,
+            slug=f'edito-decouverte-{uuid.uuid4().hex[:8]}',
+            category=self.category
+        )
+        self.article = Post.objects.create(
+            title='Article rétro',
+            content='Un article consacré à la culture rétro.',
+            type='news',
+            active=True,
+            author=self.user,
+            slug=f'article-retro-{uuid.uuid4().hex[:8]}',
+            category=self.category
+        )
+        self.inactive = Post.objects.create(
+            title='Article inactif',
+            content='Cet article ne doit pas apparaître.',
+            type='news',
+            active=False,
+            author=self.user,
+            slug=f'article-inactif-{uuid.uuid4().hex[:8]}',
+            category=self.category
+        )
+
+    def test_discover_page_is_public(self):
+        response = self.client.get(reverse('discover'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'discover.html')
+        self.assertContains(response, "Et si on retrouvait le Web d'avant ?")
+        self.assertContains(response, 'Le Petit Bac')
+        self.assertContains(response, 'Les quiz')
+
+    def test_discover_page_has_register_cta_for_anonymous(self):
+        response = self.client.get(reverse('discover'))
+        self.assertContains(response, reverse('register'))
+        self.assertContains(response, 'Créer mon compte')
+
+    def test_discover_page_has_profile_cta_for_authenticated(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('discover'))
+        self.assertContains(response, reverse('profile'))
+        self.assertNotContains(response, 'Créer mon compte')
+
+    def test_discover_page_lists_latest_active_non_edito_posts(self):
+        import uuid
+        for i in range(4):
+            Post.objects.create(
+                title=f'Article récent {i}',
+                content='Contenu récent.',
+                type='news',
+                active=True,
+                author=self.user,
+                slug=f'article-recent-{i}-{uuid.uuid4().hex[:8]}',
+                category=self.category
+            )
+        response = self.client.get(reverse('discover'))
+        self.assertEqual(len(response.context['latest_posts']), 3)
+        html = response.content.decode()
+        self.assertEqual(html.count('Article récent'), 3)
+        self.assertNotContains(response, 'Article inactif')
+
+    def test_home_page_shows_discover_teaser(self):
+        response = self.client.get(reverse('home'))
+        self.assertContains(response, 'Bienvenue sur')
+        self.assertContains(response, "Retrouvons l'esprit du Web d'autrefois.")
+        self.assertContains(response, reverse('discover'))
+        self.assertContains(response, reverse('register'))
+
+    def test_home_page_hides_register_cta_for_authenticated_user(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('home'))
+        self.assertContains(response, reverse('discover'))
+        self.assertNotContains(response, reverse('register'))
+
+    def test_discover_page_is_in_sitemap(self):
+        response = self.client.get('/sitemap.xml')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('/decouvrir/', response.content.decode())

@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.db.models import QuerySet
-from .models import Post, Category
+from .models import Post, Category, NavSection
 
 @admin.action(description="Activer les posts séléctionnés")
 def activate_posts(modelAdmin, request, querySet: QuerySet):
@@ -21,5 +21,13 @@ class PostAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
     actions = [activate_posts, deactivate_posts]
 
+class NavSectionAdmin(admin.ModelAdmin):
+    list_display = ('label', 'category', 'order', 'visible')
+    list_editable = ('order', 'visible')
+    list_filter = ('visible', 'category')
+    search_fields = ('label',)
+    ordering = ('order',)
+
 admin.site.register(Post, PostAdmin)
 admin.site.register(Category)
+admin.site.register(NavSection, NavSectionAdmin)

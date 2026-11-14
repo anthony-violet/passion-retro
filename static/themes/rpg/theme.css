@@ -610,7 +610,7 @@ ul.breadcrumbs {
     background: var(--bg-container);
     border-top: 1px solid var(--border-menu-header);
     border-bottom: 1px solid var(--border-menu-header);
-    color: var(--text-menu-header);
+    color: var(--text-primary);
 }
 
 ul.breadcrumbs li::after {
@@ -1782,6 +1782,7 @@ table.quiz tbody tr:hover {
     padding: 20px 18px 24px;
     position: relative;
     box-shadow: var(--shadow-container);
+    min-width: 0;
 }
 
 /* Coins dorés du tableau */
@@ -2053,12 +2054,17 @@ table.quiz tbody tr:hover {
     color: var(--bg-body);
 }
 
+.theme-rpg .row > .col {
+    min-width: 0;
+}
+
 /* ---- Liste de topics — style menu RPG classique ---- */
 .theme-rpg .rpg-topic-list {
     border: 2px solid var(--border-menu-header);
     border-radius: 3px;
     overflow: hidden;
     position: relative;
+    min-width: 0;
 }
 
 /* Reflet en haut */
@@ -2084,6 +2090,7 @@ table.quiz tbody tr:hover {
     padding: 7px 14px 7px 30px;
     gap: 0;
     position: relative;
+    min-width: 0;
 }
 
 .theme-rpg .rpg-topic-list-header::after {
@@ -2103,11 +2110,13 @@ table.quiz tbody tr:hover {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .theme-rpg .rpg-tl-col--title  { flex: 4; }
 .theme-rpg .rpg-tl-col--author { flex: 2; padding-left: 10px; }
 .theme-rpg .rpg-tl-col--count  { flex: 1; text-align: center; }
+.theme-rpg .rpg-tl-col--views  { flex: 1; text-align: center; }
 .theme-rpg .rpg-tl-col--last   { flex: 2; padding-left: 10px; }
 
 /* Ligne de topic */
@@ -2121,6 +2130,7 @@ table.quiz tbody tr:hover {
     position: relative;
     transition: background 0.12s;
     gap: 0;
+    min-width: 0;
 }
 
 .theme-rpg .rpg-topic-row:last-child {
@@ -2165,6 +2175,7 @@ table.quiz tbody tr:hover {
     flex-direction: column;
     gap: 3px;
     overflow: hidden;
+    min-width: 0;
 }
 
 .theme-rpg .rpg-topic-orb {
@@ -2218,12 +2229,19 @@ table.quiz tbody tr:hover {
     color: var(--text-guestbook-date);
 }
 
+.theme-rpg .rpg-tl-col--views {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 0.78rem;
+    color: var(--text-guestbook-date);
+}
+
 /* Colonne dernière activité */
 .theme-rpg .rpg-tl-col--last {
     display: flex;
     flex-direction: column;
     gap: 2px;
     overflow: hidden;
+    min-width: 0;
 }
 
 .theme-rpg .rpg-topic-last-author {
@@ -2270,4 +2288,27 @@ table.quiz tbody tr:hover {
     margin-top: 18px;
     padding-top: 12px;
     border-top: 1px solid var(--border-stats-forum);
+}
+
+/* ================================================================
+   GRANDS ÉCRANS — adaptation typographique
+   ================================================================ */
+@media screen and (min-width: 1600px) {
+    html { font-size: 17px; }
+    body { font-size: 16px; }
+}
+
+@media screen and (min-width: 1920px) {
+    html { font-size: 18px; }
+    body { font-size: 17px; }
+}
+
+@media screen and (min-width: 2560px) {
+    html { font-size: 20px; }
+    body { font-size: 19px; }
+}
+
+@media screen and (min-width: 3840px) {
+    html { font-size: 24px; }
+    body { font-size: 21px; }
 }

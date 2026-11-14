@@ -13,8 +13,8 @@ from django.conf import settings
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
-from .models import User, UserLevel
-from django.db.models import F
+from .models import User
+from .leveling import grant_experience
 import urllib.request
 import json
 
@@ -47,24 +47,24 @@ def register(request):
                     active=True
                 )
 
-                messages.success(request, f"Bonjour et bienvenue {user.username} ! Ton compte à été créer avec succès. Tu peux désormais te connecter.")
+                messages.success(request, f"Bonjour et bienvenue {user.username} ! Ton compte a été créé avec succès. Tu peux désormais te connecter.")
 
                 subject = PrivateMessageSubject.objects.create(
                     receiver=user,
                     sender=User.objects.get(username='RetroBot'),
-                    subject="Bienvenue sur PassionRetro !"
+                    subject=f"Bienvenue sur {settings.SITE_NAME} !"
                 )
 
                 PrivateMessage.objects.create(
                     subject=subject,
                     author=User.objects.get(username='RetroBot'),
-                    message=f"""[b]Bienvenue sur Passion Retro ![/b]
+                    message=f"""[b]Bienvenue sur {settings.SITE_NAME} ![/b]
 
 Salut [b]{user.username}[/b] !,
 
 Merci de nous avoir rejoints dans cette aventure dédiée aux passionnés de rétro ! Que tu sois fan de consoles vintage, collectionneur d'objets d'époque ou simple curieux, tu es ici chez toi. 
 
-✨ [b]Découvre tout ce que Passion Retro a à offrir :[/b]  
+✨ [b]Découvre tout ce que {settings.SITE_NAME} a à offrir :[/b]  
 Plonge dans nos articles pour en apprendre plus sur les trésors du passé, participe aux discussions sur le forum et teste tes connaissances avec nos jeux rétro. Chaque section est là pour te permettre de partager ta passion et d'en apprendre davantage.  
 
 🚀 [b]Rejoins la communauté :[/b]  
@@ -75,7 +75,7 @@ Si tu as des questions ou des suggestions pour améliorer le site, contacte-nous
 Encore une fois, bienvenue parmi nous et prépare-toi à replonger dans l’univers du rétro !  
 
 À bientôt,  
-[b]L'équipe Passion Retro[/b]""")
+[b]L'équipe {settings.SITE_NAME}[/b]""")
 
                 return redirect('login')
             else:
@@ -178,7 +178,12 @@ def _profile_context(user):
     }
 
 def profile(request):
-    user = User.objects.get(id=request.user.id)
+    try:
+        user = User.objects.get(id=request.user.id)
+    except User.DoesNotExist:
+        from django.contrib.auth import logout
+        logout(request)
+        return redirect('login')
     return render(request, 'users/profile.html', _profile_context(user))
 
 def another_profile(request, user_id):
@@ -241,7 +246,7 @@ def form_contribute(request, type):
                 parent=True
             )
             posts.append(parent_post)
-            UserLevel.objects.update(user=request.user, experience=F('experience') + 10)
+            grant_experience(request.user, 10)
 
         # Vérifie si des articles dynamiques existent (type_form = multiple)
         type_form = request.POST.get('type_form')
@@ -270,7 +275,7 @@ def form_contribute(request, type):
                             post_parent=parent_post
                         )
                         posts.append(child_post)
-                        UserLevel.objects.update(user=request.user, experience=F('experience') + 5)
+                        grant_experience(request.user, 5)
 
         messages.success(request, "Vos articles ont été soumis avec succès !")
 
@@ -289,14 +294,15 @@ def contributions(request):
 @login_required
 def new_feature_user(request):
     # On créer une entree dans la table user_level pour l'utilisateur si il n'en a pas
-    if not request.user.level:
+    if not request.user.levels.exists():
         request.user.levels.create(level=1)
         return render(request, "features/new_feature_user_level.html")
 
     if not request.user.inventory.exists():
         from shop.models import Item
-        if Item.objects.filter(pk=1).exists():
-            request.user.inventory.create(item_id=1, quantity=100)
+        gold_item = Item.objects.filter(name='Or').first() or Item.objects.order_by('pk').first()
+        if gold_item is not None:
+            request.user.inventory.get_or_create(item=gold_item, defaults={'quantity': 100})
     return render(request, "features/new_feature_user_inventory.html")
 
 @login_required

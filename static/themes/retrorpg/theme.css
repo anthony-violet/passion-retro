@@ -1306,3 +1306,26 @@ hr {
         font-size: 18px;
     }
 }
+
+/* ================================================================
+   GRANDS ÉCRANS — adaptation par zoom (typo entièrement en px)
+   ================================================================ */
+@media screen and (min-width: 1600px) {
+    html { font-size: 16px; }
+    body { zoom: 1.15; }
+}
+
+@media screen and (min-width: 1920px) {
+    html { font-size: 16px; }
+    body { zoom: 1.25; }
+}
+
+@media screen and (min-width: 2560px) {
+    html { font-size: 16px; }
+    body { zoom: 1.4; }
+}
+
+@media screen and (min-width: 3840px) {
+    html { font-size: 16px; }
+    body { zoom: 1.6; }
+}

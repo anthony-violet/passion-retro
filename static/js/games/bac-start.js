@@ -22,7 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
             players.innerHTML = "";
             data.players.forEach(player => {
                 const listItem = document.createElement("li");
-                listItem.textContent = `${player.username}`;
+                const badge = createLevelBadge(player.level, player.level_title);
+                if (badge) {
+                    listItem.appendChild(badge);
+                }
+                listItem.appendChild(document.createTextNode(` ${player.username}`));
                 players.appendChild(listItem);
             });
 

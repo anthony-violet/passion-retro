@@ -1,16 +1,26 @@
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from passion_retro.seo import ephemerides_jsonld
 from .models import Ephemeride, ContributedEphemeride
 
 
 def ephemeride_today(request):
     today = timezone.localdate()
     events = Ephemeride.objects.filter(day=today.day, month=today.month).order_by('-year')
+    date_label = today.strftime('%d/%m')
     return render(request, 'ephemerides/today.html', {
         'events': events,
         'today': today,
+        'page_title': f"Éphémérides du {date_label} - {settings.SITE_NAME}",
+        'page_heading': f"Éphémérides du {date_label}",
+        'page_description': (
+            f"Découvrez les événements marquants de la culture rétro survenus "
+            f"un {date_label} : jeux vidéo, films, séries et musique."
+        ),
+        'seo_page_jsonld': ephemerides_jsonld(request, events, today),
     })
 
 

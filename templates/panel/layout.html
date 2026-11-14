@@ -20,6 +20,9 @@
             <a href="{% url 'panel_posts' %}" class="panel-nav-item {% if 'panel_post' in request.resolver_match.url_name %}active{% endif %}">
                 📰 Articles
             </a>
+            <a href="{% url 'panel_nav_sections' %}" class="panel-nav-item {% if 'panel_nav' in request.resolver_match.url_name %}active{% endif %}">
+                🧭 Navigation
+            </a>
             <a href="{% url 'panel_quiz' %}" class="panel-nav-item {% if 'panel_quiz' in request.resolver_match.url_name %}active{% endif %}">
                 ❓ Quiz
             </a>

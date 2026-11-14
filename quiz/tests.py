@@ -126,3 +126,88 @@ class QuizBasicTest(TestCase):
         self.assertTrue(hasattr(Choice, 'objects'))
         self.assertTrue(hasattr(UserQuiz, 'objects'))
         self.assertTrue(hasattr(UserAnswer, 'objects'))
+
+
+class QuizRewardTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='quizplayer',
+            email='quiz@test.com',
+            password='testpass123',
+            active=True
+        )
+        self.quiz = Quiz.objects.create(
+            author=self.user,
+            name='Quiz récompense',
+            description='',
+            is_active=True
+        )
+        self.user_quiz = UserQuiz.objects.create(
+            user=self.user,
+            quiz=self.quiz,
+            score=3
+        )
+        self.client.login(username='quizplayer', password='testpass123')
+
+    def test_result_rewards_only_once(self):
+        from django.urls import reverse
+
+        url = reverse('quiz_result', args=[self.user_quiz.id])
+
+        self.client.get(url)
+        self.user.refresh_from_db()
+        level = self.user.levels.get(user=self.user)
+        self.assertEqual(level.experience, 30)
+        self.assertTrue(
+            UserQuiz.objects.get(pk=self.user_quiz.pk).rewarded
+        )
+
+        # Recharger la page ne doit pas redonner d'XP.
+        self.client.get(url)
+        self.user.refresh_from_db()
+        level = self.user.levels.get(user=self.user)
+        self.assertEqual(level.experience, 30)
+
+    def test_result_does_not_reward_flagged_quiz(self):
+        from django.urls import reverse
+
+        self.user.levels.create(level=1, experience=0)
+        self.user_quiz.rewarded = True
+        self.user_quiz.save(update_fields=['rewarded'])
+
+        self.client.get(reverse('quiz_result', args=[self.user_quiz.id]))
+
+        level = self.user.levels.get(user=self.user)
+        self.assertEqual(level.experience, 0)
+
+
+    def test_result_displays_level_and_ranking(self):
+        from django.urls import reverse
+
+        other = User.objects.create_user(
+            username='quizleader',
+            email='leader@test.com',
+            password='testpass123',
+            active=True
+        )
+        other.levels.create(level=10, experience=0)
+        UserQuiz.objects.create(
+            user=other,
+            quiz=self.quiz,
+            score=5,
+            rewarded=True
+        )
+
+        response = self.client.get(
+            reverse('quiz_result', args=[self.user_quiz.id])
+        )
+
+        self.assertContains(response, 'Classement du quiz')
+        self.assertContains(response, 'level-badge')
+        self.assertContains(response, 'Aventurier')
+        self.assertEqual(response.context['user_rank'], 2)
+        self.assertEqual(response.context['total_players'], 2)
+        self.assertEqual(
+            response.context['quiz_ranking'][0]['user'].username,
+            'quizleader',
+        )

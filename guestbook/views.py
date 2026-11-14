@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.shortcuts import render
 from .models import Guestbook
@@ -24,6 +25,12 @@ def guestbook_home(request):
         'page_obj': guestbook,
         'paginator': paginator,
         'form': CreateGuestbook(),
+        'page_title': f"Livre d'Or - {settings.SITE_NAME}",
+        'page_heading': "Livre d'Or",
+        'page_description': (
+            "Laissez un message aux visiteurs et à la communauté de "
+            f"{settings.SITE_NAME}, le portail de la culture rétro."
+        ),
     }
 
     return render(request, "components/guestbook_home.html", context)

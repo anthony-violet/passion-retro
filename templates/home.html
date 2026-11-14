@@ -3,6 +3,37 @@
 {% load bbcode_tags %}
 
 {% block content %}
+<div class="container discover-teaser">
+    <h2>Bienvenue sur {{ site_name }} !</h2>
+    <div class="discover-teaser-body">
+        <p class="discover-lead">Retrouvons l'esprit du Web d'autrefois.</p>
+        <p>{{ site_name }} est un espace communautaire indépendant consacré à la culture rétro. Ici, on ne fait pas que lire : on joue, on échange, on crée et on construit une communauté.</p>
+        <div class="discover-actions">
+            <a href="{% url 'discover' %}" class="btn btn-primary">Découvrir {{ site_name }}</a>
+            {% if not user.is_authenticated %}
+                <a href="{% url 'register' %}" class="btn btn-add">Créer un compte</a>
+            {% endif %}
+        </div>
+        <ul class="discover-features">
+            <li class="discover-feature">
+                <h3>Lire et contribuer</h3>
+                <p>Articles, dossiers et actus proposés par les membres.</p>
+            </li>
+            <li class="discover-feature">
+                <h3>Jouer et créer</h3>
+                <p>Petit Bac multijoueur et quiz créés par la communauté.</p>
+            </li>
+            <li class="discover-feature">
+                <h3>Votre style</h3>
+                <p>Pseudos avec effets, avatars et cadres personnalisés.</p>
+            </li>
+            <li class="discover-feature">
+                <h3>Échanger</h3>
+                <p>Forum, messagerie et discussions entre passionnés.</p>
+            </li>
+        </ul>
+    </div>
+</div>
 <div class="container">
     <h2>{{ edito.title }}</h2>
     <div>{{ edito.content|linebreaksbr|bbcode|safe }}</div>
@@ -26,7 +57,7 @@
             </div>
             <div class="news">
                 <div style="float:left;margin:5px"><img src="/media/{{ actus.image }}" style="max-width: 100px;" alt="{{ actus.title }}"></div>
-                <p>{{ actus.content|bbcode|safe|linebreaksbr|truncatewords:50 }} » <a href="{% url 'view_post' actus.slug %}">Lire l'actu</a></p><br>
+                <p>{{ actus.content|bbcode|safe|linebreaksbr|truncatewords_html:50 }} » <a href="{% url 'view_post' actus.slug %}">Lire l'actu</a></p><br>
                 <p class="date"><em>Publié le {{ actus.created|date:" d F Y à H:i" }}</em> Par <a href="{% url 'profile' actus.author.id %}" class="{{ request.user.username_decoration }}" data-text="{{ actus.author.username }}">{{ actus.author.username }}</a></p>
             </div>
         </div>

@@ -6,8 +6,7 @@ from django.contrib import messages
 
 # Create your views here.
 def home(request):
-    items = Item.objects.filter(is_active=True)
-    print(items)
+    items = Item.objects.filter(is_active=True) if request.user.is_authenticated else Item.objects.none()
     return render(request, 'shop/home.html', {'items': items})
 
 @login_required

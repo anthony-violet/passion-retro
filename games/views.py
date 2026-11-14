@@ -1,25 +1,41 @@
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .models import *
-from users.models import UserLevel
+from users.leveling import grant_experience
 from django.utils.timezone import now
 from django.contrib import messages
-from django.db.models import Count, Sum, F
+from django.db.models import Count, Sum
 from django.db.models.functions import Lower
 
 def portal(request):
     last_party = LittleBacGames.objects.filter().last()
     nb_parties = LittleBacGames.objects.filter(status="finished").count()
-    
+    meta = {
+        'page_title': f"Portail des Jeux - {settings.SITE_NAME}",
+        'page_heading': "Portail des Jeux",
+        'page_description': (
+            "Jouez en ligne aux jeux rétro de la communauté : Petit Bac, quiz "
+            "et défis entre membres."
+        ),
+    }
+
     if not request.user.is_authenticated:
-        return render(request, 'games/portal.html', {'last_party': last_party, 'nb_parties': nb_parties})
+        return render(request, 'games/portal.html', {'last_party': last_party, 'nb_parties': nb_parties, **meta})
     games = LittleBacGames.objects.filter(author=request.user, status='waiting')
 
-    return render(request, 'games/portal.html', {'games': games, 'last_party': last_party, 'nb_parties': nb_parties})
+    return render(request, 'games/portal.html', {'games': games, 'last_party': last_party, 'nb_parties': nb_parties, **meta})
 
 def little_bac_home(request):
-    return render(request, 'games/littlebac/home.html')
+    return render(request, 'games/littlebac/home.html', {
+        'page_title': f"Le Petit Bac - {settings.SITE_NAME}",
+        'page_heading': "Le Petit Bac",
+        'page_description': (
+            "Jouez au célèbre Petit Bac en ligne avec la communauté : trouvez des "
+            "mots par catégorie à partir d'une lettre imposée."
+        ),
+    })
 
 @login_required()
 def little_bac_start(request):
@@ -50,7 +66,9 @@ def little_bac_start(request):
 @login_required()
 def little_bac_party(request, party_id):
     game = LittleBacGames.objects.get(id=party_id)
-    players = LittleBacPlayers.objects.filter(game=game)
+    players = LittleBacPlayers.objects.filter(game=game).select_related(
+        'user'
+    ).prefetch_related('user__levels')
     rounds = LittleBacRounds.objects.filter(game=game)
     
     if players.filter(user=request.user).exists():
@@ -78,7 +96,9 @@ def little_bac_party_join(request, party_id):
 @login_required()
 def little_bac_party_play(request, party_id):
     game = LittleBacGames.objects.get(id=party_id)
-    players = LittleBacPlayers.objects.filter(game=game)
+    players = LittleBacPlayers.objects.filter(game=game).select_related(
+        'user'
+    ).prefetch_related('user__levels')
     
     if not players.filter(user=request.user).exists():
         return redirect('bac_games')
@@ -160,8 +180,10 @@ def little_bac_party_play(request, party_id):
 @login_required()
 def game_little_bac_results(request, party_id):
     game = get_object_or_404(LittleBacGames, id=party_id)
-    players = LittleBacPlayers.objects.filter(game=game)
-    rounds = LittleBacRounds.objects.filter(game=game)
+    players = LittleBacPlayers.objects.filter(game=game).select_related(
+        'user'
+    ).prefetch_related('user__levels')
+    rounds = LittleBacRounds.objects.filter(game=game).order_by('round_counter', 'id')
     categories = LittleBacCategories.objects.all()
 
     all_organized_answers = {}
@@ -202,13 +224,14 @@ def game_little_bac_results(request, party_id):
             scores_by_round[round.id][player.id] = player_score
             total_scores[player.id] += player_score
 
-            # On ajoute X experience au joueur (X: score du round)
-            user_level = UserLevel.objects.get(user=player.user)
-            last_round_updated = request.session.get(f'last_round_updated_{player.user.id}', 0)
-            if last_round_updated < round.id:
-                user_level.experience += player_score
-                user_level.save()
-                request.session[f'last_round_updated_{player.user.id}'] = round.id
+            # On ajoute X experience au joueur (X: score du round), une seule
+            # fois par round et par joueur (l'idempotence est portée par la base).
+            if not round.xp_awarded:
+                grant_experience(player.user, player_score)
+
+        if not round.xp_awarded:
+            round.xp_awarded = True
+            round.save(update_fields=['xp_awarded'])
 
     # Organiser les réponses par joueur et par catégorie pour chaque round
     for round in rounds:
@@ -229,9 +252,27 @@ def game_little_bac_results(request, party_id):
         player.score = total_scores[player.id]
         player.save()
 
+    ranked_players = []
+    previous_score = None
+    current_rank = 0
+    sorted_players = sorted(
+        players, key=lambda player: total_scores[player.id], reverse=True
+    )
+    for position, player in enumerate(sorted_players, start=1):
+        score = total_scores[player.id]
+        if score != previous_score:
+            current_rank = position
+            previous_score = score
+        ranked_players.append({
+            'rank': current_rank,
+            'player': player,
+            'score': score,
+        })
+
     return render(request, 'games/littlebac/results.html', {
         'game': game,
         'players': players,
+        'ranked_players': ranked_players,
         'rounds': rounds,
         'categories': categories,
         'all_organized_answers': all_organized_answers,
@@ -280,8 +321,19 @@ def game_little_bac_start_new_round(request, game_id):
 def game_players_little_bac(request, game_id):
     try:
         game = LittleBacGames.objects.get(id=game_id)
-        players = LittleBacPlayers.objects.filter(game=game)
-        players_list = [{"id": player.id, "username": player.user.username, "score": player.score} for player in players]
+        players = LittleBacPlayers.objects.filter(game=game).select_related(
+            'user'
+        ).prefetch_related('user__levels')
+        players_list = [
+            {
+                "id": player.id,
+                "username": player.user.username,
+                "score": player.score,
+                "level": player.user.level_number,
+                "level_title": player.user.level_title,
+            }
+            for player in players
+        ]
         return JsonResponse({"game_id": game_id, "players": players_list})
     except LittleBacGames.DoesNotExist:
         return JsonResponse({"error": "Game not found"}, status=404)
@@ -324,9 +376,18 @@ def party_infos_little_bac(request, game_id):
 
     try:
         game = LittleBacGames.objects.get(id=game_id)
-        players = LittleBacPlayers.objects.filter(game=game)
+        players = LittleBacPlayers.objects.filter(game=game).select_related(
+            'user'
+        ).prefetch_related('user__levels')
         players_data = [
-            {"id": player.id, "username": player.user.username, "status": player.status, "score": player.score}
+            {
+                "id": player.id,
+                "username": player.user.username,
+                "status": player.status,
+                "score": player.score,
+                "level": player.user.level_number,
+                "level_title": player.user.level_title,
+            }
             for player in players
         ]
 

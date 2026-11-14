@@ -1,5 +1,5 @@
 from django.urls import path
-from panel.views import dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides
+from panel.views import dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation
 
 urlpatterns = [
     # Dashboard
@@ -33,6 +33,13 @@ urlpatterns = [
     path('posts/<int:post_id>/delete/', posts.post_delete, name='panel_post_delete'),
     path('posts/categories/', posts.category_list, name='panel_post_categories'),
     path('posts/categories/<int:category_id>/delete/', posts.category_delete, name='panel_post_category_delete'),
+
+    # Navigation (sections de la navbar)
+    path('navigation/', navigation.nav_section_list, name='panel_nav_sections'),
+    path('navigation/create/', navigation.nav_section_create, name='panel_nav_section_create'),
+    path('navigation/<int:section_id>/edit/', navigation.nav_section_edit, name='panel_nav_section_edit'),
+    path('navigation/<int:section_id>/toggle/', navigation.nav_section_toggle, name='panel_nav_section_toggle'),
+    path('navigation/<int:section_id>/delete/', navigation.nav_section_delete, name='panel_nav_section_delete'),
 
     # Quiz
     path('quiz/', quiz.quiz_list, name='panel_quiz'),

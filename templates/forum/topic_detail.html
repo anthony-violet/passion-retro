@@ -26,12 +26,17 @@
     {% for post in posts %}
     <div class="vhs-segment" id="{{ post.id }}">
         <div class="vhs-segment__info">
-            <div class="{{ post.author.border_avatar }}">
-                <img class="vhs-segment__avatar"
-                     src="/media/{{ post.author.avatar }}"
-                     alt="{{ post.author.username }}"
-                     width="80" height="80">
+            <div class="forum-avatar-wrap">
+                <div class="{{ post.author.border_avatar }}">
+                    <img class="vhs-segment__avatar"
+                         src="/media/{{ post.author.avatar }}"
+                         alt="{{ post.author.username }}"
+                         width="80" height="80">
+                </div>
+                {% user_level_badge post.author %}
             </div>
+
+                                <span class="forum-level-title">{{ post.author.level_title }}</span>
 
             <span id="author-post-{{ post.id }}"
                   class="vhs-segment__username {{ post.author.username_decoration }}">
@@ -126,7 +131,13 @@
                 <div class="forum-body">
                     <div class="forum-row">
                         <div class="forum-column-detail details">
-                            <center><div class="{{ post.author.border_avatar }}"><img src="/media/{{ post.author.avatar }}" style="width:100px;" alt="Avatar de {{ post.author.username }}"></div></center>
+                            <center>
+                                <div class="forum-avatar-wrap">
+                                    <div class="{{ post.author.border_avatar }}"><img src="/media/{{ post.author.avatar }}" style="width:100px;" alt="Avatar de {{ post.author.username }}"></div>
+                                    {% user_level_badge post.author %}
+                                </div>
+            <span class="forum-level-title">{{ post.author.level_title }}</span>
+                            </center>
                             <small>
                                 <ul>
                                     <li>Groupe :
@@ -140,7 +151,15 @@
                                             {% endif %}
                                         {% endfor %}
                                     </li>
+                                    <li>Inscrit le : {{ post.author.date_joined|date:"d/m/Y" }}</li>
                                     <li>Nombre de messages : {{ count_posts|get_item:post.author.id }}</li>
+                                    <li>Statut :
+                                        {% if post.author.id in request.online_member_ids %}
+                                            <span style="color:#2e7d32;">En ligne</span>
+                                        {% else %}
+                                            <span style="color:#9e9e9e;">Hors ligne</span>
+                                        {% endif %}
+                                    </li>
                                 </ul>
                             </small>
                             {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}

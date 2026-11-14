@@ -1,17 +1,21 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max
 from .models import *
-from users.models import UserLevel, UserInventory
-from shop.models import Item
+from users.leveling import grant_experience
 from .forms import *
 
 @login_required
 def home(request):
-    quizes = Quiz.objects.filter(is_active=True)
+    quizes = Quiz.objects.filter(is_active=True).select_related(
+        'author'
+    ).prefetch_related('author__levels')
     my_quizes = Quiz.objects.filter(author=request.user)
 
     if request.user.is_superuser:
-        quizes = Quiz.objects.all()
+        quizes = Quiz.objects.all().select_related(
+            'author'
+        ).prefetch_related('author__levels')
     
     
     # Récupérer les meilleurs scores de l'utilisateur pour chaque quiz
@@ -20,7 +24,7 @@ def home(request):
         user_quiz_scores = UserQuiz.objects.filter(
             user=request.user
         ).values('quiz_id').annotate(
-            best_score=models.Max('score')
+            best_score=Max('score')
         )
         user_scores = {score['quiz_id']: score['best_score'] for score in user_quiz_scores}
     
@@ -32,7 +36,10 @@ def home(request):
 
 @login_required
 def quiz(request, quiz_id):
-    quiz = get_object_or_404(Quiz, id=quiz_id)
+    quiz = get_object_or_404(
+        Quiz.objects.select_related('author').prefetch_related('author__levels'),
+        id=quiz_id,
+    )
     
     if request.method == 'POST':
         # Vérifier si l'utilisateur a déjà participé à ce quiz
@@ -68,29 +75,58 @@ def quiz(request, quiz_id):
 
 @login_required
 def result(request, user_quiz_id):
-    user_quiz = get_object_or_404(UserQuiz, id=user_quiz_id, user=request.user)
+    user_quiz = get_object_or_404(
+        UserQuiz.objects.select_related('quiz', 'user').prefetch_related(
+            'quiz__author__levels', 'user__levels'
+        ),
+        id=user_quiz_id,
+        user=request.user,
+    )
     total_questions = user_quiz.quiz.questions.count()
 
-    # Vérifiez si l'utilisateur a déjà joué à ce quiz
-    if not UserQuiz.objects.filter(user=request.user, quiz=user_quiz.quiz).exists():
-        # Si c'est la première fois que l'on joue, alors on gagne 10 pièces d'or + 10 points d'expérience par réponse correcte
-        inventory_item = UserInventory.objects.get(user=user_quiz.user, item=Item.objects.get(name='Or'))
-        inventory_item.quantity += 10
-        inventory_item.save()
-        
-        user_level = request.user.level
-        user_level.experience += 10 * user_quiz.score
-        user_level.save()
-    else:
-        # Si l'utilisateur a déjà joué, ajoutez 1 point d'expérience par réponse correcte
-        user_level = request.user.level
-        user_level.experience += 1 * user_quiz.score
-        user_level.save()
-    
+    # Chaque tentative de quiz n'est récompensée qu'une seule fois,
+    # sinon recharger la page de résultat permettrait de farmer de l'XP.
+    if not user_quiz.rewarded:
+        grant_experience(request.user, 10 * user_quiz.score)
+        user_quiz.rewarded = True
+        user_quiz.save(update_fields=['rewarded'])
+
+    attempts = UserQuiz.objects.filter(
+        quiz=user_quiz.quiz
+    ).select_related('user').prefetch_related('user__levels').order_by(
+        'user_id', '-score'
+    )
+    best_attempts = {}
+    for attempt in attempts:
+        best_attempts.setdefault(attempt.user_id, attempt)
+
+    sorted_attempts = sorted(
+        best_attempts.values(),
+        key=lambda attempt: (-attempt.score, attempt.user.username),
+    )
+    quiz_ranking = []
+    previous_score = None
+    current_rank = 0
+    user_rank = None
+    for position, attempt in enumerate(sorted_attempts, start=1):
+        if attempt.score != previous_score:
+            current_rank = position
+            previous_score = attempt.score
+        quiz_ranking.append({
+            'rank': current_rank,
+            'user': attempt.user,
+            'score': attempt.score,
+        })
+        if attempt.user_id == request.user.id:
+            user_rank = current_rank
+
     return render(request, "games/quiz/result.html", {
         "user_quiz": user_quiz,
         "total_questions": total_questions,
-        "percentage": (user_quiz.score / total_questions) * 100 if total_questions > 0 else 0
+        "percentage": (user_quiz.score / total_questions) * 100 if total_questions > 0 else 0,
+        "quiz_ranking": quiz_ranking[:10],
+        "user_rank": user_rank,
+        "total_players": len(quiz_ranking),
     })
 
 @login_required

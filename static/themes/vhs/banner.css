@@ -87,7 +87,7 @@
 /* Canal cyan (décalage gauche) */
 .banner-text::before {
     content: attr(id);
-    content: 'PASSION RETRO';
+    content: 'NOSTALGEEK';
     position: absolute;
     inset: 0;
     color: #00e5ff;
@@ -99,7 +99,7 @@
 
 /* Canal magenta (décalage droit) */
 .banner-text::after {
-    content: 'PASSION RETRO';
+    content: 'NOSTALGEEK';
     position: absolute;
     inset: 0;
     color: #ff006e;

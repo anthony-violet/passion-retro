@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Max
 from .forms import PrivateMessageForm, PrivateMessageSubjectForm
 from django.contrib import messages
+from django.conf import settings
 
 @login_required
 def home(request):
@@ -88,19 +89,19 @@ def send_all_users(request):
         subject = PrivateMessageSubject.objects.create(
             receiver=user,
             sender=User.objects.get(username='RetroBot'),
-            subject="Bienvenue sur PassionRetro !"
+            subject=f"Bienvenue sur {settings.SITE_NAME} !"
         )
 
         PrivateMessage.objects.create(
             subject=subject,
             author=User.objects.get(username='RetroBot'),
-            message=f"""[b]Bienvenue sur Passion Retro ![/b]
+            message=f"""[b]Bienvenue sur {settings.SITE_NAME} ![/b]
 
 Salut [b]{user.username}[/b] !,
 
 Merci de nous avoir rejoints dans cette aventure dédiée aux passionnés de rétro ! Que tu sois fan de consoles vintage, collectionneur d'objets d'époque ou simple curieux, tu es ici chez toi. 
 
-✨ [b]Découvre tout ce que Passion Retro a à offrir :[/b]  
+✨ [b]Découvre tout ce que {settings.SITE_NAME} a à offrir :[/b]  
 Plonge dans nos articles pour en apprendre plus sur les trésors du passé, participe aux discussions sur le forum et teste tes connaissances avec nos jeux rétro. Chaque section est là pour te permettre de partager ta passion et d'en apprendre davantage.  
 
 🚀 [b]Rejoins la communauté :[/b]  
@@ -111,12 +112,12 @@ Si tu as des questions ou des suggestions pour améliorer le site, contacte-nous
 Encore une fois, bienvenue parmi nous et prépare-toi à replonger dans l’univers du rétro !  
 
 À bientôt,  
-[b]L'équipe Passion Retro[/b]""")
+[b]L'équipe {settings.SITE_NAME}[/b]""")
 
         subject = PrivateMessageSubject.objects.create(receiver=user, sender=sender, subject='Bienvenue sur la messagerie privée')
         PrivateMessage.objects.create(
             subject=subject, 
             author=sender, 
-            message=f"Cher [b]{user.username}[/b],\n\nBienvenue sur la messagerie privée de passion-retro. Tu peux désormais échanger des messages privés avec les autres membres du site.\n\nQuant a moi, je suis un nouvel utilisateur du site venu de la planète [b]Retronia[/b] ! J'ai été investis de la mission la plus importante de ma longue vie : [u]être le meilleur assistant de passion-retro[/u] ! J'espère sincèrement y parvenir !\n\nJe suis encore en orbite actuellement, mais guette les infos car je serait bientôt présent !\n\nCordialement,\n{sender.username}"
+            message=f"Cher [b]{user.username}[/b],\n\nBienvenue sur la messagerie privée de {settings.SITE_NAME}. Tu peux désormais échanger des messages privés avec les autres membres du site.\n\nQuant à moi, je suis un nouvel utilisateur du site venu de la planète [b]Retronia[/b] ! J'ai été investi de la mission la plus importante de ma longue vie : [u]être le meilleur assistant de {settings.SITE_NAME}[/u] ! J'espère sincèrement y parvenir !\n\nJe suis encore en orbite actuellement, mais guette les infos car je serai bientôt présent !\n\nCordialement,\n{sender.username}"
         )
     return redirect('pm_home')

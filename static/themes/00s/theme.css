@@ -1251,6 +1251,32 @@ table.quiz tr:nth-child(even) td {
     border-color: #333333;
 }
 
+/* Dernier message — activité */
+.forum .forum-row .forum-column:last-child {
+    color: #ff8844;
+    text-shadow: 0 0 6px rgba(255, 136, 0, 0.4);
+    font-weight: bold;
+}
+
+/* Ligne active sur hover */
+.forum .forum-row:hover .forum-column:last-child {
+    border-left: 2px solid #ff5500;
+    padding-left: 4px;
+    transition: all 0.15s;
+}
+
+/* Indicateur "topic actif" */
+.forum .forum-row--active .forum-column:last-child {
+    color: #ff6600;
+    text-shadow: 0 0 8px rgba(255, 102, 0, 0.5);
+    animation: pulse-active 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-active {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
 .stats_forum ul {
     background-color: #161616;
     border-color: #333333;

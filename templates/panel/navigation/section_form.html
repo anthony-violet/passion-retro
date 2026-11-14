@@ -1,0 +1,44 @@
+{% extends 'panel/layout.html' %}
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>{{ action }} une section de navbar</h2>
+    <a href="{% url 'panel_nav_sections' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-group">
+            <label>Libellé</label>
+            <input type="text" name="label" value="{{ section.label|default:'' }}" placeholder="Jeux" required>
+        </div>
+        <div class="panel-form-group">
+            <label>Catégorie d'articles</label>
+            <select name="category" required>
+                <option value="">— Choisir une catégorie —</option>
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if section.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+            <small>Les articles de cette catégorie apparaîtront dans la section.</small>
+        </div>
+        <div class="panel-form-group">
+            <label>Ordre</label>
+            <input type="number" name="order" value="{{ section.order|default:0 }}" min="0">
+        </div>
+        <div class="panel-form-group">
+            <label>Icône (emoji, optionnel)</label>
+            <input type="text" name="icon" value="{{ section.icon|default:'' }}" placeholder="🎮">
+        </div>
+        <div class="panel-form-group">
+            <label>
+                <input type="checkbox" name="visible" {% if section.visible or not section %}checked{% endif %}>
+                Afficher dans la navbar
+            </label>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">{{ action }}</button>
+            <a href="{% url 'panel_nav_sections' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -38,6 +38,7 @@ class UserQuiz(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_quizzes')
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='user_quizzes')  # Ajouté
     score = models.IntegerField(default=0)
+    rewarded = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

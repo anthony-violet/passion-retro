@@ -1,5 +1,5 @@
 from django.utils.deprecation import MiddlewareMixin
-from .models import Post
+from .models import Post, NavSection
 
 class PostsMiddleware(MiddlewareMixin):
     def process_request(self, request):
@@ -21,3 +21,19 @@ class PostsMiddleware(MiddlewareMixin):
         request.posts_movies = posts_movies
         request.posts_music = posts_music
         request.posts_tech = posts_tech
+
+        # Sections de la navbar gérées depuis le panel
+        nav_sections = []
+        for section in NavSection.objects.filter(visible=True).select_related('category'):
+            if not section.category_id:
+                continue
+            nav_sections.append({
+                'label': section.label,
+                'icon': section.icon,
+                'category': section.category,
+                'posts': Post.objects.filter(
+                    category=section.category, active=True, parent=True
+                ),
+            })
+
+        request.nav_sections = nav_sections

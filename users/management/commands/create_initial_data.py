@@ -7,8 +7,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self._create_shop_categories()
         self._create_shop_items()
+        self._create_retrobot()
         self._create_forum_categories()
         self._create_posts_categories()
+        self._create_nav_sections()
         self._create_game_categories()
         self._create_maintenance()
         self.stdout.write(self.style.SUCCESS("Données initiales créées avec succès."))
@@ -19,6 +21,7 @@ class Command(BaseCommand):
             {"name": "cadres", "description": "Cadres pour avatar"},
             {"name": "themes", "description": "Thèmes pour le site"},
             {"name": "Décoration pseudo", "description": "Décorations pour le pseudo"},
+            {"name": "Monnaie", "description": "Monnaie du site"},
         ]
         for data in categories:
             obj, created = Category.objects.get_or_create(name=data["name"], defaults={"description": data["description"], "image": ""})
@@ -32,6 +35,7 @@ class Command(BaseCommand):
             {"category": "themes", "name": "Thème 00s", "description": "Thème années 2000", "price": "100.00"},
             {"category": "themes", "name": "Thème RPG", "description": "Thème RPG", "price": "150.00"},
             {"category": "Décoration pseudo", "name": "Décoration défaut", "description": "Décoration de base pour le pseudo", "price": "0.00"},
+            {"category": "Monnaie", "name": "Or", "description": "Monnaie utilisée sur le site", "price": "0.00"},
         ]
         for data in items:
             try:
@@ -49,6 +53,19 @@ class Command(BaseCommand):
                     self.stdout.write(f"  [shop] Item créé : {obj.name}")
             except Category.DoesNotExist:
                 self.stdout.write(self.style.WARNING(f"  [shop] Catégorie introuvable : {data['category']}"))
+
+    def _create_retrobot(self):
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        bot, created = User.objects.get_or_create(
+            username="RetroBot",
+            defaults={"email": "retrobot@example.com", "is_active": True},
+        )
+        if created:
+            bot.set_unusable_password()
+            bot.save(update_fields=["password"])
+            self.stdout.write("  [users] Utilisateur créé : RetroBot")
 
     def _create_forum_categories(self):
         from forum.models import Category
@@ -71,6 +88,23 @@ class Command(BaseCommand):
             obj, created = Category.objects.get_or_create(name=name)
             if created:
                 self.stdout.write(f"  [posts] Catégorie créée : {obj.name}")
+
+    def _create_nav_sections(self):
+        from posts.models import NavSection, Category
+        sections = [
+            {"label": "Jeux", "category": "Jeux", "order": 1},
+            {"label": "Films & Series", "category": "Films & Series", "order": 2},
+            {"label": "Musique", "category": "Musique", "order": 3},
+            {"label": "Technologies", "category": "Technologies", "order": 4},
+        ]
+        for data in sections:
+            category, _ = Category.objects.get_or_create(name=data["category"])
+            obj, created = NavSection.objects.get_or_create(
+                label=data["label"],
+                defaults={"category": category, "order": data["order"]},
+            )
+            if created:
+                self.stdout.write(f"  [posts] Section navbar créée : {obj.label}")
 
     def _create_game_categories(self):
         from games.models import LittleBacCategories

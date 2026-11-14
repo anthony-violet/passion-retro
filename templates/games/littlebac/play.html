@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% load static %}
+{% load static users_custom_tags %}
 
 {% block extrajs %}
     <script>
@@ -10,10 +10,16 @@
 {% endblock %} 
 
 
+{% block page_heading %}{% endblock %}
+
 {% block content %}
     <div class="container" data-game-id="{{ game.id }}" data-round-id="{{ round.id }}">
         <h2>{{ game.name }}</h2>
         <h3>Partie {{ round.round_counter }}</h3>
+        <p class="level-line">
+            Mon niveau : {% user_level_badge request.user variant='inline' compact=True %}
+            <span class="level-title">{{ request.user.level_title }}</span>
+        </p>
         <h5 style="color:rgb(34, 146, 233)">Mon score actuel : {{ player.score }}</h5>
         <div class="game-bac-letter">{{ round.letter }}</div>
         <h5>Status : <span id="status">{{ game.status }}</span></h5>

@@ -1,15 +1,16 @@
 from django.shortcuts import render, get_object_or_404, redirect
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from posts.models import Post
 from forum.models import Topic, Forum, Post as ForumPost
-from users.models import UserLevel
+from users.leveling import grant_experience
 from django.contrib import messages
 from users.decorators import groups_required
 from posts.forms import CreatePost, EditPost
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
-from django.db.models import F
+from passion_retro.seo import article_jsonld, media_og_image, plain_text
 import os
 import json
 
@@ -24,11 +25,22 @@ def view_post(request, slug):
     if post.parent:
         subposts = Post.objects.filter(post_parent=post.id)
     elif post.post_parent:
-        subposts = Post.objects.filter(post_parent=post.post_parent.id)
+        subposts = Post.objects.filter(post_parent=post.post_parent).exclude(pk=post.pk)
+
+    breadcrumbs = []
+    if post.post_parent:
+        breadcrumbs.append((post.post_parent.title, f"/posts/{post.post_parent.slug}/"))
+    breadcrumbs.append((post.title, request.path))
 
     context = {
         'post': post,
-        'subposts': subposts
+        'subposts': subposts,
+        'page_title': f"{post.title} - {settings.SITE_NAME}",
+        'page_heading': post.title,
+        'page_description': plain_text(post.content, 160),
+        'seo_og_type': 'article',
+        'seo_og_image': media_og_image(request, post.image),
+        'seo_page_jsonld': article_jsonld(request, post, breadcrumbs),
     }
 
     return render(request, "posts/post.html", context)
@@ -41,6 +53,7 @@ def create_post(request, type):
         content = request.POST.get('content')
         active = request.POST.get('active') == 'on'
         image=request.FILES.get('image') if type == 'news' else None
+        forum_link = ''
 
         # Si c'est une news, on créer aussi un topic sur le forum news
         if type == 'news':
@@ -58,12 +71,12 @@ def create_post(request, type):
                 author=request.user
             )
 
-            UserLevel.objects.update(user=request.user, experience=F('experience') + 20)
+            grant_experience(request.user, 20)
 
             topic.save()
             forum_post.save()
 
-        forum_link = f'forum/{topic.forum.id}/{topic.id}/'
+            forum_link = f'forum/{topic.forum.id}/{topic.id}/'
 
         post = Post.objects.create(
             slug=slugify(title),

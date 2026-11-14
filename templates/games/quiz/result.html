@@ -1,8 +1,16 @@
 {% extends 'layout.html' %}
+{% load users_custom_tags %}
 
 {% block content %}
 <div class="container">
     <h2>{{ user_quiz.quiz.name }}</h2>
+    <p class="level-line">
+        Mon niveau : {% user_level_badge request.user variant='inline' compact=True %}
+        <span class="level-title">{{ request.user.level_title }}</span>
+        {% if user_rank %}
+            <span class="level-title">Rang {{ user_rank }} / {{ total_players }}</span>
+        {% endif %}
+    </p>
     <ul class="breadcrumbs">
         <li><a href="{% url 'portal_games' %}">Portail de jeux</a> »</li>
         <li><a href="{% url 'quiz_home' %}">Quiz</a> »</li>
@@ -58,5 +66,31 @@
             <a href="{% url 'quiz_home' %}" class="btn btn-large">Retour aux quiz</a>
         </div>
     </div>
+
+    <h3>Classement du quiz</h3>
+    <table class="quiz">
+        <thead>
+            <tr>
+                <th>Rang</th>
+                <th>Joueur</th>
+                <th>Niveau</th>
+                <th>Meilleur score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in quiz_ranking %}
+                <tr>
+                    <td>{{ entry.rank }}</td>
+                    <td>{{ entry.user.username }}</td>
+                    <td>{% user_level_badge entry.user variant='inline' compact=True %} <span class="level-title">{{ entry.user.level_title }}</span></td>
+                    <td>{{ entry.score }} / {{ total_questions }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">Aucun classement disponible.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

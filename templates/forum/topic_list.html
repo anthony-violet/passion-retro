@@ -29,6 +29,7 @@
                 <span class="rpg-tl-col rpg-tl-col--title">Quête</span>
                 <span class="rpg-tl-col rpg-tl-col--author">Explorateur</span>
                 <span class="rpg-tl-col rpg-tl-col--count">Épreuves</span>
+                <span class="rpg-tl-col rpg-tl-col--views">Vues</span>
                 <span class="rpg-tl-col rpg-tl-col--last">Dernière activité</span>
             </div>
             {% for topic in topics %}
@@ -44,6 +45,9 @@
                     </span>
                     <span class="rpg-tl-col rpg-tl-col--count">
                         {{ count_posts|get_item:topic.id|default_if_none:'0' }}
+                    </span>
+                    <span class="rpg-tl-col rpg-tl-col--views">
+                        {{ topic.views }}
                     </span>
                     <span class="rpg-tl-col rpg-tl-col--last">
                         {% with last_post=last_posts|get_item:topic.id %}
@@ -93,6 +97,7 @@
             <span>PROGRAMME</span>
             <span>AUTEUR</span>
             <span>MSGS</span>
+            <span>VUES</span>
             <span>DERNIER</span>
         </div>
 
@@ -114,6 +119,9 @@
             </div>
             <div class="vhs-guide__count">
                 {{ count_posts|get_item:topic.id|default_if_none:'0' }}
+            </div>
+            <div class="vhs-guide__views">
+                {{ topic.views }}
             </div>
             <div class="vhs-guide__last">
                 {% with last_post=last_posts|get_item:topic.id %}
@@ -148,6 +156,7 @@
             <div class="forum-column">Sujet</div>
             <div class="forum-column">Auteur</div>
             <div class="forum-column">Messages</div>
+            <div class="forum-column">Vues</div>
             <div class="forum-column">Dernier Message</div>
         </div>
         <div class="forum-body">
@@ -168,6 +177,9 @@
                     </div>
                     <div class="forum-column">
                         {{ count_posts|get_item:topic.id|default_if_none:'Aucun' }}
+                    </div>
+                    <div class="forum-column">
+                        {{ topic.views }}
                     </div>
                     <div class="forum-column">
                         {% with last_post=last_posts|get_item:topic.id %}

@@ -5,31 +5,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ site_name }} - Communauté des Passionnés de Jeux, Films et Séries Rétro</title>
+    <title>{{ page_title }}</title>
 
     <!-- Balises méta pour le SEO -->
-    <meta name="description" content="Rejoignez {{ site_name }}, la communauté dédiée aux passionnés de jeux, films et séries des années 80 et 90. Découvrez des contenus exclusifs et partagez votre passion !">
-    <meta name="keywords" content="{{ site_name }}, rétro, jeux vidéo, films, séries, communauté, années 80, années 90, nostalgia">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="{{ site_name }} Team">
+    <meta name="description" content="{{ page_description }}">
+    {% if seo_noindex %}<meta name="robots" content="noindex, nofollow">{% else %}<meta name="robots" content="index, follow">{% endif %}
+    <meta name="author" content="{{ site_name }}">
+    <link rel="icon" type="image/png" href="{% static 'img/retrobot.png' %}">
 
     <!-- Canonical URL -->
-    <link rel="canonical" href="{{ site_url }}">
+    <link rel="canonical" href="{{ seo_canonical }}">
 
     <!-- Open Graph -->
-    <meta property="og:title" content="{{ site_name }} - Communauté des Passionnés de Jeux, Films et Séries Rétro">
-    <meta property="og:description" content="Rejoignez {{ site_name }}, la communauté dédiée aux passionnés de jeux, films et séries des années 80 et 90. Découvrez des contenus exclusifs et partagez votre passion !">
-
-    <meta property="og:url" content="{{ site_url }}">
-    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ page_title }}">
+    <meta property="og:description" content="{{ page_description }}">
+    <meta property="og:url" content="{{ seo_canonical }}">
+    <meta property="og:type" content="{{ seo_og_type }}">
     <meta property="og:site_name" content="{{ site_name }}">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:image" content="{{ seo_og_image }}">
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ site_name }} - Communauté des Passionnés de Jeux, Films et Séries Rétro">
-    <meta name="twitter:description" content="Rejoignez {{ site_name }}, la communauté dédiée aux passionnés de jeux, films et séries des années 80 et 90. Découvrez des contenus exclusifs et partagez votre passion !">
-
+    <meta name="twitter:title" content="{{ page_title }}">
+    <meta name="twitter:description" content="{{ page_description }}">
+    <meta name="twitter:image" content="{{ seo_og_image }}">
     <meta name="twitter:site" content="@{{ site_name|cut:' ' }}">
+
+    <!-- Données structurées -->
+    <script type="application/ld+json">{{ seo_organization_jsonld|safe }}</script>
+    <script type="application/ld+json">{{ seo_website_jsonld|safe }}</script>
+    {% if seo_page_jsonld %}<script type="application/ld+json">{{ seo_page_jsonld|safe }}</script>{% endif %}
+
+    {% if analytics_tracking %}
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('consent', 'default', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: 'denied',
+            wait_for_update: 500
+        });
+        window.PR_GTM_CONTAINER_ID = "{{ gtm_container_id|escapejs }}";
+    </script>
+    <link rel="stylesheet" href="{% static 'css/consent.css' %}">
+    <script src="{% static 'js/consent.js' %}" defer></script>
+    {% endif %}
 
     <!-- CSS -->
     {% if request.theme_active != 'default' %}
@@ -42,12 +65,15 @@
     <link rel="stylesheet" href="{% static 'themes/' %}error.css">
     <link rel="stylesheet" href="{% static 'themes/' %}border-avatars.css">
     <link rel="stylesheet" href="{% static 'themes/' %}decoration-username.css">
+    <link rel="stylesheet" href="{% static 'css/gallery.css' %}">
+    <link rel="stylesheet" href="{% static 'css/discover.css' %}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-coy.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <script src="{% static 'js/utils/bbcode_display.js' %}"></script>
     <script src="{% static 'js/utils/functions.js' %}" defer></script>
+    <script src="{% static 'js/utils/gallery.js' %}" defer></script>
     <script src="{% static 'js/avatars/pixel-art.js' %}" defer></script>
     <script src="{% static 'js/utils/multiple_posts.js' %}" defer></script>
     {% if request.theme_active == 'vhs' %}
@@ -79,6 +105,7 @@
             <div class="col col-7">
         {% endif %}
 
+            {% block page_heading %}<h1 class="sr-only">{{ page_heading }}</h1>{% endblock %}
             {% if messages %}
                 <div class="notification">
                     <ul class="messages">
@@ -98,7 +125,8 @@
         {% endif %}
     </div>
     <div class="footer">
-        <p>{{ site_name }} &copy;2024 - 2026. Version 1.1 <a href="/version/history">Historique</a></p>
+        <p>{{ site_name }} &copy;2024 - 2026. Version 1.2 <a href="/version/history">Historique</a>{% if analytics_tracking %} · <a href="#" id="manage-cookies-link">Gérer mes cookies</a>{% endif %}</p>
     </div>
+    {% if analytics_tracking %}{% include './components/consent_banner.html' %}{% endif %}
 </body>
 </html>
