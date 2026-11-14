@@ -1,6 +1,6 @@
 <!-- Ajout du bouton burger -->
 <div class="burger-menu">
-    <button class="burger-icon">
+    <button class="burger-icon" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu-principal">
         <span></span>
         <span></span>
         <span></span>
@@ -8,7 +8,7 @@
 </div>
 <!-- Menu horizontal existant -->
 <div class="menu-horizontal">
-    <ul>
+    <ul id="menu-principal">
         <li><a href="{% url 'home' %}">Accueil</a></li>
         <li><a href="{% url 'discover' %}" class="new-item-menu">Découvrir {{ site_name }}</a></li>
         <li><a href="{% url 'forum_home' %}">Forum</a></li>

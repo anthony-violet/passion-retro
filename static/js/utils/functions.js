@@ -41,6 +41,19 @@ function modal(id, price) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const burger = document.querySelector('.burger-icon');
+    if (burger) {
+        burger.addEventListener('click', () => {
+            const menu = document.querySelector('.menu-horizontal');
+            if (!menu) return;
+            const open = menu.classList.toggle('open');
+            burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+            burger.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
     const avatars = document.querySelectorAll('.cadre-retro-gameboy');
     avatars.forEach(avatar => {
         console.log("on a trouvé l'avatar");

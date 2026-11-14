@@ -106,3 +106,10 @@
     50%  { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
 }
+
+@media (prefers-reduced-motion: reduce) {
+    .banner-text,
+    .slogan {
+        animation: none;
+    }
+}

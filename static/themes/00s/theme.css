@@ -102,7 +102,7 @@
     --text-admin:             #ff8800;
     --text-sadmin:            #ff4444;
     --text-menu-header:       #ffffff;
-    --text-guestbook-date:    #555555;
+    --text-guestbook-date:    #999999;
     --text-guestbook-author:  #ff6600;
     --text-badge:             #ffffff;
     --text-notification-success: #00dd44;
@@ -120,7 +120,7 @@
     --text-page-link-hover:   #ffffff;
     --text-active-page:       #ffffff;
     --text-disabled-page:     #444444;
-    --text-footer:            #444444;
+    --text-footer:            #999999;
     --text-footer-hover:      #ff6600;
 
     /* Bordures */
@@ -402,7 +402,7 @@ select {
 
 input::placeholder,
 textarea::placeholder {
-    color: #444444;
+    color: #777777;
 }
 
 input:focus,
@@ -413,10 +413,28 @@ select:focus {
     box-shadow: inset 1px 1px 4px rgba(0,0,0,0.6), 0 0 8px rgba(255,85,0,0.35);
 }
 
+label {
+    color: var(--text-primary);
+}
+
+/* ===== ACCESSIBILITÉ CLAVIER ===== */
+a:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+input[type="text"]:focus-visible,
+input[type="email"]:focus-visible,
+input[type="password"]:focus-visible,
+input[type="number"]:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #ff6600;
+    outline-offset: 2px;
+}
+
 /* ===== FOOTER ===== */
 .footer {
     background: linear-gradient(to bottom, #111111 0%, #080808 100%);
-    color: #444444;
+    color: var(--text-footer);
     border-top: 2px solid #ff4400;
     font-family: Tahoma, Arial, sans-serif;
     font-size: 10px;
@@ -425,7 +443,7 @@ select:focus {
     box-shadow: 0 0 16px rgba(255,68,0,0.15) inset;
 }
 
-.footer p { color: #444444; }
+.footer p { color: var(--text-footer); }
 
 .footer a {
     color: #555555;
@@ -601,7 +619,8 @@ select:focus {
     z-index: 200;
 }
 
-.menu-horizontal > ul > li:hover > ul {
+.menu-horizontal > ul > li:hover > ul,
+.menu-horizontal > ul > li:focus-within > ul {
     display: block;
 }
 
@@ -706,7 +725,7 @@ select:focus {
 }
 
 .joined-date {
-    color: #666666;
+    color: #999999;
     font-size: 0.8rem;
 }
 
@@ -824,7 +843,7 @@ select:focus {
 }
 
 .no-badges {
-    color: #555555;
+    color: #999999;
     font-size: 0.8rem;
     text-align: center;
     padding: 10px;
@@ -875,7 +894,7 @@ select:focus {
 }
 
 .no-items {
-    color: #555555;
+    color: #999999;
     font-size: 0.8rem;
     text-align: center;
     padding: 10px;
@@ -1347,11 +1366,14 @@ span.unread-badge {
 /* ===== FENETRE DRAGGABLE (aide bbcode) ===== */
 .draggable {
     width: 600px;
+    max-width: 90vw;
     height: 300px;
+    max-height: 70vh;
     overflow: auto;
     position: fixed;
     top: 50%;
     left: 50%;
+    transform: translate(-50%, -50%);
     background-color: #1a1a1a;
     border: 2px solid #ff5500;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 85, 0, 0.2);
@@ -1569,4 +1591,24 @@ fieldset.quote-bbcode legend {
 .guestbook p span.author {
     color: #ff6600;
     font-weight: bold;
+}
+
+/* ===== MESSAGERIE (table .table, hors forum) ===== */
+.table {
+    border-color: #333333;
+    box-shadow: var(--shadow-container);
+}
+
+.table .header {
+    color: #dbdbdb;
+    border-bottom-color: #ff4400;
+}
+
+.table .body {
+    color: #cccccc;
+    border-bottom-color: #252525;
+}
+
+.table .body:hover {
+    background: rgba(255, 68, 0, 0.08);
 }
