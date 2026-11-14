@@ -28,7 +28,7 @@
                     <h3>
                         <a href="{% url 'quiz' quiz.id %}">{{ quiz.name }}</a>
                         {% if not quiz.is_active %}
-                            <span style="color:red">Non Publié</span>
+                            <span class="text-danger">Non Publié</span>
                         {% endif %}
                     </h3>
                     {% if quiz.id in user_scores %}
@@ -61,9 +61,9 @@
                     <td>{{ my_quiz.created }}</td>
                     <td>
                         {% if my_quiz.is_active %}
-                            <span style="color:green"">Publié</span>
+                            <span class="text-success">Publié</span>
                         {% else %}
-                        <span style="color:orangered"">Non Publié</span>
+                        <span class="text-warning">Non Publié</span>
                         {% endif %}
                     </td>
                     <td>

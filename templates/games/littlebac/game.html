@@ -26,7 +26,7 @@
     <center>
         <button id="playButton" class="btn btn-default btn-large" style="display:none;" data-player-id="{{ request.user.id }}">Jouer !</button>
         <h4 id="infoNbPlayersReady" style="display: none;">Joueurs prêt: <span id="readyCount">0</span></h4>
-        <p id="waitingPlayers" style="color:orange">En attente de joueurs...</p>
+        <p id="waitingPlayers" class="text-warning">En attente de joueurs...</p>
     </center>
 </div>
 {% endblock %}

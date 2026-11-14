@@ -20,7 +20,7 @@
             Mon niveau : {% user_level_badge request.user variant='inline' compact=True %}
             <span class="level-title">{{ request.user.level_title }}</span>
         </p>
-        <h5 style="color:rgb(34, 146, 233)">Mon score actuel : {{ player.score }}</h5>
+        <h5 class="text-info">Mon score actuel : {{ player.score }}</h5>
         <div class="game-bac-letter">{{ round.letter }}</div>
         <h5>Status : <span id="status">{{ game.status }}</span></h5>
         <p style="display:flex;flex-direction:row;">
@@ -53,8 +53,8 @@
             </table>
             <center>
                 <button id="buttonFinish" data-player-id="{{ request.user.username }}">Valider mes choix</button>
-                <h1 id="textFinished" style="color:orange;display:none">Vos réponses on été soumises</h1>
-                <div id="countdownDisplay" style="display:none;color:orange">
+                <h1 id="textFinished" class="text-warning" style="display:none">Vos réponses on été soumises</h1>
+                <div id="countdownDisplay" class="text-warning" style="display:none">
                     {% if countdown_remaining %}
                         Temps restant : {{ countdown_remaining }} secondes
                     {% endif %}

@@ -39,7 +39,7 @@
                     <td>
                         <ul>
                             {% for choice in question.choices.all %}
-                            <li style="{% if choice.is_correct %}color:green;{% else %}color:orange;{% endif %}">{{ choice.choice }}</li>
+                            <li class="{% if choice.is_correct %}text-success{% else %}text-warning{% endif %}">{{ choice.choice }}</li>
                             {% endfor %}
                         </ul>
                     </td>

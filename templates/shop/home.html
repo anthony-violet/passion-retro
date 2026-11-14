@@ -3,7 +3,7 @@
 {% block content %}
     <div class="container">
         <h2>Boutique</h2>
-        <div style="float:right;margin:5px;"><img src="/static/img/retrobot.png" style="max-width: 200px;border-bottom:3px solid black;" alt="RetroBot"></div>
+        <div class="retrobot-float"><img src="/static/img/retrobot.png" class="img-accent" alt="RetroBot"></div>
         <p>
             Salut, voyageur temporel ! Moi, RetroBot, j’ai ouvert ma boutique rien que pour toi sur {{ site_name }} ! 🎉 
         </p>
@@ -22,7 +22,7 @@
                 {% if item.name != 'Or' %}
                     <div class="card-shop">
                         {% if item.category.name == 'Décoration pseudo' %}
-                            <center><span class="{{ item.name|slugify }}" style="font-size: 1.5rem;border:1px solid black; padding:5px">Pseudo</span></center>
+                            <center><span class="{{ item.name|slugify }} pseudo-preview">Pseudo</span></center>
                         {% else %}
                             <center><div class="card-img {% if item.category.name == 'cadres' %}{{ item.name|slugify }}{% endif %}"><img src="/media/{{ item.image }}" alt="{{ item.name }}"></div></center>
                         {% endif %}
