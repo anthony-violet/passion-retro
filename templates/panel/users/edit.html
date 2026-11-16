@@ -26,6 +26,10 @@
                 <label>Nom</label>
                 <input type="text" name="last_name" value="{{ u.last_name }}">
             </div>
+            <div class="panel-form-group">
+                <label>XP</label>
+                <input type="number" name="xp" min="0" value="{{ u.experience }}">
+            </div>
             <div class="panel-form-group panel-form-full">
                 <label>Biographie</label>
                 <textarea name="biography" rows="3">{{ u.biography }}</textarea>

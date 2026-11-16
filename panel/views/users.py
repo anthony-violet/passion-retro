@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import Group
 from panel.decorators import staff_required
-from users.models import User
+from users.models import User, UserLevel
 
 
 @staff_required
@@ -24,6 +24,17 @@ def user_edit(request, user_id):
         user.email = request.POST.get("email", user.email)
         user.first_name = request.POST.get("first_name", "")
         user.last_name = request.POST.get("last_name", "")
+        xp = request.POST.get("xp", "").strip()
+        if xp:
+            try:
+                xp = max(0, int(xp))
+            except ValueError:
+                messages.error(request, "L'XP doit être un nombre entier.")
+                return redirect("panel_user_edit", user_id=user.id)
+            user_level, _ = UserLevel.objects.get_or_create(user=user)
+            user_level.experience = xp
+            user_level.save(update_fields=["experience"])
+
         user.biography = request.POST.get("biography", "")
         user.active = "active" in request.POST
         user.is_staff = "is_staff" in request.POST

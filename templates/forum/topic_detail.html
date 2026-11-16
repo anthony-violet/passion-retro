@@ -36,11 +36,11 @@
                 {% user_level_badge post.author %}
             </div>
 
-                                <span class="forum-level-title">{{ post.author.level_title }}</span>
+            <span class="forum-level-title">{{ post.author.level_title }}</span>
 
             <span id="author-post-{{ post.id }}"
                   class="vhs-segment__username {{ post.author.username_decoration }}">
-                {{ post.author.username }}
+                <a href="{% url 'profile' post.author.id %}">{{ post.author.username }}</a>
             </span>
 
             <div class="vhs-segment__date">{{ post.created|date:"d/m/y H:i" }}</div>
@@ -151,8 +151,7 @@
                         </div>
                         {% user_level_badge post.author %}
                     </div>
-
-                    <span id="author-post-{{ post.id }}" class="rpg-post-author {{ post.author.username_decoration }}">{{ post.author.username }}</span>
+                    <span id="author-post-{{ post.id }}" class="rpg-post-author {{ post.author.username_decoration }}"><a href="{% url 'profile' post.author.id %}">{{ post.author.username }}</a></span>
                     <span class="forum-level-title rpg-post-level">{{ post.author.level_title }}</span>
 
                     <ul class="rpg-post-author-info">

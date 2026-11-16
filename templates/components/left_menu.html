@@ -2,7 +2,8 @@
     <h2>Communauté</h2>
     <ul>
         <li><a href="{% url 'home' %}">Accueil</a></li>
-        <li><a href="{% url 'discover' %}">Découvrir {{ site_name }}</a></li>
+        <li><a href="{% url 'discover' %}" class="new-item-menu">Découvrir {{ site_name }}</a></li>
+        <li><a href="{% url 'ephemerides:ephemerides_today'  %}">Ce jour là...</a></li>
         <li><a href="{% url 'forum_home' %}">Forum</a></li>
         <li>
             <a href="{% url 'portal_games' %}">Portail des jeux</a>
@@ -11,7 +12,7 @@
             {% endif %}
         </li>
         <li>
-            <a href="{% url 'shop_home' %}" class="new-item-menu">Boutique</a>
+            <a href="{% url 'shop_home' %}">Boutique</a>
         </li>
         <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
     </ul>
