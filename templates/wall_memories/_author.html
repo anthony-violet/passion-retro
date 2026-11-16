@@ -9,5 +9,6 @@
     <div class="wm-author__info">
         <a href="{% url 'profile' person.id %}" class="wm-author__name {{ person.username_decoration|default:'' }}">{{ person.username }}</a>
         <span class="wm-author__rank">{{ person.level_title }}{% if when %} · <time datetime="{{ when|date:'c' }}" title="{{ when|date:'d/m/Y H:i' }}">il y a {{ when|timesince }}</time>{% endif %}</span>
+        {% if not compact %}{% include 'components/member_retro_badge.html' with person=person css_class='wm-author__retro' %}{% endif %}
     </div>
 </div>

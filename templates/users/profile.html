@@ -48,6 +48,30 @@
                         {{ user.biography|bbcode|safe|linebreaksbr|default:"Aucune biographie disponible" }}
                     </div>
                 </div>
+
+                {% if user.favorite_console or user.favorite_game or user.favorite_game_genre %}
+                <div class="profile-card profile-retro">
+                    <h3>🎮 {% if user.id == request.user.id %}Mon{% else %}Son{% endif %} univers rétro</h3>
+                    <ul class="profile-retro__list">
+                        {% if user.favorite_console %}<li><strong>Console(s) favorite(s) :</strong> {{ user.favorite_console }}</li>{% endif %}
+                        {% if user.favorite_game %}<li><strong>Jeu(x) favori(s) :</strong> {{ user.favorite_game }}</li>{% endif %}
+                        {% if user.favorite_game_genre %}<li><strong>Genre(s) favori(s) :</strong> {{ user.favorite_game_genre }}</li>{% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if user.anecdote %}
+                <div class="profile-card profile-anecdote" id="anecdote">
+                    <h3>💬 {% if user.id == request.user.id %}Mon{% else %}Son{% endif %} anecdote</h3>
+                    <div class="bio-content">{{ user.anecdote|linebreaksbr }}</div>
+                </div>
+                {% endif %}
+
+                {% if user.id == request.user.id %}
+                    {% if not user.favorite_console and not user.favorite_game and not user.favorite_game_genre or not user.anecdote %}
+                    <p class="profile-retro__complete"><a href="{% url 'profile_update' %}">Complète ton profil</a> : consoles, jeux favoris et anecdote, pour que les autres membres apprennent à te connaître.</p>
+                    {% endif %}
+                {% endif %}
             </div>
 
             <!-- Colonne de droite : stats + badges -->

@@ -517,3 +517,15 @@ class PromotionTest(WallMemoriesTestCase):
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse('wall_memories:wall'))
+
+
+class AuthorRetroBadgeTest(WallMemoriesTestCase):
+    def test_detail_shows_author_retro_badge(self):
+        self.author.favorite_console = 'NES, Game Boy'
+        self.author.favorite_game = 'Tetris'
+        self.author.save()
+        memory = self.publish()
+        response = self.client.get(memory.get_absolute_url())
+        self.assertContains(response, 'member-retro-badge')
+        self.assertContains(response, '🎮 NES')
+        self.assertContains(response, '🕹️ Tetris')

@@ -1,0 +1,22 @@
+{% load users_custom_tags %}
+{% comment %}
+Badge rétro condensé d'un membre : première console et premier jeu favoris,
+plus un lien vers son anecdote. N'affiche rien si le membre n'a rien rempli.
+Paramètres : person (le membre), css_class (classe optionnelle selon le thème).
+{% endcomment %}
+{% with console=person.favorite_console|first_item game=person.favorite_game|first_item %}
+{% if console or game or person.anecdote %}
+<div class="member-retro-badge{% if css_class %} {{ css_class }}{% endif %}">
+    {% if console or game %}
+    <span class="member-retro-badge__favorites">
+        {% if console %}<span class="member-retro-badge__console" title="Console(s) favorite(s) : {{ person.favorite_console }}">🎮 {{ console }}</span>{% endif %}
+        {% if console and game %} · {% endif %}
+        {% if game %}<span class="member-retro-badge__game" title="Jeu(x) favori(s) : {{ person.favorite_game }}">🕹️ {{ game }}</span>{% endif %}
+    </span>
+    {% endif %}
+    {% if person.anecdote %}
+    <div><a class="member-retro-badge__anecdote" href="{% url 'profile' person.id %}#anecdote">💬 Son anecdote</a></div>
+    {% endif %}
+</div>
+{% endif %}
+{% endwith %}

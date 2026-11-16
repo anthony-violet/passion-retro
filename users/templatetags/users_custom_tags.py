@@ -27,3 +27,18 @@ def user_level_badge(user, variant='avatar', compact=False):
         'title': title,
         'classes': ' '.join(classes),
     }
+
+@register.filter(name='first_item')
+def first_item(value, max_length=25):
+    """Premier élément d'une liste saisie librement (« SNES, MegaDrive ; NES »).
+
+    Coupe sur la première virgule ou le premier point-virgule, retire les espaces
+    et tronque à `max_length` caractères (avec « … ») pour les affichages condensés.
+    """
+    if not value:
+        return ''
+    first = str(value).replace(';', ',').split(',')[0].strip()
+    max_length = int(max_length)
+    if len(first) > max_length:
+        first = first[:max_length - 1].rstrip() + '…'
+    return first

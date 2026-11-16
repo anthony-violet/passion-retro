@@ -331,3 +331,62 @@ class ProfileMemoriesTest(TestCase):
         response = self.client.get(reverse('profile'))
         self.assertContains(response, 'Mes souvenirs')
         self.assertContains(response, reverse('wall_memories:create'))
+
+
+class FirstItemFilterTest(TestCase):
+    def test_first_item(self):
+        from users.templatetags.users_custom_tags import first_item
+        self.assertEqual(first_item('SNES, MegaDrive'), 'SNES')
+        self.assertEqual(first_item(' NES ; Game Boy'), 'NES')
+        self.assertEqual(first_item('Zelda'), 'Zelda')
+        self.assertEqual(first_item(''), '')
+        self.assertEqual(first_item(None), '')
+        long = first_item('The Legend of Zelda: A Link to the Past')
+        self.assertEqual(len(long), 25)
+        self.assertTrue(long.endswith('…'))
+
+
+class ProfileRetroInfoTest(TestCase):
+    def setUp(self):
+        self.member = User.objects.create_user(
+            username='retrofan', email='rf@test.com', password='pass12345', active=True,
+            favorite_console='SNES, MegaDrive', favorite_game='Zelda',
+            favorite_game_genre='RPG', anecdote='Ma première cartouche, offerte à Noël.',
+        )
+        self.empty = User.objects.create_user(
+            username='discret', email='d@test.com', password='pass12345', active=True,
+        )
+        self.visitor = User.objects.create_user(
+            username='curieux', email='cu@test.com', password='pass12345', active=True,
+        )
+
+    def test_other_profile_shows_retro_info_and_anecdote(self):
+        self.client.force_login(self.visitor)
+        response = self.client.get(reverse('profile', args=[self.member.id]))
+        self.assertContains(response, 'Son univers rétro')
+        self.assertContains(response, 'SNES, MegaDrive')
+        self.assertContains(response, 'Zelda')
+        self.assertContains(response, 'RPG')
+        self.assertContains(response, 'id="anecdote"')
+        self.assertContains(response, 'Ma première cartouche, offerte à Noël.')
+        self.assertNotContains(response, 'Complète ton profil')
+
+    def test_empty_profile_shows_nothing_to_others(self):
+        self.client.force_login(self.visitor)
+        response = self.client.get(reverse('profile', args=[self.empty.id]))
+        self.assertNotContains(response, 'univers rétro')
+        self.assertNotContains(response, 'id="anecdote"')
+        self.assertNotContains(response, 'Complète ton profil')
+
+    def test_own_empty_profile_invites_to_complete(self):
+        self.client.force_login(self.empty)
+        response = self.client.get(reverse('profile'))
+        self.assertContains(response, 'Complète ton profil')
+        self.assertContains(response, reverse('profile_update'))
+
+    def test_own_full_profile_uses_first_person(self):
+        self.client.force_login(self.member)
+        response = self.client.get(reverse('profile'))
+        self.assertContains(response, 'Mon univers rétro')
+        self.assertContains(response, 'Mon anecdote')
+        self.assertNotContains(response, 'Complète ton profil')

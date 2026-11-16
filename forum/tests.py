@@ -354,3 +354,34 @@ class SitemapExclusionTest(TestCase):
         self.assertNotIn('/posts/enfant/<', xml)
         self.assertNotIn('/posts/parent/<', xml)
         self.assertIn('/posts/seul/<', xml)
+
+
+class ForumRetroBadgeTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='forumretro', email='forumretro@test.com', password='testpass123',
+            active=True, favorite_console='SNES, MegaDrive', favorite_game='Zelda, Mario',
+            anecdote='Une anecdote.',
+        )
+        self.quiet = User.objects.create_user(
+            username='forumquiet', email='forumquiet@test.com', password='testpass123', active=True,
+        )
+        category = Category.objects.create(name='Catégorie rétro', description='Description')
+        self.forum = Forum.objects.create(
+            category=category, author=self.user, name='Forum rétro', description='Description',
+        )
+        self.topic = Topic.objects.create(forum=self.forum, author=self.user, title='Sujet rétro')
+
+    def test_post_shows_condensed_retro_badge(self):
+        Post.objects.create(topic=self.topic, author=self.user, content='Message')
+        response = self.client.get(reverse('post_list', args=[self.forum.id, self.topic.id]))
+        self.assertContains(response, 'member-retro-badge')
+        self.assertContains(response, '🎮 SNES')
+        self.assertContains(response, '🕹️ Zelda')
+        self.assertNotContains(response, '🎮 SNES, MegaDrive')
+        self.assertContains(response, reverse('profile', args=[self.user.id]) + '#anecdote')
+
+    def test_post_without_retro_info_shows_no_badge(self):
+        Post.objects.create(topic=self.topic, author=self.quiet, content='Message')
+        response = self.client.get(reverse('post_list', args=[self.forum.id, self.topic.id]))
+        self.assertNotContains(response, 'class="member-retro-badge')

@@ -56,6 +56,8 @@
                 <li>{{ count_posts|get_item:post.author.id }} msgs</li>
             </ul>
 
+            {% include 'components/member_retro_badge.html' with person=post.author css_class='vhs-segment__retro' %}
+
             {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
             <div class="vhs-segment__admin-actions">
                 <a href="{% url 'deactivate_post' post.id %}" class="btn-vhs btn-vhs--danger">■ DÉSACT.</a>
@@ -175,6 +177,8 @@
                         </li>
                     </ul>
 
+                    {% include 'components/member_retro_badge.html' with person=post.author css_class='rpg-post-retro' %}
+
                     {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
                     <a href="{% url 'deactivate_post' post.id %}" class="btn btn-warning rpg-post-deactivate">Désactiver</a>
                     {% endif %}
@@ -291,6 +295,7 @@
                                     </li>
                                 </ul>
                             </small>
+                            {% include 'components/member_retro_badge.html' with person=post.author %}
                             {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
                                 <a href="{% url 'deactivate_post' post.id %}" class="btn btn-warning">Désactiver le message</a>
                             {% endif %}
