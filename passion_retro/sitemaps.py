@@ -52,6 +52,7 @@ class StaticViewSitemap(ConfiguredSitemap):
         return [
             "home",
             "discover",
+            "news_list",
             "forum_home",
             "portal_games",
             "guestbook_home",

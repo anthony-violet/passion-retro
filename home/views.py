@@ -1,6 +1,7 @@
 import re
 
 from django.conf import settings
+from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render
 from posts.models import Post
@@ -34,6 +35,38 @@ def discover(request):
     }
 
     return render(request, "discover.html", context)
+
+NEWS_PER_PAGE = 12
+
+
+def news_list(request):
+    """Liste paginée de toutes les actus actives, de la plus récente à la plus ancienne."""
+    news = (
+        Post.objects.filter(type='news', active=True)
+        .select_related('author')
+        .order_by('-created')
+    )
+    paginator = Paginator(news, NEWS_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    page_title = f"Toutes les actus - {settings.SITE_NAME}"
+    if page_obj.number > 1:
+        page_title = f"Toutes les actus (page {page_obj.number}) - {settings.SITE_NAME}"
+
+    context = {
+        'news': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'is_paginated': page_obj.has_other_pages(),
+        'page_title': page_title,
+        'page_description': (
+            f"Toutes les actus rétro de {settings.SITE_NAME} : jeux vidéo, films, "
+            "séries et culture des années 80 et 90, proposées par la communauté."
+        ),
+    }
+
+    return render(request, "news_list.html", context)
+
 
 def api_news(request):
     try:

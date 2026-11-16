@@ -11,6 +11,7 @@
     <ul id="menu-principal">
         <li><a href="{% url 'home' %}">Accueil</a></li>
         <li><a href="{% url 'discover' %}" class="new-item-menu">Découvrir {{ site_name }}</a></li>
+        <li><a href="{% url 'news_list' %}">Actus</a></li>
         <li><a href="{% url 'forum_home' %}">Forum</a></li>
         <li><a href="{% url 'ephemerides:ephemerides_today'  %}">Ce jour là...</a></li>
         <li>
