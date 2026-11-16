@@ -122,7 +122,7 @@
         <span class="rpg-breadcrumbs-sep"> ‣ </span>
         <a href="{% url 'topic_list' topic.forum.id %}">{{ topic.forum.name }}</a>
         <span class="rpg-breadcrumbs-sep"> ‣ </span>
-        <h2 class="rpg-topic-title">{{ topic.title }}</h2>
+        <span>{{ topic.title }}</span>
     </nav>
 
     <div class="rpg-nameplate">
@@ -131,39 +131,82 @@
             <h2 class="rpg-nameplate-title">{{ topic.title }}</h2>
             <div class="rpg-nameplate-icon">⚔</div>
         </div>
-        <p class="rpg-nameplate-subtitle">{{ topic.forum.description|safe }}</p>
     </div>
 
     <div class="rpg-posts-list">
         {% for post in posts %}
-        <article class="rpg-post">
+        <article class="rpg-post" id="{{ post.id }}">
+            <span class="rpg-post-pin"></span>
+
             <header class="rpg-post-header">
-                <div class="rpg-post-author {{ post.author.username_decoration }}">
-                    {{ post.author.username }}
-                </div>
+                <span class="rpg-post-header-title">❦ Message n°{{ forloop.counter }}</span>
                 <time class="rpg-post-date">{{ post.created|date:"d/m/y H:i" }}</time>
             </header>
 
-            <div class="rpg-post-content">
-                {{ post.content|bbcode|safe|linebreaksbr }}
-            </div>
+            <div class="rpg-post-main">
+                <aside class="rpg-post-author-panel">
+                    <div class="forum-avatar-wrap">
+                        <div class="{{ post.author.border_avatar }}">
+                            <img src="/media/{{ post.author.avatar }}" alt="Avatar de {{ post.author.username }}">
+                        </div>
+                        {% user_level_badge post.author %}
+                    </div>
 
-            <footer class="rpg-post-footer">
-                {% if post.author.biography %}
-                <p>{{ post.author.biography|bbcode|safe|linebreaksbr }}</p>
-                {% endif %}
-                {% if post.created|date:"Y-m-d H:i:s" != post.updated|date:"Y-m-d H:i:s" %}
-                <p class="rpg-post-modified">modifié le {{ post.updated }}</p>
-                {% endif %}
-                <div class="rpg-post-actions">
-                    {% if not forloop.first %}
-                    <a href="#" class="rpg-post-action-icon">❝</a>
+                    <span id="author-post-{{ post.id }}" class="rpg-post-author {{ post.author.username_decoration }}">{{ post.author.username }}</span>
+                    <span class="forum-level-title rpg-post-level">{{ post.author.level_title }}</span>
+
+                    <ul class="rpg-post-author-info">
+                        <li>
+                            <span class="rpg-info-label">Groupe</span>
+                            <span class="rpg-info-value">
+                                {% for group in post.author.groups.all %}
+                                    {% if group.name == "Administrateurs" %}<span class="text-admin">{{ group.name }}</span>{% elif group.name == "Super Admin" %}<span class="text-sadmin">{{ group.name }}</span>{% else %}{{ group.name }}{% endif %}{% if not forloop.last %}, {% endif %}
+                                {% empty %}—{% endfor %}
+                            </span>
+                        </li>
+                        <li><span class="rpg-info-label">Inscrit le</span> <span class="rpg-info-value">{{ post.author.date_joined|date:"d/m/Y" }}</span></li>
+                        <li><span class="rpg-info-label">Messages</span> <span class="rpg-info-value">{{ count_posts|get_item:post.author.id }}</span></li>
+                        <li>
+                            <span class="rpg-info-label">Statut</span>
+                            {% if post.author.id in request.online_member_ids %}
+                                <span class="rpg-info-value rpg-status rpg-status--on">En ligne</span>
+                            {% else %}
+                                <span class="rpg-info-value rpg-status rpg-status--off">Hors ligne</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+
+                    {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
+                    <a href="{% url 'deactivate_post' post.id %}" class="btn btn-warning rpg-post-deactivate">Désactiver</a>
                     {% endif %}
-                    {% if request.user == post.author or request.user.is_staff %}
-                    <a href="{% url 'forum_edit_post' post.id %}" class="rpg-post-action-icon">✎</a>
-                    {% endif %}
+                </aside>
+
+                <div class="rpg-post-body">
+                    <div class="rpg-post-content" id="post-{{ post.id }}">{{ post.content|bbcode|safe|linebreaksbr }}</div>
+
+                    <footer class="rpg-post-footer">
+                        {% if post.author.biography %}
+                        <div class="rpg-post-signature">
+                            <span class="rpg-post-signature-label">— ✒ Signature —</span>
+                            <p>{{ post.author.biography|bbcode|safe|linebreaksbr }}</p>
+                        </div>
+                        {% endif %}
+                        <div class="rpg-post-footer-bar">
+                            {% if post.created|date:"Y-m-d H:i:s" != post.updated|date:"Y-m-d H:i:s" %}
+                            <span class="rpg-post-modified">modifié le {{ post.updated }}</span>
+                            {% endif %}
+                            <div class="rpg-post-actions">
+                                {% if not forloop.first %}
+                                <a id="quote" target="{{ post.id }}" class="rpg-post-action-icon" title="Citer">❝ Citer</a>
+                                {% endif %}
+                                {% if request.user == post.author or request.user.is_staff %}
+                                <a href="{% url 'forum_edit_post' post.id %}" id="edit" class="rpg-post-action-icon" title="Modifier">✎ Modifier</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </footer>
                 </div>
-            </footer>
+            </div>
         </article>
         {% empty %}
         <p class="rpg-post-empty">Aucun message pour le moment.</p>
@@ -171,6 +214,34 @@
     </div>
 
     <nav class="rpg-pagination">{% paginate %}</nav>
+
+    {% if user.is_authenticated %}
+        {% if topic.state == "closed" %}
+        <div class="rpg-topic-closed">
+            <span class="rpg-topic-closed-icon">⚔</span>
+            <span class="rpg-topic-closed-label">Topic fermé</span>
+            {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
+            <a href="{% url 'unlock_topic' topic.id %}" class="btn rpg-btn-quest rpg-topic-closed-action">Ouvrir le topic</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="rpg-reply-form">
+            <div class="rpg-reply-header">
+                <span class="rpg-reply-ornament">❦</span>
+                <h3 class="rpg-reply-title">Répondre à la quête</h3>
+                <span class="rpg-reply-ornament">❦</span>
+                {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
+                <a href="{% url 'lock_topic' topic.id %}" class="btn btn-danger rpg-reply-lock">Fermer le topic</a>
+                {% endif %}
+            </div>
+            <form method="post" class="rpg-form">
+                {% csrf_token %}
+                <div class="form-group">{{ post_form.as_p }}</div>
+                <button type="submit" class="btn rpg-btn-quest rpg-reply-submit">✦ Envoyer la réponse</button>
+            </form>
+        </div>
+        {% endif %}
+    {% endif %}
 </div>
 
 {% else %}

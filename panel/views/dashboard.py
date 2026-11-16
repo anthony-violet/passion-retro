@@ -6,6 +6,7 @@ from posts.models import Post, Category as PostCategory
 from quiz.models import Quiz
 from guestbook.models import Guestbook
 from shop.models import Item
+from ephemerides.models import ContributedEphemeride
 
 
 @staff_required
@@ -27,6 +28,10 @@ def dashboard(request):
 
         'total_guestbook': Guestbook.objects.count(),
         'pending_guestbook': Guestbook.objects.filter(active=False).count(),
+
+        'pending_ephemerides': ContributedEphemeride.objects.filter(
+            status=ContributedEphemeride.STATUS_PENDING
+        ).count(),
 
         'total_items': Item.objects.count(),
     }

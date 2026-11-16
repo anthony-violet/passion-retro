@@ -46,7 +46,7 @@ def contribute_ephemeride(request):
                     user=request.user
                 )
                 messages.success(request, "Votre contribution a été soumise avec succès ! Elle sera examinée par l'équipe.")
-                return redirect('ephemerides_today')
+                return redirect('ephemerides:ephemerides_today')
             else:
                 messages.error(request, "Veuillez remplir tous les champs correctement.")
         except (ValueError, TypeError):

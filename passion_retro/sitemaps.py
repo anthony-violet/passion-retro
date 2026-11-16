@@ -36,7 +36,7 @@ class StaticViewSitemap(ConfiguredSitemap):
             "forum_home",
             "portal_games",
             "guestbook_home",
-            "ephemerides_today",
+            "ephemerides:ephemerides_today",
         ]
 
     def location(self, item):

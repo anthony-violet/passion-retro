@@ -1,0 +1,26 @@
+{% extends 'forum_layout.html' %}
+
+{% block forum_content %}
+<div class="forum">
+    <h2>Abonnement au sujet</h2>
+    <p>Sujet : <strong>{{ subscription.topic.title }}</strong></p>
+
+    {% if done %}
+        <p>Vous ne recevrez plus d'emails pour les nouvelles réponses à ce sujet.</p>
+    {% elif not subscription.active %}
+        <p>Vous êtes déjà désabonné de ce sujet.</p>
+    {% else %}
+        <p>Vous êtes sur le point de ne plus recevoir d'emails pour les nouvelles réponses à ce sujet.</p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Se désabonner</button>
+        </form>
+    {% endif %}
+
+    <p>
+        <a href="{% url 'post_list' subscription.topic.forum_id subscription.topic.id %}">
+            Retour au sujet
+        </a>
+    </p>
+</div>
+{% endblock %}

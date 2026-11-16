@@ -76,6 +76,7 @@ TEMPLATES = [
                 "passion_retro.context_processors.theme_context",
                 "passion_retro.context_processors.seo_context",
                 "passion_retro.context_processors.analytics_context",
+                "ephemerides.context_processors.pending_ephemerides_count",
             ],
         },
     },

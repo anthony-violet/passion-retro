@@ -1,6 +1,9 @@
+from datetime import timedelta
+
 from django.test import TestCase
 from django.urls import reverse
-from forum.models import Category, Forum, Post, Topic
+from django.utils import timezone
+from forum.models import Category, Forum, Post, Topic, TopicRead
 from users.models import User
 
 class ForumModelsTest(TestCase):
@@ -132,3 +135,96 @@ class ForumLevelDisplayTest(TestCase):
         self.assertContains(response, 'LVL')
         self.assertContains(response, '>12<')
         self.assertContains(response, 'Aventurier')
+
+
+class ForumUnreadTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='unreaduser',
+            email='unread@test.com',
+            password='testpass123',
+            active=True,
+        )
+        self.category = Category.objects.create(
+            name='Catégorie non lue',
+            description='Description',
+        )
+        self.forum = Forum.objects.create(
+            category=self.category,
+            author=self.user,
+            name='Forum non lu',
+            description='Description',
+        )
+        self.old_topic = Topic.objects.create(
+            forum=self.forum,
+            author=self.user,
+            title='Ancien sujet',
+        )
+        self.recent_topic = Topic.objects.create(
+            forum=self.forum,
+            author=self.user,
+            title='Sujet récent',
+        )
+        now = timezone.now()
+        self.old_post = Post.objects.create(
+            topic=self.old_topic,
+            author=self.user,
+            content='Ancien message',
+        )
+        self.recent_post = Post.objects.create(
+            topic=self.recent_topic,
+            author=self.user,
+            content='Message récent',
+        )
+        Post.objects.filter(pk=self.old_post.pk).update(
+            created=now - timedelta(days=2)
+        )
+        Post.objects.filter(pk=self.recent_post.pk).update(created=now)
+        self.client.force_login(self.user)
+
+    def _forum_unread(self):
+        response = self.client.get(reverse('forum_home'))
+        return response.context['unread_topics'][self.forum.id]
+
+    def test_forum_unread_when_new_post_after_last_read(self):
+        read = TopicRead.objects.create(user=self.user, topic=self.old_topic)
+        TopicRead.objects.filter(pk=read.pk).update(
+            last_read=timezone.now() - timedelta(days=1)
+        )
+
+        self.assertTrue(self._forum_unread())
+
+    def test_forum_read_when_recent_topic_read_even_if_old_topic_unread(self):
+        TopicRead.objects.create(user=self.user, topic=self.recent_topic)
+
+        self.assertFalse(self._forum_unread())
+
+    def test_forum_unread_when_user_has_no_reads(self):
+        self.assertTrue(self._forum_unread())
+
+    def test_forum_read_for_anonymous_user(self):
+        self.client.logout()
+
+        self.assertFalse(self._forum_unread())
+
+    def test_forum_read_when_no_posts(self):
+        empty_forum = Forum.objects.create(
+            category=self.category,
+            author=self.user,
+            name='Forum vide',
+            description='Description',
+        )
+
+        response = self.client.get(reverse('forum_home'))
+
+        self.assertFalse(response.context['unread_topics'][empty_forum.id])
+
+    def test_topic_list_still_marks_old_topic_unread(self):
+        TopicRead.objects.create(user=self.user, topic=self.recent_topic)
+
+        response = self.client.get(
+            reverse('topic_list', args=[self.forum.id])
+        )
+
+        self.assertFalse(response.context['unread_topics'][self.recent_topic.id])
+        self.assertTrue(response.context['unread_topics'][self.old_topic.id])

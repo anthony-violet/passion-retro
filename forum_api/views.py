@@ -8,6 +8,7 @@ from users.leveling import grant_experience
 from forum.models import Category, Forum, Topic, Post
 from django.contrib.auth import get_user_model
 from users.models import APIKey
+from ephemerides.models import ContributedEphemeride
 
 API_KEY_HEADER = 'Authorization'
 
@@ -323,3 +324,60 @@ def create_post(request, topic_id):
     }
 
     return JsonResponse(post_data, status=201)
+
+
+@api_auth_required
+def contribute_ephemeride(request):
+    """POST /api/forum/contribute/
+
+    Crée une contribution d'éphéméride en statut 'pending' en attente de revue.
+    Accorde +20 XP à l'utilisateur.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    data = json.loads(request.body)
+    day = data.get('day', 0)
+    month = data.get('month', 0)
+    year = data.get('year', 0)
+    title = data.get('title', '').strip()
+    content = data.get('content', '').strip()
+    category = data.get('category', 'autre')
+
+    if not title:
+        return JsonResponse({
+            'error': 'Bad Request',
+            'message': 'Le titre est obligatoire'
+        }, status=400)
+
+    if not (1 <= day <= 31 and 1 <= month <= 12 and year > 0):
+        return JsonResponse({
+            'error': 'Bad Request',
+            'message': 'Date invalide'
+        }, status=400)
+
+    contributed = ContributedEphemeride.objects.create(
+        day=day,
+        month=month,
+        year=year,
+        title=title,
+        content=content,
+        category=category,
+        user=request.user,
+        status=ContributedEphemeride.STATUS_PENDING,
+    )
+
+    grant_experience(request.user, 20)
+
+    return JsonResponse({
+        'id': contributed.id,
+        'day': contributed.day,
+        'month': contributed.month,
+        'year': contributed.year,
+        'title': contributed.title,
+        'content': contributed.content,
+        'category': contributed.category,
+        'status': contributed.status,
+        'user': contributed.user.username if contributed.user else None,
+        'created_at': contributed.created_at.isoformat(),
+    }, status=201)

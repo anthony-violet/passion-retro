@@ -9,6 +9,11 @@ urlpatterns = [
     path("<int:forum_id>/", views.topic_list, name="topic_list"),
     path("<int:forum_id>/create_topic/", views.create_topic, name="create_topic"),
     path("<int:forum_id>/<int:topic_id>/", views.topic_detail, name="post_list"),
+    path(
+        "subscriptions/<uuid:token>/unsubscribe/",
+        views.unsubscribe_topic,
+        name="unsubscribe_topic",
+    ),
 
     path("<int:topic_id>/lock/", views.lock_topic, name="lock_topic"),
     path("<int:topic_id>/unlock/", views.unlock_topic, name="unlock_topic"),

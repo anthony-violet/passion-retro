@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 from users.models import User
 
@@ -86,3 +88,30 @@ class TopicRead(models.Model):
 
     def __str__(self):
         return f'TopicRead({self.id}, {self.topic}, {self.user})'
+
+class TopicSubscription(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='topic_subscriptions',
+    )
+    topic = models.ForeignKey(
+        Topic,
+        on_delete=models.CASCADE,
+        related_name='subscriptions',
+    )
+    active = models.BooleanField(default=True)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['user', 'topic']
+        verbose_name = 'Abonnement à un sujet'
+        verbose_name_plural = 'Abonnements aux sujets'
+
+    def __str__(self):
+        return (
+            f'TopicSubscription({self.id}, {self.topic}, '
+            f'{self.user}, active={self.active})'
+        )

@@ -3,7 +3,12 @@
 {% block panel_content %}
 <div class="panel-page-header">
     <h2>📅 Éphémérides</h2>
-    <a href="{% url 'panel_ephemeride_create' %}" class="btn btn-add">+ Nouvel événement</a>
+    <div class="panel-actions">
+        <a href="{% url 'panel_ephemerides_contributions' %}" class="btn btn-warning">
+            📥 Contributions en attente{% if pending_ephemerides_count > 0 %} ({{ pending_ephemerides_count }}){% endif %}
+        </a>
+        <a href="{% url 'panel_ephemeride_create' %}" class="btn btn-add">+ Nouvel événement</a>
+    </div>
 </div>
 
 <div class="panel-section">

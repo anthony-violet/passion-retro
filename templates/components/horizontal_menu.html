@@ -12,7 +12,7 @@
         <li><a href="{% url 'home' %}">Accueil</a></li>
         <li><a href="{% url 'discover' %}" class="new-item-menu">Découvrir {{ site_name }}</a></li>
         <li><a href="{% url 'forum_home' %}">Forum</a></li>
-        <li><a href="{% url 'ephemerides_today'  %}">Ce jour là...</a></li>
+        <li><a href="{% url 'ephemerides:ephemerides_today'  %}">Ce jour là...</a></li>
         <li>
             <a href="{% url 'portal_games' %}">
                 Portail des jeux
@@ -23,14 +23,15 @@
         </li>
         <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
         <li><a href="{% url 'shop_home' %}">Boutique</a></li>
-        {% for section in request.nav_sections %}
-        <li><a href="">{% if section.icon %}{{ section.icon }} {% endif %}{{ section.label }}</a>
-            <ul class="dropdown">
-                {% for post in section.posts %}
-                    <li><a href="{% url 'view_post' post.slug %}">{{ post.title }}</a></li>
-                {% endfor %}
-            </ul>
-        </li>
+{% for section in request.nav_sections %}
+<li class="has-dropdown">
+    <a href="#" class="menu-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-submenu-{{ forloop.counter }}">{% if section.icon %}{{ section.icon }} {% endif %}{{ section.label }}</a>
+    <ul class="dropdown" id="nav-submenu-{{ forloop.counter }}">
+        {% for post in section.posts %}
+            <li><a href="{% url 'view_post' post.slug %}">{{ post.title }}</a></li>
         {% endfor %}
+    </ul>
+</li>
+{% endfor %}
     </ul>
 </div>

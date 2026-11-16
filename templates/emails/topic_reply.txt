@@ -1,0 +1,11 @@
+{% autoescape off %}Bonjour {{ recipient.username }},
+
+{{ author.username }} a répondu au sujet « {{ topic.title }} » dans le forum « {{ forum.name }} » :
+
+{{ excerpt }}
+
+Lire la réponse : {{ post_url }}
+
+Vous recevez cet email car vous êtes abonné à ce sujet.
+Pour vous désabonner : {{ unsubscribe_url }}
+{% endautoescape %}

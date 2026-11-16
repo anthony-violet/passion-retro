@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Forum, Topic, Post
+from .models import Category, Forum, Topic, Post, TopicSubscription
 
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'created', 'updated')
@@ -27,7 +27,15 @@ class PostAdmin(admin.ModelAdmin):
     list_filter = ('topic', 'author', 'created', 'updated', 'type')
     fields = ('topic', 'author', 'content', 'type')
 
+class TopicSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('topic', 'user', 'active', 'created', 'updated')
+    list_filter = ('active', 'created', 'updated')
+    search_fields = ('topic__title', 'user__username', 'user__email')
+    readonly_fields = ('token', 'created', 'updated')
+    ordering = ('-created',)
+
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Forum, ForumAdmin)
 admin.site.register(Topic, TopicAdmin)
 admin.site.register(Post, PostAdmin)
+admin.site.register(TopicSubscription, TopicSubscriptionAdmin)

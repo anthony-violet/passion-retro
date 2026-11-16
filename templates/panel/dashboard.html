@@ -71,6 +71,20 @@
             <div class="panel-stat-label">Items boutique</div>
         </div>
     </div>
+    <div class="panel-stat-card {% if pending_ephemerides > 0 %}panel-stat-warning{% endif %}">
+        <div class="panel-stat-icon">📅</div>
+        <div class="panel-stat-body">
+            <div class="panel-stat-value">{{ pending_ephemerides }}</div>
+            <div class="panel-stat-label">Éphémérides</div>
+            <div class="panel-stat-sub">
+                {% if pending_ephemerides > 0 %}
+                    <a href="{% url 'panel_ephemerides_contributions' %}">{{ pending_ephemerides }} en attente</a>
+                {% else %}
+                    Aucune en attente
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="panel-section">

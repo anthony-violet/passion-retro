@@ -41,8 +41,14 @@
             <a href="{% url 'panel_version' %}" class="panel-nav-item {% if 'panel_version' in request.resolver_match.url_name %}active{% endif %}">
                 🏷️ Versions
             </a>
-            <a href="{% url 'panel_ephemerides' %}" class="panel-nav-item {% if 'panel_ephemeride' in request.resolver_match.url_name %}active{% endif %}">
+            <a href="{% url 'panel_ephemerides' %}" class="panel-nav-item {% if request.resolver_match.url_name == 'panel_ephemerides' or request.resolver_match.url_name == 'panel_ephemeride_create' or request.resolver_match.url_name == 'panel_ephemeride_edit' %}active{% endif %}">
                 📅 Éphémérides
+            </a>
+            <a href="{% url 'panel_ephemerides_contributions' %}" class="panel-nav-item {% if request.resolver_match.url_name == 'panel_ephemerides_contributions' or request.resolver_match.url_name == 'panel_ephemeride_contribution_review' %}active{% endif %}">
+                📥 Contributions éphémérides
+                {% if pending_ephemerides_count > 0 %}
+                    <span class="panel-badge panel-badge-warning">{{ pending_ephemerides_count }}</span>
+                {% endif %}
             </a>
             <div class="panel-nav-separator"></div>
             <a href="{% url 'home' %}" class="panel-nav-item">← Retour au site</a>

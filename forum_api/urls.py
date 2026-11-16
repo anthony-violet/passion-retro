@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'forum_api'
+
 urlpatterns = [
     # API root
     path('', views.api_root, name='api_root'),
@@ -21,4 +23,10 @@ urlpatterns = [
     
     # Création d'un post dans un sujet
     path('topics/<int:topic_id>/posts/', views.create_post, name='create_post'),
+
+    # Création d'une éphéméride
+    path('ephemeride-contribute/', views.contribute_ephemeride, name='contribute_ephemeride_api'),
+    
+    # Éphéméride contribution (chemin alternatif)
+    path('ephemeride/contribute/', views.contribute_ephemeride, name='contribute_ephemeride_api_alt'),
 ]

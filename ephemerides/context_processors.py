@@ -1,5 +1,5 @@
 from django.utils import timezone
-from .models import Ephemeride
+from .models import Ephemeride, ContributedEphemeride
 
 
 def ephemerides_today(request):
@@ -8,3 +8,10 @@ def ephemerides_today(request):
     return {
         'ephemerides_today': events,
     }
+
+
+def pending_ephemerides_count(request):
+    count = ContributedEphemeride.objects.filter(
+        status=ContributedEphemeride.STATUS_PENDING
+    ).count()
+    return {'pending_ephemerides_count': count}

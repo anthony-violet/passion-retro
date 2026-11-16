@@ -1,13 +1,15 @@
 from django.core.paginator import Paginator
 from django.conf import settings
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.utils import timezone
 from django.urls import reverse
-from .models import Category, Forum, Topic, Post, TopicRead
+from django.views.decorators.http import require_http_methods
+from .models import Category, Forum, Topic, Post, TopicRead, TopicSubscription
 from .forms import CreateTopic, CreatePost, EditPost
+from .notifications import notify_topic_subscribers, update_subscription
 from django.db.models import Max, F
 from users.decorators import groups_required
 from users.leveling import grant_experience
@@ -37,45 +39,44 @@ def forum_home(request):
         count_topic = Topic.objects.filter(forum=forum).count()
         count_topics[forum.id] = count_topic
 
-        # Optimisation de la vérification des topics non lus
+        # Vérification des topics non lus
         if request.user.is_authenticated:
             # Récupérer le dernier post de chaque topic du forum en une seule requête
-            latest_posts_per_topic = Post.objects.filter(
-                topic__forum=forum
-            ).values('topic_id').annotate(
-                last_post_date=Max('created')
+            latest_posts_per_topic = list(
+                Post.objects.filter(
+                    topic__forum=forum
+                ).values('topic_id').annotate(
+                    last_post_date=Max('created')
+                )
             )
-            
+
             # Récupérer les dernières lectures de l'utilisateur pour tous les topics du forum
             topic_reads = TopicRead.objects.filter(
                 user=request.user,
                 topic__forum=forum
             ).values_list('topic_id', 'last_read')
-            
-            # Convertir en dictionnaire pour un accès plus rapide
-            read_dates = dict(topic_reads)
-            
-            # Un forum est non lu si au moins un topic a un post plus récent que la dernière lecture
-            is_unread = False
-            for post_info in latest_posts_per_topic:
-                topic_id = post_info['topic_id']
-                last_post_date = post_info['last_post_date']
-                
-                # Si le topic n'a jamais été lu
-                if topic_id not in read_dates:
-                    is_unread = True
-                    break
-                
-                # Si le dernier post est plus récent que la dernière lecture
-                if last_post_date > read_dates[topic_id]:
-                    is_unread = True
-                    break
-            
-            unread_topics[forum.id] = is_unread
+
+            # Dernière lecture de l'utilisateur dans ce forum
+            forum_last_read = max(
+                (last_read for _, last_read in topic_reads),
+                default=None
+            )
+
+            if not latest_posts_per_topic:
+                unread_topics[forum.id] = False
+            elif forum_last_read is None:
+                # Aucune lecture dans ce forum : tout est non lu
+                unread_topics[forum.id] = True
+            else:
+                # Un forum est non lu si un post est plus récent que la dernière
+                # lecture de l'utilisateur dans ce forum. On n'exige pas d'avoir
+                # ouvert tous les anciens topics.
+                unread_topics[forum.id] = any(
+                    post_info['last_post_date'] > forum_last_read
+                    for post_info in latest_posts_per_topic
+                )
         else:
             unread_topics[forum.id] = False
-
-        print(unread_topics)
     
     context = {
         'categories': categories,
@@ -192,6 +193,12 @@ def create_topic(request, forum_id):
 
         topic.save()
         post.save()
+        update_subscription(
+            request.user,
+            topic,
+            request.POST.get('subscribe') == 'on',
+        )
+        notify_topic_subscribers(post)
         messages.success(request, 'Topic créer avec succès.')
         grant_experience(request.user, 15)
         # on renvoie l'utilisateur sur la page du topic contenu l'id du forum et du topic créer
@@ -209,6 +216,19 @@ def topic_detail(request, topic_id, forum_id):
     if request.method == 'GET':
         Topic.objects.filter(pk=topic_id).update(views=F('views') + 1)
 
+    topic = Topic.objects.select_related('author', 'forum').prefetch_related(
+        'author__levels'
+    ).get(id=topic_id)
+
+    subscription = None
+    if request.user.is_authenticated:
+        subscription = TopicSubscription.objects.filter(
+            user=request.user,
+            topic=topic,
+        ).first()
+    subscribe_initial = subscription.active if subscription else True
+    post_form = CreatePost(initial={'subscribe': subscribe_initial})
+
     if request.method == 'POST':
         if not request.user.is_active or not request.user.is_authenticated:
             return HttpResponseForbidden("Vous n'êtes pas autorisé à poster un message.")
@@ -216,17 +236,23 @@ def topic_detail(request, topic_id, forum_id):
         post_form = CreatePost(request.POST)
         if post_form.is_valid():
             post = Post(
-                topic=Topic.objects.get(id=topic_id),
+                topic=topic,
                 author=request.user,
                 content=post_form.cleaned_data['content'],
             )
             post.save()
+            subscription = update_subscription(
+                request.user,
+                topic,
+                post_form.cleaned_data.get('subscribe', False),
+            )
+            notify_topic_subscribers(post)
             grant_experience(request.user, 10)
             messages.success(request, 'Message posté avec succès.')
-    
-    topic = Topic.objects.select_related('author').prefetch_related(
-        'author__levels'
-    ).get(id=topic_id)
+            post_form = CreatePost(
+                initial={'subscribe': subscription.active},
+            )
+
     posts = Post.objects.filter(
         topic=topic, active=True
     ).select_related('author').prefetch_related('author__levels').order_by(
@@ -255,7 +281,7 @@ def topic_detail(request, topic_id, forum_id):
         'topic': topic,
         'posts': posts,
         'count_posts': count_posts,
-        'post_form': CreatePost(),
+        'post_form': post_form,
         'is_paginated': posts.has_other_pages(),
         'page_obj': posts,
         'paginator': paginator,
@@ -278,6 +304,24 @@ def topic_detail(request, topic_id, forum_id):
     }
 
     return render(request, "forum/topic_detail.html", context)
+
+@require_http_methods(['GET', 'POST'])
+def unsubscribe_topic(request, token):
+    subscription = get_object_or_404(
+        TopicSubscription.objects.select_related('topic__forum', 'user'),
+        token=token,
+    )
+    if request.method == 'POST' and subscription.active:
+        subscription.active = False
+        subscription.save(update_fields=['active', 'updated'])
+
+    context = {
+        'subscription': subscription,
+        'done': request.method == 'POST',
+        'page_title': f"Désabonnement - {settings.SITE_NAME}",
+        'page_heading': "Désabonnement",
+    }
+    return render(request, 'forum/unsubscribe.html', context)
 
 @groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
 def lock_topic(request, topic_id):
