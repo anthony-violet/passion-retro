@@ -175,7 +175,16 @@ def _profile_context(user):
         'topics': Topic.objects.filter(author=user).count(),
         'forum_posts': ForumPost.objects.filter(author=user).count(),
         'posts': Article.objects.filter(author=user).count(),
+        'memories': _published_memories(user),
     }
+
+
+def _published_memories(user):
+    from wall_memories.models import Memory
+    return (
+        Memory.objects.filter(author=user, status=Memory.STATUS_PUBLISHED)
+        .order_by('-published_at')
+    )
 
 def profile(request):
     try:
@@ -338,3 +347,44 @@ def set_theme(request, theme_name):
         request.user.save()
         request.theme_active = theme_name
     return redirect(request.META.get("HTTP_REFERER", "/"))
+
+def announcement(request):
+    """Page publique de la nouveauté en cours ; les membres reçoivent leur cadeau la première fois."""
+    from django.http import Http404
+    from . import announcements
+
+    current = announcements.current()
+    if not current:
+        raise Http404
+    gift_xp = announcements.mark_seen(request.user) if request.user.is_authenticated else 0
+    return render(request, current['template'], {
+        'announcement': current,
+        'gift_xp': gift_xp,
+        'page_title': f"Nouveauté : {current['title']} - {settings.SITE_NAME}",
+        'page_description': current['banner'],
+    })
+
+
+def close_announcement_banner(request):
+    """Ferme le bandeau de nouveauté (sur le compte du membre, ou par cookie pour un visiteur)."""
+    from django.http import JsonResponse
+    from django.utils.http import url_has_allowed_host_and_scheme
+    from . import announcements
+
+    current = announcements.current()
+    if request.method != 'POST' or not current:
+        return redirect('home')
+    if request.user.is_authenticated:
+        User.objects.filter(pk=request.user.pk).update(announcement_banner_closed=current['key'])
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        response = JsonResponse({'closed': True})
+    else:
+        target = request.POST.get('next', '')
+        if not url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}):
+            target = '/'
+        response = redirect(target)
+    response.set_cookie(
+        announcements.BANNER_COOKIE, current['key'],
+        max_age=60 * 60 * 24 * 180, samesite='Lax', secure=request.is_secure(),
+    )
+    return response

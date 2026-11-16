@@ -1,0 +1,28 @@
+{% extends 'wall_memories/default/wall.html' %}
+
+{% block wm_hero %}
+<header class="wm-hero wm-rg-hero">
+    <div class="wm-rg-hud">
+        <span>1UP <strong>{{ user.username|default:"PLAYER"|upper|truncatechars:12 }}</strong></span>
+        <span>HI-SCORE <strong>{{ total_memories|stringformat:"06d" }}</strong></span>
+        <span>PLAYERS <strong>{{ total_contributors|stringformat:"02d" }}</strong></span>
+    </div>
+    <h1 class="wm-hero__title">LE MUR DES SOUVENIRS</h1>
+    <p class="wm-hero__tagline">« Parce que certains souvenirs ne s'effacent jamais. »</p>
+    <p class="wm-hero__intro">Chaque souvenir est une cartouche dans la grande ludothèque de la communauté. Insère la tienne et raconte le niveau que tu n'as jamais oublié.</p>
+    <div class="wm-hero__actions">
+        {% if user.is_authenticated %}
+        <a href="{% url 'wall_memories:create' %}" class="wm-btn wm-btn--primary wm-rg-blink" data-wm-open>▶ PRESS START</a>
+        <a href="{% url 'wall_memories:mine' %}" class="wm-btn">MES CARTOUCHES</a>
+        <a href="{% url 'wall_memories:favorites' %}" class="wm-btn">🔖 FAVORIS</a>
+        {% else %}
+        <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="wm-btn wm-btn--primary wm-rg-blink">INSERT COIN</a>
+        {% endif %}
+        <a href="{% url 'wall_memories:random' %}" class="wm-btn">🎲 RANDOM SELECT</a>
+    </div>
+</header>
+{% endblock %}
+
+{% block wm_daily_title %}★ BONUS STAGE : le souvenir du jour{% endblock %}
+{% block wm_board_title %}▶ SELECT YOUR MEMORY{% endblock %}
+{% block wm_empty %}NO CARTRIDGE — insère la première cartouche !{% endblock %}

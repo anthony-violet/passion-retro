@@ -1,0 +1,58 @@
+/* Mur des souvenirs — thème Années 80 : soleil synthwave, grille néon, cassettes audio. */
+
+.wm--80s {
+    --wm-font-title: 'Trebuchet MS', 'Arial Black', sans-serif;
+    --wm-bg: #0b0b2a;
+    --wm-surface: #10103a;
+    --wm-text: #f4e9ff;
+    --wm-card-bg: #14123d;
+    --wm-card-text: #f4e9ff;
+    --wm-border: #3c2a7a;
+    --wm-accent: #ff2bd6;
+    --wm-accent-2: #22f3ff;
+    --wm-radius: 6px;
+}
+.wm-80s-hero { position: relative; overflow: hidden; border: 0 !important; color: #fff; padding-bottom: 215px !important;
+    background: linear-gradient(#120024 0%, #3d0a5a calc(100% - 120px), #ff2bd6 calc(100% - 119px), #120024 calc(100% - 117px)) !important; }
+.wm-80s-sun { position: absolute; left: 50%; bottom: 120px; width: 200px; height: 100px; margin-left: -100px; border-radius: 100px 100px 0 0 !important; border-radius: 50%;
+    background: repeating-linear-gradient(transparent 0 14px, #3d0a5a 14px 18px), linear-gradient(#ffe66d, #ff6ec7 60%, #ff2bd6);
+    background-blend-mode: normal; opacity: .9; }
+.wm-80s-grid { position: absolute; left: -50%; right: -50%; bottom: 0; height: 118px; transform: perspective(300px) rotateX(60deg); transform-origin: bottom;
+    background: linear-gradient(transparent 95%, #22f3ff 95%) 0 0 / 100% 30px, linear-gradient(90deg, transparent 95%, #22f3ff 95%) 0 0 / 40px 100%; opacity: .6; }
+.wm-80s-hero__content { position: relative; z-index: 1; }
+.wm--80s .wm-hero__title { font-style: italic; font-weight: 900; text-transform: uppercase; letter-spacing: .04em;
+    background: linear-gradient(#fff 30%, #22f3ff 50%, #ff2bd6 70%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 10px rgba(255,43,214,.7)); }
+.wm--80s .wm-hero__intro { color: #e7d8ff; }
+.wm--80s .wm-hero__tagline { color: #22f3ff; text-shadow: 0 0 8px #22f3ff; }
+.wm--80s .wm-btn { background: transparent; border: 2px solid #22f3ff; color: #22f3ff !important; box-shadow: 0 0 8px rgba(34,243,255,.5); }
+.wm--80s .wm-btn--primary { border-color: #ff2bd6; color: #fff !important; background: rgba(255,43,214,.25); box-shadow: 0 0 14px #ff2bd6; }
+.wm--80s .wm-filter { background: transparent; border-color: #3c2a7a; }
+.wm--80s .wm-filter.is-active { background: #ff2bd6; border-color: #ff2bd6; box-shadow: 0 0 10px #ff2bd6; }
+.wm--80s .wm-section-title { color: #22f3ff; text-shadow: 0 0 8px rgba(34,243,255,.7); font-style: italic; }
+
+/* Cassette audio */
+.wm-80s-tape { border: 2px solid #3c2a7a !important; border-radius: 10px !important; background: linear-gradient(160deg, #1f1a4f, #120f33) !important;
+    box-shadow: 0 0 0 4px #0b0b2a, 0 0 18px rgba(255,43,214,.25); }
+.wm-80s-tape:hover { box-shadow: 0 0 0 4px #0b0b2a, 0 0 26px rgba(34,243,255,.45); }
+.wm-80s-tape__label { margin: .8rem .8rem 0; padding: .5rem .7rem; border-radius: 4px; color: #1b1035;
+    background: linear-gradient(#fff6d5 0 60%, #ff6ec7 60% 70%, #ffb86c 70% 80%, #22f3ff 80%); display: grid; grid-template-columns: auto 1fr; gap: 0 .6rem; align-items: center; }
+.wm-80s-tape__side { grid-row: span 2; font-weight: 900; font-size: 1.6rem; color: #ff2bd6; }
+.wm-80s-tape .wm-card__title { font-family: 'Comic Sans MS', 'Marker Felt', cursive; margin: 0; font-size: 1.05rem; }
+.wm-80s-tape .wm-card__title a { color: #1b1035 !important; }
+.wm-80s-tape__time { font-size: .7em; font-weight: 700; text-transform: uppercase; }
+.wm-80s-tape__window { display: flex; align-items: center; justify-content: center; gap: .4rem; margin: .6rem auto 0; width: 70%; height: 38px;
+    border-radius: 20px; background: #07061a; border: 2px solid #3c2a7a; }
+.wm-80s-reel { width: 26px; height: 26px; border-radius: 50%; border: 5px dotted #fff6d5; animation: wm-80s-spin 4s linear infinite; }
+.wm-80s-tape__ribbon { flex: 1; max-width: 70px; height: 12px; background: #5a3a1a; border-radius: 6px; }
+.wm-80s-tape:hover .wm-80s-reel { animation-duration: 1s; }
+@keyframes wm-80s-spin { to { transform: rotate(360deg); } }
+.wm--80s .wm-card__photo { margin: .6rem .8rem 0; border-radius: 4px; }
+.wm--80s .wm-tags a { border-color: #ff2bd6; color: #ffb3ef !important; }
+
+.wm--80s .wm-memory { border: 2px solid #ff2bd6; box-shadow: 0 0 22px rgba(255,43,214,.35); }
+.wm-80s-marquee .wm-memory__title { color: #fff; text-shadow: 0 0 6px #ff2bd6, 0 0 18px #ff2bd6; font-style: italic; }
+.wm--80s .wm-memory__question { background: rgba(34,243,255,.12); border-left: 3px solid #22f3ff; }
+.wm--80s .wm-comment { border-color: #3c2a7a; }
+.wm--80s .wm-modal { border: 2px solid #ff2bd6; box-shadow: 0 0 30px rgba(255,43,214,.5); }
+.wm--80s .wm-field input, .wm--80s .wm-field textarea, .wm--80s .wm-field select, .wm--80s .wm-filters__archives select { background: #07061a; color: #f4e9ff; border-color: #3c2a7a; }

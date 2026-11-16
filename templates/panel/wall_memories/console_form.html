@@ -1,0 +1,42 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>{{ action }} une console</h2>
+    <a href="{% url 'panel_memory_consoles' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label>Nom</label>
+                <input type="text" name="name" value="{{ console.name|default:'' }}" placeholder="ex : Super Nintendo" required>
+            </div>
+            <div class="panel-form-group">
+                <label>Slug (facultatif)</label>
+                <input type="text" name="slug" value="{{ console.slug|default:'' }}" placeholder="généré à partir du nom">
+            </div>
+            <div class="panel-form-group">
+                <label>Constructeur</label>
+                <input type="text" name="manufacturer" value="{{ console.manufacturer|default:'' }}" placeholder="ex : Nintendo">
+            </div>
+            <div class="panel-form-group">
+                <label>Année de sortie</label>
+                <input type="number" name="release_year" value="{{ console.release_year|default:'' }}" placeholder="ex : 1990">
+            </div>
+            <div class="panel-form-group">
+                <label>Ordre d'affichage</label>
+                <input type="number" name="order" value="{{ console.order|default:0 }}" min="0">
+            </div>
+            <div class="panel-form-group">
+                <label><input type="checkbox" name="is_active" {% if console.is_active %}checked{% endif %}> Proposée aux membres</label>
+            </div>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">{{ action }}</button>
+            <a href="{% url 'panel_memory_consoles' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

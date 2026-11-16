@@ -1,0 +1,52 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>🧡 Mur des souvenirs</h2>
+    <div class="panel-actions">
+        <a href="{% url 'panel_memory_comments' %}" class="btn btn-small">💬 Commentaires</a>
+        <a href="{% url 'panel_memory_consoles' %}" class="btn btn-small">🕹️ Consoles</a>
+        <a href="{% url 'wall_memories:wall' %}" class="btn btn-small" target="_blank">Voir le Mur ↗</a>
+    </div>
+</div>
+
+<div class="panel-section">
+    {% include 'panel/wall_memories/_status_tabs.html' %}
+
+    <table class="panel-table">
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Auteur</th>
+                <th>Époque</th>
+                <th>Consoles</th>
+                <th>Statut</th>
+                <th>Soumis le</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for memory in memories %}
+            <tr>
+                <td>{{ memory.title }}</td>
+                <td>{{ memory.author.username }}</td>
+                <td>{{ memory.get_era_display }}{% if memory.year %} ({{ memory.year }}){% endif %}</td>
+                <td>{{ memory.consoles.all|join:", "|default:"—" }}</td>
+                <td>{{ memory.get_status_display }}</td>
+                <td>{{ memory.created_at|date:"d/m/Y H:i" }}</td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_memory_review' memory.id %}" class="btn btn-small btn-primary">Examiner</a>
+                    <form method="post" action="{% url 'panel_memory_delete' memory.id %}" style="display:inline" onsubmit="return confirm('Supprimer définitivement ce souvenir ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="panel-empty">✨ Aucun souvenir dans cette catégorie.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% include 'panel/wall_memories/_pagination.html' %}
+</div>
+{% endblock %}

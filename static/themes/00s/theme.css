@@ -576,6 +576,31 @@ textarea:focus-visible {
     text-shadow: 0 0 6px rgba(255,100,0,0.4);
 }
 
+/* Sous-menus en cascade (Magazine ▸ rubrique ▸ articles) */
+.menu-horizontal .dropdown--sub {
+    background: #1e1e1e;
+    border: 1px solid var(--border-container);
+    border-top: 2px solid #ff4400;
+    box-shadow: 2px 4px 12px rgba(0,0,0,0.7);
+}
+
+.menu-horizontal .dropdown--sub > li {
+    border-bottom: 1px solid #252525;
+}
+
+.menu-horizontal .dropdown--sub > li > a {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 11px;
+    color: #aaaaaa;
+    font-weight: bold;
+}
+
+.menu-horizontal .dropdown--sub > li > a:hover {
+    background: #2a1000;
+    color: #ff6600;
+    text-shadow: 0 0 6px rgba(255,100,0,0.4);
+}
+
 /* Burger géré par default/theme.css : caché par défaut, visible dans son media query max-width:768px */
 
 /* ===== PROFILS UTILISATEUR ===== */
@@ -1806,7 +1831,11 @@ a.shop:hover { color: var(--text-link); }
 .ephemeride-cat-small {
     display: block;
     font-size: 0.75rem;
-    color: #999999;
+    color: var(--text-primary);
+}
+
+.ephemeride-year-badge {
+    color: var(--text-primary);
 }
 
 /* ===== PANEL DE MODÉRATION ===== */

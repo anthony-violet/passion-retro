@@ -804,6 +804,78 @@ li.disabled {
     color: var(--text-link-hover);
 }
 
+/* Sous-menus en cascade (Magazine ▸ rubrique ▸ articles) */
+.menu-caret {
+    font-size: 0.8em;
+    opacity: 0.8;
+}
+
+.menu-caret--side {
+    float: right;
+    margin-left: 0.8rem;
+}
+
+.menu-horizontal .has-subdropdown {
+    position: relative;
+}
+
+/* Menu placé en bout de barre : il s'aligne à droite et ses sous-menus s'ouvrent vers la gauche. */
+.menu-horizontal > ul > li.has-dropdown--end > ul {
+    left: auto;
+    right: 0;
+}
+
+.menu-horizontal .has-dropdown--end .dropdown--sub {
+    left: auto;
+    right: 100%;
+}
+
+.menu-horizontal .has-dropdown--end .menu-caret--side {
+    float: none;
+    margin: 0 0.5rem 0 0;
+}
+
+.menu-horizontal .dropdown--sub {
+    display: none;
+    position: absolute;
+    top: -4px;
+    left: 100%;
+    min-width: 220px;
+    max-width: 320px;
+    background: var(--bg-container);
+    border: 1px solid var(--border-container);
+    border-top: 2px solid var(--border-menu-header);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    list-style: none;
+    padding: 4px 0;
+    margin: 0;
+    z-index: 201;
+}
+
+.menu-horizontal .has-subdropdown:hover > .dropdown--sub,
+.menu-horizontal .has-subdropdown:focus-within > .dropdown--sub,
+.menu-horizontal .has-subdropdown.open > .dropdown--sub {
+    display: block;
+}
+
+.menu-horizontal .dropdown--sub > li {
+    border-bottom: 1px dotted var(--border-container);
+    padding: 0;
+}
+
+.menu-horizontal .dropdown--sub > li > a {
+    display: block;
+    padding: 6px 12px;
+    color: var(--text-link);
+    text-decoration: none;
+    font-size: 0.82rem;
+}
+
+.menu-horizontal .dropdown--sub > li > a:hover {
+    background: var(--bg-forum-row);
+    color: var(--text-link-hover);
+}
+
 /* Burger — caché sur desktop, visible sur mobile */
 .burger-menu {
     display: none;
@@ -848,10 +920,17 @@ li.disabled {
         display: block;
     }
     @media (max-width: 768px) {
-        .menu-horizontal.open > ul > li > ul {
+        .menu-horizontal.open > ul > li > ul,
+        .menu-horizontal.open .dropdown--sub {
             position: static;
             min-width: 0;
+            max-width: none;
             width: 100%;
+        }
+        .menu-horizontal.open .dropdown--sub {
+            border: 0;
+            box-shadow: none;
+            padding-left: 12px;
         }
     }
     .menu-horizontal > ul > li > a {

@@ -1,0 +1,25 @@
+{% load wall_memories_tags %}
+<article class="wm-card wm-rpg-scroll{% if featured %} wm-card--featured{% endif %}">
+    <div class="wm-rpg-scroll__head">
+        <span class="wm-rpg-scroll__icon">⚔</span>
+        <span class="wm-rpg-scroll__quest">Quête · {{ memory.get_era_display }}{% if memory.year %} · An {{ memory.year }}{% endif %}</span>
+        <span class="wm-rpg-scroll__icon">⚔</span>
+    </div>
+    {% if memory.image %}
+    <a href="{{ memory.get_absolute_url }}" class="wm-card__photo"><img src="{{ memory.image.url }}" alt="" loading="lazy"></a>
+    {% endif %}
+    <div class="wm-card__body">
+        <h3 class="wm-card__title"><a href="{{ memory.get_absolute_url }}">{{ memory.title }}</a></h3>
+        {% include 'wall_memories/_author.html' with person=memory.author when=memory.published_at compact=True %}
+        <p class="wm-card__excerpt">{{ memory.content|plain_excerpt:230 }}</p>
+        {% if memory.consoles.all %}
+        <ul class="wm-tags">{% for c in memory.consoles.all %}<li><a href="{% url 'wall_memories:wall' %}?console={{ c.slug }}">{{ c.name }}</a></li>{% endfor %}</ul>
+        {% endif %}
+        {% if memory.question %}<p class="wm-card__question">❓ {{ memory.question }}</p>{% endif %}
+    </div>
+    <footer class="wm-card__footer">
+        {% include 'wall_memories/_reactions.html' with compact=True %}
+        <a href="{{ memory.get_absolute_url }}#comments" class="wm-card__comments">🗨 {{ memory.comments_count }} réponse{{ memory.comments_count|pluralize }}</a>
+    </footer>
+    <span class="wm-rpg-scroll__seal" aria-hidden="true"></span>
+</article>

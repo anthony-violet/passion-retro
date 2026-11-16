@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}
+<link rel="stylesheet" href="{% static 'wall_memories/css/base.css' %}">
+<link rel="stylesheet" href="{% static 'wall_memories/css/' %}{{ wm_theme }}.css">
+<link rel="stylesheet" href="{% static 'css/textarea_preview.css' %}">
+{% endblock %}
+
+{% block extrajs %}
+<script src="{% static 'wall_memories/js/wall.js' %}" defer></script>
+<script src="{% static 'js/utils/textarea_preview.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="wm wm--{{ wm_theme }}">
+    {% if messages %}
+    <ul class="wm-messages">
+        {% for message in messages %}<li class="wm-message wm-message--{{ message.tags }}">{{ message }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% block wm_content %}{% endblock %}
+    {% if user.is_authenticated %}{% block wm_modal %}{% include wm_form %}{% endblock %}{% endif %}
+</div>
+{% endblock %}

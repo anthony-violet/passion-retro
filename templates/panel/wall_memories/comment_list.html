@@ -1,0 +1,51 @@
+{% extends 'panel/layout.html' %}
+{% load wall_memories_tags %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>💬 Commentaires du Mur des souvenirs</h2>
+    <a href="{% url 'panel_memories' %}" class="btn btn-small">← Souvenirs</a>
+</div>
+
+<div class="panel-section">
+    <p class="panel-section-subtitle">Les commentaires sont publiés immédiatement : masque ou supprime ceux qui posent problème.</p>
+    {% include 'panel/wall_memories/_status_tabs.html' %}
+
+    <table class="panel-table">
+        <thead>
+            <tr>
+                <th>Souvenir</th>
+                <th>Auteur</th>
+                <th>Commentaire</th>
+                <th>Statut</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for comment in comments %}
+            <tr>
+                <td><a href="{{ comment.memory.get_absolute_url }}" target="_blank">{{ comment.memory.title|truncatechars:40 }}</a></td>
+                <td>{{ comment.author.username }}</td>
+                <td>{{ comment.content|truncatechars:160 }}</td>
+                <td>{{ comment.get_status_display }}</td>
+                <td>{{ comment.created_at|date:"d/m/Y H:i" }}</td>
+                <td class="panel-actions">
+                    <form method="post" action="{% url 'panel_memory_comment_toggle' comment.id %}" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-warning">{% if comment.status == 'hidden' %}Republier{% else %}Masquer{% endif %}</button>
+                    </form>
+                    <form method="post" action="{% url 'panel_memory_comment_delete' comment.id %}" style="display:inline" onsubmit="return confirm('Supprimer ce commentaire ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="panel-empty">Aucun commentaire.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% include 'panel/wall_memories/_pagination.html' %}
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{# Réactions thématiques + favori. Fonctionne sans JS (formulaires), amélioré par wall.js. #}
+<div class="wm-reactions{% if compact %} wm-reactions--compact{% endif %}" data-memory="{{ memory.pk }}">
+    {% for r in memory.reaction_summary %}
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'wall_memories:react' memory.pk %}" class="wm-react-form">
+        {% csrf_token %}
+        <input type="hidden" name="type" value="{{ r.type }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="wm-react{% if r.mine %} is-active{% endif %}" title="{{ r.label }}" aria-pressed="{% if r.mine %}true{% else %}false{% endif %}">
+            <span class="wm-react__emoji">{{ r.emoji }}</span>
+            <span class="wm-react__count">{{ r.count }}</span>
+            {% if not compact %}<span class="wm-react__label">{{ r.label }}</span>{% endif %}
+        </button>
+    </form>
+    {% else %}
+    <span class="wm-react is-static" title="{{ r.label }}">
+        <span class="wm-react__emoji">{{ r.emoji }}</span>
+        <span class="wm-react__count">{{ r.count }}</span>
+        {% if not compact %}<span class="wm-react__label">{{ r.label }}</span>{% endif %}
+    </span>
+    {% endif %}
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'wall_memories:favorite' memory.pk %}" class="wm-fav-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="wm-fav{% if memory.is_favorite %} is-active{% endif %}" title="{% if memory.is_favorite %}Retirer de mes favoris{% else %}Garder dans mes favoris{% endif %}" aria-pressed="{% if memory.is_favorite %}true{% else %}false{% endif %}">
+            🔖<span class="wm-fav__label">{% if memory.is_favorite %}Dans mes favoris{% else %}Favori{% endif %}</span>
+        </button>
+    </form>
+    {% endif %}
+</div>

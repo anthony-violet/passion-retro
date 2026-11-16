@@ -10,10 +10,19 @@
 <div class="menu-horizontal">
     <ul id="menu-principal">
         <li><a href="{% url 'home' %}">Accueil</a></li>
-        <li><a href="{% url 'discover' %}" class="new-item-menu">Découvrir {{ site_name }}</a></li>
+        <li><a href="{% url 'discover' %}">Découvrir {{ site_name }}</a></li>
+        <li><a href="{% url 'wall_memories:wall' %}">Le Mur des souvenirs</a>{% if request.user.is_staff and pending_memories_count > 0 %} <span class="badge badge-warning">{{ pending_memories_count }}</span>{% endif %}</li>
         <li><a href="{% url 'news_list' %}">Actus</a></li>
-        <li><a href="{% url 'forum_home' %}">Forum</a></li>
-        <li><a href="{% url 'ephemerides:ephemerides_today'  %}">Ce jour là...</a></li>
+        <li class="has-dropdown">
+            <a href="#" class="menu-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-submenu-community">Communauté <span class="menu-caret" aria-hidden="true">▾</span></a>
+            <ul class="dropdown" id="nav-submenu-community">
+                <li><a href="{% url 'forum_home' %}">Forum</a></li>
+                <li><a href="{% url 'ephemerides:ephemerides_today' %}">Ce jour là...</a></li>
+                <li><a href="{% url 'guestbook_home' %}">Livre d'or</a></li>
+            </ul>
+        </li>
+        <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
+        <li><a href="{% url 'shop_home' %}">Boutique</a></li>
         <li>
             <a href="{% url 'portal_games' %}">
                 Portail des jeux
@@ -22,17 +31,22 @@
                 {% endif %}
             </a>
         </li>
-        <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
-        <li><a href="{% url 'shop_home' %}">Boutique</a></li>
-{% for section in request.nav_sections %}
-<li class="has-dropdown">
-    <a href="#" class="menu-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-submenu-{{ forloop.counter }}">{% if section.icon %}{{ section.icon }} {% endif %}{{ section.label }}</a>
-    <ul class="dropdown" id="nav-submenu-{{ forloop.counter }}">
-        {% for post in section.posts %}
-            <li><a href="{% url 'view_post' post.slug %}">{{ post.title }}</a></li>
-        {% endfor %}
-    </ul>
-</li>
-{% endfor %}
+        {% if request.nav_sections %}
+        <li class="has-dropdown has-dropdown--end">
+            <a href="#" class="menu-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-submenu-magazine">Magazine <span class="menu-caret" aria-hidden="true">▾</span></a>
+            <ul class="dropdown" id="nav-submenu-magazine">
+                {% for section in request.nav_sections %}
+                <li class="has-dropdown has-subdropdown">
+                    <a href="#" class="menu-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-submenu-{{ forloop.counter }}"><span class="menu-caret menu-caret--side" aria-hidden="true">◂</span> {% if section.icon %}{{ section.icon }} {% endif %}{{ section.label }}</a>
+                    <ul class="dropdown dropdown--sub" id="nav-submenu-{{ forloop.counter }}">
+                        {% for post in section.posts %}
+                            <li><a href="{% url 'view_post' post.slug %}">{{ post.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+        {% endif %}
     </ul>
 </div>

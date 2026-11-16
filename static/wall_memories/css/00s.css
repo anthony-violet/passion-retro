@@ -1,0 +1,54 @@
+/* Mur des souvenirs — thème Années 2000 : skyblog, fenêtres MSN, paillettes. */
+
+.wm--00s {
+    --wm-font-title: Verdana, Tahoma, sans-serif;
+    --wm-bg: #1a1a1a;
+    --wm-surface: #222;
+    --wm-text: #f2f2f2;
+    --wm-card-bg: #fff;
+    --wm-card-text: #333;
+    --wm-border: #ff9933;
+    --wm-accent: #ff6600;
+    --wm-accent-2: #ff33cc;
+    --wm-radius: 6px;
+    font-family: Verdana, Tahoma, sans-serif;
+    font-size: .95em;
+}
+.wm-00s-hero { padding: 0 !important; overflow: hidden; border: 2px solid #3a6ea5 !important; background: #eef4fb !important; color: #1a2a40; }
+.wm-00s-window__bar { display: flex; justify-content: space-between; padding: .35rem .7rem; font-size: .8em; font-weight: 700; color: #fff; text-align: left;
+    background: linear-gradient(#5d9ae0, #2c6cc4 50%, #1f55a8); }
+.wm-00s-window__btns { letter-spacing: .4em; }
+.wm-00s-hero__content { padding: 1.6rem 1.2rem; background: linear-gradient(#ffffff, #dbe9f8); }
+.wm--00s .wm-hero__title { color: #ff6600; text-shadow: 1px 1px 0 #fff, 2px 2px 0 #ff33cc; }
+.wm--00s .wm-hero__intro { color: #36506e; }
+.wm--00s .wm-hero__kicker { color: #ff33cc; }
+.wm--00s .wm-btn { border-radius: 4px; background: linear-gradient(#ffffff, #dfe8f3); border-color: #8aa7c9; color: #1a2a40 !important; font-size: .85em; }
+.wm--00s .wm-btn--primary { background: linear-gradient(#ffb066, #ff6600); border-color: #cc5200; color: #fff !important; }
+.wm--00s .wm-filter { border-radius: 4px; font-size: .8em; }
+.wm--00s .wm-filter.is-active { background: linear-gradient(#ffb066, #ff6600); border-color: #cc5200; }
+.wm--00s .wm-section-title { color: #ff6600; }
+.wm--00s .wm-section-title::before, .wm--00s .wm-section-title::after { content: ' ★ '; color: #ff33cc; }
+
+/* Article de skyblog */
+.wm-00s-post { border: 2px solid #ff9933 !important; border-radius: 8px !important; }
+.wm-00s-post__header { padding: .6rem .9rem; background: linear-gradient(90deg, #ff6600, #ff33cc); color: #fff; }
+.wm-00s-post .wm-card__title { margin: 0; font-size: 1rem; }
+.wm-00s-post .wm-card__title a { color: #fff !important; }
+.wm-00s-post__meta { display: block; font-size: .72em; opacity: .9; }
+.wm-00s-post .wm-card__photo { margin: .8rem .9rem 0; border: 3px solid #ff99cc; border-radius: 4px; }
+.wm-00s-post .wm-card__question { color: #ff33cc; }
+.wm-00s-post .wm-tags a { border-color: #ff9933; color: #cc5200 !important; }
+.wm-00s-post .wm-author { margin-top: .7rem; padding-top: .6rem; border-top: 1px dotted #ff9933; }
+.wm-00s-post .wm-card__footer { background: #fff4e8; border-top: 1px dotted #ff9933; }
+.wm-00s-post .wm-card__comments { color: #ff33cc; font-weight: 700; }
+
+.wm--00s .wm-memory { background: #fff; color: #333; border: 2px solid #ff9933; padding-top: 0; overflow: hidden; }
+.wm--00s .wm-memory .wm-00s-post__header { margin: 0 -1.6rem 1rem; padding: 1rem 1.6rem; }
+.wm--00s .wm-memory .wm-memory__title { color: #fff; margin: 0; }
+.wm--00s .wm-memory__question { background: #ffe6f5; color: #b3007a; }
+.wm--00s .wm-comment { background: #fff; color: #333; border: 1px dashed #ff9933; }
+.wm--00s .wm-comments__title { color: #ff33cc; }
+.wm--00s .wm-modal { background: #eef4fb; color: #1a2a40; border: 2px solid #3a6ea5; border-radius: 6px; }
+.wm--00s .wm-modal__header { background: linear-gradient(#5d9ae0, #1f55a8); color: #fff; }
+.wm--00s .wm-modal__header p { color: #dbe9f8; }
+.wm--00s .wm-modal__close { color: #fff; }

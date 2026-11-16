@@ -104,6 +104,7 @@
         {% endif %}
 
             {% block page_heading %}<h1 class="sr-only">{{ page_heading }}</h1>{% endblock %}
+            {% include './components/announcement_banner.html' %}
             {% if messages %}
                 <div class="notification">
                     <ul class="messages">

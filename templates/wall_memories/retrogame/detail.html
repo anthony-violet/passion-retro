@@ -1,0 +1,20 @@
+{% extends 'wall_memories/default/detail.html' %}
+{% load wall_memories_tags %}
+{% block wm_back %}◀ RETOUR À LA LUDOTHÈQUE{% endblock %}
+{% block wm_memory %}
+<div class="wm-rg-hud"><span>STAGE <strong>{{ memory.get_era_display|upper }}</strong></span>{% if memory.year %}<span>YEAR <strong>{{ memory.year }}</strong></span>{% endif %}<span>♥ <strong>{{ memory.reactions_count|stringformat:"03d" }}</strong></span></div>
+<header class="wm-memory__header">
+    <h1 class="wm-memory__title">{{ memory.title }}</h1>
+    {% include 'wall_memories/_author.html' with person=memory.author when=memory.published_at|default:memory.created_at %}
+</header>
+{% if memory.image %}<figure class="wm-memory__photo"><img src="{{ memory.image.url }}" alt="Photo illustrant le souvenir « {{ memory.title }} »"></figure>{% endif %}
+<div class="wm-memory__content">{{ memory.content|safe_bbcode }}</div>
+{% if memory.consoles.all %}
+<ul class="wm-tags">{% for c in memory.consoles.all %}<li><a href="{% url 'wall_memories:wall' %}?console={{ c.slug }}">{{ c.name }}</a></li>{% endfor %}</ul>
+{% endif %}
+{% if memory.question %}<p class="wm-memory__question">? {{ memory.question }}</p>{% endif %}
+{% endblock %}
+{% block wm_comments %}
+{% include 'wall_memories/_comments.html' with comments_title="▶ PLAYER 2 ENTERS" comments_empty="WAITING FOR PLAYER 2…" comment_button="▶ CONTINUE" %}
+{% endblock %}
+{% block wm_more_title %}▶ AUTRES CARTOUCHES DE {{ memory.author.username|upper }}{% endblock %}

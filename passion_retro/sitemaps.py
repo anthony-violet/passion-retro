@@ -9,6 +9,7 @@ from django.urls import reverse
 from forum.models import Post as ForumPost
 from forum.models import Topic
 from posts.models import Post
+from wall_memories.models import Memory
 
 
 _FORUM_LINK_RE = re.compile(r"^/?forum/\d+/(\d+)/?$")
@@ -57,6 +58,7 @@ class StaticViewSitemap(ConfiguredSitemap):
             "portal_games",
             "guestbook_home",
             "ephemerides:ephemerides_today",
+            "wall_memories:wall",
         ]
 
     def location(self, item):
@@ -104,3 +106,19 @@ class TopicSitemap(ConfiguredSitemap):
 
     def location(self, obj):
         return reverse("post_list", args=[obj.forum_id, obj.id])
+
+
+class MemorySitemap(ConfiguredSitemap):
+    """Souvenirs publiés du Mur des souvenirs (les autres statuts sont en 404)."""
+
+    priority = 0.6
+    changefreq = "monthly"
+
+    def items(self):
+        return Memory.objects.filter(status=Memory.STATUS_PUBLISHED).order_by("-published_at")
+
+    def lastmod(self, obj):
+        return obj.updated_at
+
+    def location(self, obj):
+        return obj.get_absolute_url()

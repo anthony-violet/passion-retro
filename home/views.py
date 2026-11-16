@@ -5,14 +5,25 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render
 from posts.models import Post
+from wall_memories.models import Memory
+from wall_memories.services import memory_of_the_day
 
 def home(request):
     edito = Post.objects.filter(type='edito', active=True).first()
     news = Post.objects.filter(type='news', active=True).order_by('-created')[:6]
 
+    # Mise en avant du Mur des souvenirs : le souvenir du jour, sinon le dernier publié.
+    daily_memory = memory_of_the_day()
+    featured_memory = daily_memory or (
+        Memory.objects.filter(status=Memory.STATUS_PUBLISHED)
+        .select_related('author').order_by('-published_at').first()
+    )
+
     context = {
         'edito': edito,
         'news': news,
+        'featured_memory': featured_memory,
+        'featured_memory_is_daily': daily_memory is not None,
     }
 
     return render(request, "home.html", context)
@@ -24,13 +35,20 @@ def discover(request):
         .order_by('-created')[:3]
     )
 
+    latest_memories = (
+        Memory.objects.filter(status=Memory.STATUS_PUBLISHED)
+        .select_related('author').order_by('-published_at')[:3]
+    )
+
     context = {
         'latest_posts': latest_posts,
+        'latest_memories': latest_memories,
         'page_title': f"Découvrir {settings.SITE_NAME} - La communauté rétro francophone",
         'page_heading': f"Découvrir {settings.SITE_NAME}",
         'page_description': (
             f"Découvrez {settings.SITE_NAME} : un magazine participatif, un forum, "
-            "des jeux rétro, des quiz et une communauté francophone passionnée."
+            "le Mur des souvenirs, des jeux rétro, des quiz et une communauté "
+            "francophone passionnée."
         ),
     }
 

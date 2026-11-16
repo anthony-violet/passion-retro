@@ -1,0 +1,29 @@
+{% extends 'wall_memories/default/wall.html' %}
+
+{% block wm_hero %}
+<header class="wm-hero wm-vhs-hero">
+    <div class="wm-vhs-osd"><span class="wm-vhs-osd__play">▶ PLAY</span><span class="wm-vhs-osd__mode">SP</span></div>
+    <p class="wm-hero__kicker">CH 03 · ARCHIVES DE LA COMMUNAUTÉ</p>
+    <h1 class="wm-hero__title" data-text="LE MUR DES SOUVENIRS">LE MUR DES SOUVENIRS</h1>
+    <p class="wm-hero__tagline">« Parce que certains souvenirs ne s'effacent jamais. »</p>
+    <p class="wm-hero__intro">Rembobine. Appuie sur lecture. Raconte le moment de jeu que tu n'as jamais effacé de ta mémoire, et regarde les cassettes des autres.</p>
+    <div class="wm-hero__stats">
+        <span class="wm-stat">TAPES <strong>{{ total_memories|stringformat:"03d" }}</strong></span>
+        <span class="wm-stat">REC BY <strong>{{ total_contributors|stringformat:"03d" }}</strong></span>
+    </div>
+    <div class="wm-hero__actions">
+        {% if user.is_authenticated %}
+        <a href="{% url 'wall_memories:create' %}" class="wm-btn wm-btn--primary" data-wm-open>● REC — Enregistrer un souvenir</a>
+        <a href="{% url 'wall_memories:mine' %}" class="wm-btn">⏏ Mes cassettes</a>
+        <a href="{% url 'wall_memories:favorites' %}" class="wm-btn">🔖 Mes favoris</a>
+        {% else %}
+        <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="wm-btn wm-btn--primary">● REC — Connecte-toi</a>
+        {% endif %}
+        <a href="{% url 'wall_memories:random' %}" class="wm-btn">⏭ Cassette au hasard</a>
+    </div>
+</header>
+{% endblock %}
+
+{% block wm_daily_title %}📼 La rediffusion du jour{% endblock %}
+{% block wm_board_title %}▶ Vidéothèque de la communauté{% endblock %}
+{% block wm_empty %}NO SIGNAL — aucune cassette sur cette étagère. Enregistre la première !{% endblock %}

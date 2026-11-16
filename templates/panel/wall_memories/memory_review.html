@@ -1,0 +1,48 @@
+{% extends 'panel/layout.html' %}
+{% load wall_memories_tags %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>🧡 Examen du souvenir</h2>
+    <a href="{% url 'panel_memories' %}" class="btn btn-small">← Retour</a>
+</div>
+
+<div class="panel-section">
+    <p>
+        <strong>Statut :</strong> {{ memory.get_status_display }} ·
+        <strong>Auteur :</strong> {{ memory.author.username }} ·
+        <strong>Époque :</strong> {{ memory.get_era_display }}{% if memory.year %} ({{ memory.year }}){% endif %} ·
+        <strong>Consoles :</strong> {{ memory.consoles.all|join:", "|default:"—" }}
+    </p>
+    <p><strong>Soumis le :</strong> {{ memory.created_at|date:"d/m/Y H:i" }}
+        {% if memory.reviewed_by %} · <strong>Dernier examen :</strong> {{ memory.reviewed_by.username }}, le {{ memory.reviewed_at|date:"d/m/Y H:i" }}{% endif %}
+    </p>
+
+    <h3>{{ memory.title }}</h3>
+    {% if memory.image %}
+    <p><img src="{{ memory.image.url }}" alt="" style="max-width:420px;max-height:320px;border-radius:6px;"></p>
+    {% endif %}
+    <div class="bbcode-content">{{ memory.content|safe_bbcode }}</div>
+    {% if memory.question %}<p><em>💬 {{ memory.question }}</em></p>{% endif %}
+    {% if memory.rejection_reason %}<p><strong>Motif du dernier refus :</strong> {{ memory.rejection_reason }}</p>{% endif %}
+
+    <form method="post" style="margin-top:1.5rem;">
+        {% csrf_token %}
+        <div class="panel-actions" style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            {% if memory.status != 'published' %}
+            <button type="submit" name="action" value="approve" class="btn btn-add">✅ Publier sur le Mur</button>
+            {% endif %}
+            {% if memory.status == 'published' %}
+            <button type="submit" name="action" value="hide" class="btn btn-warning">🙈 Masquer</button>
+            {% endif %}
+            <button type="button" class="btn btn-danger" onclick="document.getElementById('wm-reject').style.display='block'">❌ Refuser</button>
+        </div>
+        <div id="wm-reject" style="display:none;margin-top:1rem;">
+            <label for="rejection_reason">Motif du refus (visible par l'auteur) :</label>
+            <textarea name="rejection_reason" id="rejection_reason" rows="3" style="width:100%;" placeholder="Explique en quelques mots ce qui pourrait être amélioré..."></textarea>
+            <button type="submit" name="action" value="reject" class="btn btn-danger" style="margin-top:.5rem;">Confirmer le refus</button>
+        </div>
+    </form>
+    <p style="margin-top:1rem;font-size:.85em;opacity:.75;">La publication accorde l'XP à l'auteur (une seule fois).</p>
+</div>
+{% endblock %}

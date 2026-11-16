@@ -1,5 +1,5 @@
 from django.urls import path
-from panel.views import dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation
+from panel.views import dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation, wall_memories
 
 urlpatterns = [
     # Dashboard
@@ -85,4 +85,16 @@ urlpatterns = [
     # Contributions
     path('ephemerides/contributions/', ephemerides.contributed_ephemeride_list, name='panel_ephemerides_contributions'),
     path('ephemerides/contributions/<int:contribution_id>/review/', ephemerides.contributed_ephemeride_review, name='panel_ephemeride_contribution_review'),
+
+    # Mur des souvenirs
+    path('souvenirs/', wall_memories.memory_list, name='panel_memories'),
+    path('souvenirs/<int:memory_id>/', wall_memories.memory_review, name='panel_memory_review'),
+    path('souvenirs/<int:memory_id>/delete/', wall_memories.memory_delete, name='panel_memory_delete'),
+    path('souvenirs/commentaires/', wall_memories.comment_list, name='panel_memory_comments'),
+    path('souvenirs/commentaires/<int:comment_id>/toggle/', wall_memories.comment_toggle, name='panel_memory_comment_toggle'),
+    path('souvenirs/commentaires/<int:comment_id>/delete/', wall_memories.comment_delete, name='panel_memory_comment_delete'),
+    path('souvenirs/consoles/', wall_memories.console_list, name='panel_memory_consoles'),
+    path('souvenirs/consoles/create/', wall_memories.console_create, name='panel_memory_console_create'),
+    path('souvenirs/consoles/<int:console_id>/edit/', wall_memories.console_edit, name='panel_memory_console_edit'),
+    path('souvenirs/consoles/<int:console_id>/delete/', wall_memories.console_delete, name='panel_memory_console_delete'),
 ]

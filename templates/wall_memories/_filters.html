@@ -1,0 +1,26 @@
+<nav class="wm-filters" aria-label="Trier les souvenirs">
+    <ul class="wm-filters__sorts">
+        {% for value, label in sorts %}
+        <li><a href="?tri={{ value }}{% if era %}&epoque={{ era }}{% endif %}{% if console %}&console={{ console.slug }}{% endif %}" class="wm-filter{% if sort == value %} is-active{% endif %}">{{ label }}</a></li>
+        {% endfor %}
+    </ul>
+    <form method="get" class="wm-filters__archives">
+        <input type="hidden" name="tri" value="{{ sort }}">
+        <select name="epoque" onchange="this.form.submit()" aria-label="Époque">
+            <option value="">Toutes les époques</option>
+            {% for value, label in eras %}<option value="{{ value }}"{% if era == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <select name="console" onchange="this.form.submit()" aria-label="Console">
+            <option value="">Toutes les consoles</option>
+            {% for c in consoles %}<option value="{{ c.slug }}"{% if console and console.pk == c.pk %} selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+        <noscript><button type="submit">Filtrer</button></noscript>
+    </form>
+</nav>
+{% if era_missing %}
+<p class="wm-hint">Pour voir les souvenirs de ton époque, renseigne ta date de naissance dans <a href="{% url 'profile_update' %}">ton profil</a>. En attendant, voici tous les souvenirs.</p>
+{% elif sort == 'era' and user_era %}
+<p class="wm-hint">Les souvenirs de ton enfance : {% for v, l in eras %}{% if v == user_era %}{{ l }}{% endif %}{% endfor %}.</p>
+{% elif sort == 'random' %}
+<p class="wm-hint"><a href="?tri=random{% if era %}&epoque={{ era }}{% endif %}{% if console %}&console={{ console.slug }}{% endif %}">🎲 Relancer les dés</a></p>
+{% endif %}

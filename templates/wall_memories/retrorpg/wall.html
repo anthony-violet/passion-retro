@@ -1,0 +1,33 @@
+{% extends 'wall_memories/default/wall.html' %}
+
+{% block wm_hero %}
+<header class="wm-hero wm-jrpg-hero">
+    <div class="wm-jrpg-window">
+        <span class="wm-jrpg-speaker">Ancien du village</span>
+        <h1 class="wm-hero__title">Le Mur des souvenirs</h1>
+        <p class="wm-hero__tagline">« Parce que certains souvenirs ne s'effacent jamais. »</p>
+        <p class="wm-hero__intro">Ah, voyageur… Assieds-toi près du feu. Ici, chacun raconte la partie qui a changé sa vie. Veux-tu écouter les autres, ou partager ta propre histoire ?</p>
+        <span class="wm-jrpg-cursor" aria-hidden="true">▼</span>
+    </div>
+    <div class="wm-jrpg-menu">
+        <ul>
+            {% if user.is_authenticated %}
+            <li><a href="{% url 'wall_memories:create' %}" data-wm-open>Raconter mon histoire</a></li>
+            <li><a href="{% url 'wall_memories:mine' %}">Mon journal</a></li>
+            <li><a href="{% url 'wall_memories:favorites' %}">Objets précieux</a></li>
+            {% else %}
+            <li><a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Se présenter (connexion)</a></li>
+            {% endif %}
+            <li><a href="{% url 'wall_memories:random' %}">Écouter au hasard</a></li>
+        </ul>
+        <dl class="wm-jrpg-status">
+            <div><dt>Récits</dt><dd>{{ total_memories }}</dd></div>
+            <div><dt>Conteurs</dt><dd>{{ total_contributors }}</dd></div>
+        </dl>
+    </div>
+</header>
+{% endblock %}
+
+{% block wm_daily_title %}✦ Le récit que l'Ancien raconte aujourd'hui{% endblock %}
+{% block wm_board_title %}✦ Les histoires du village{% endblock %}
+{% block wm_empty %}« Personne n'a encore parlé… Sois le premier, voyageur. »{% endblock %}

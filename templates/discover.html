@@ -1,5 +1,6 @@
 {% extends 'layout.html' %}
 {% load bbcode_tags %}
+{% load wall_memories_tags %}
 
 {% block content %}
 <div class="container">
@@ -201,6 +202,35 @@
     </div>
 </div>
 
+<div class="container discover-section discover-memories">
+    <h2>🧡 Le Mur des souvenirs</h2>
+    <p class="discover-intro">
+        <em>« Parce que certains souvenirs ne s'effacent jamais. »</em><br>
+        Un premier Noël avec une console, des mercredis après-midi chez un copain, un boss qui faisait trembler…
+        Le Mur des souvenirs est l'album collectif de notre enfance vidéoludique : chacun y raconte les moments
+        qu'il n'a jamais oubliés, et découvre ceux des autres.
+    </p>
+    <div class="discover-cards">
+        {% for memory in latest_memories %}
+        <article class="discover-card">
+            <h3><a href="{{ memory.get_absolute_url }}">{{ memory.title }}</a></h3>
+            <p class="discover-meta">Par {{ memory.author.username }} · {{ memory.get_era_display }}</p>
+            <p>{{ memory.content|plain_excerpt:150 }}</p>
+        </article>
+        {% empty %}
+        <p class="discover-panel">Les premiers souvenirs arrivent bientôt : et si tu racontais le tien ?</p>
+        {% endfor %}
+    </div>
+    <div class="discover-actions">
+        <a href="{% url 'wall_memories:wall' %}" class="btn btn-primary">Parcourir le Mur des souvenirs</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'wall_memories:create' %}" class="btn btn-add">Partager un souvenir</a>
+        {% else %}
+            <a href="{% url 'register' %}" class="btn btn-add">Créer un compte pour raconter</a>
+        {% endif %}
+    </div>
+</div>
+
 <div class="container discover-section">
     <h2>Ce que vous pouvez apporter</h2>
     <p class="discover-intro">
@@ -218,6 +248,10 @@
         <article class="discover-card">
             <h3>Animer le forum</h3>
             <p>Lance des sujets, réponds aux discussions et fais vivre les échanges autour de la culture rétro.</p>
+        </article>
+        <article class="discover-card">
+            <h3>Raconter un souvenir</h3>
+            <p>Partage sur le Mur des souvenirs un moment de jeu vidéo qui a marqué ton enfance.</p>
         </article>
         <article class="discover-card">
             <h3>Enrichir le site</h3>

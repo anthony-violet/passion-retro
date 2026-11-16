@@ -1,0 +1,58 @@
+{% extends 'wall_memories/_base.html' %}
+{% load wall_memories_tags %}
+
+{% block wm_content %}
+<p class="wm-back"><a href="{% url 'wall_memories:wall' %}">← {% block wm_back %}Retour au Mur des souvenirs{% endblock %}</a></p>
+
+{% if not memory.is_published %}
+<p class="wm-hint wm-hint--warning">
+    {% if memory.status == 'pending' %}⏳ Ce souvenir attend d'être relu par l'équipe : toi seul (et les modérateurs) peux le voir.
+    {% elif memory.status == 'rejected' %}✋ Ce souvenir n'a pas été retenu{% if memory.rejection_reason %} : {{ memory.rejection_reason }}{% endif %}. Tu peux le <a href="{% url 'wall_memories:edit' memory.pk %}">modifier</a> et le soumettre à nouveau.
+    {% else %}🙈 Ce souvenir est masqué.{% endif %}
+</p>
+{% endif %}
+
+<article class="wm-memory">
+    {% block wm_memory %}
+    <header class="wm-memory__header">
+        <p class="wm-card__kicker">Souvenir · {{ memory.get_era_display }}{% if memory.year %} · {{ memory.year }}{% endif %}</p>
+        <h1 class="wm-memory__title">{{ memory.title }}</h1>
+        {% include 'wall_memories/_author.html' with person=memory.author when=memory.published_at|default:memory.created_at %}
+    </header>
+    {% if memory.image %}<figure class="wm-memory__photo"><img src="{{ memory.image.url }}" alt="Photo illustrant le souvenir « {{ memory.title }} »"></figure>{% endif %}
+    <div class="wm-memory__content">{{ memory.content|safe_bbcode }}</div>
+    {% if memory.consoles.all %}
+    <ul class="wm-tags">{% for c in memory.consoles.all %}<li><a href="{% url 'wall_memories:wall' %}?console={{ c.slug }}">{{ c.name }}</a></li>{% endfor %}</ul>
+    {% endif %}
+    {% if memory.question %}<p class="wm-memory__question">💬 {{ memory.question }}</p>{% endif %}
+    {% endblock %}
+
+    {% if memory.is_published %}
+    <div class="wm-memory__reactions">{% include 'wall_memories/_reactions.html' %}</div>
+    {% endif %}
+
+    {% if user == memory.author or user.is_staff %}
+    <div class="wm-owner-actions">
+        {% if not memory.is_published or user.is_staff %}<a href="{% url 'wall_memories:edit' memory.pk %}" class="wm-btn wm-btn--small">Modifier</a>{% endif %}
+        <form method="post" action="{% url 'wall_memories:delete' memory.pk %}" onsubmit="return confirm('Supprimer définitivement ce souvenir ?')">
+            {% csrf_token %}<button type="submit" class="wm-btn wm-btn--small wm-btn--danger">Supprimer</button>
+        </form>
+    </div>
+    {% endif %}
+</article>
+
+{% if memory.is_published %}
+{% block wm_comments %}
+{% include 'wall_memories/_comments.html' %}
+{% endblock %}
+{% endif %}
+
+{% if other_memories %}
+<section class="wm-more">
+    <h2 class="wm-section-title">{% block wm_more_title %}D'autres souvenirs de {{ memory.author.username }}{% endblock %}</h2>
+    <ul class="wm-more__list">
+        {% for other in other_memories %}<li><a href="{{ other.get_absolute_url }}">{{ other.title }}</a> <small>· {{ other.get_era_display }}</small></li>{% endfor %}
+    </ul>
+</section>
+{% endif %}
+{% endblock %}

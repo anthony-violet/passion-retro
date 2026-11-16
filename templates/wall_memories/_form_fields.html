@@ -1,0 +1,47 @@
+{# Champs du formulaire de souvenir, partagés par toutes les variantes. #}
+{% csrf_token %}
+{% if form.non_field_errors %}<div class="wm-errors">{{ form.non_field_errors }}</div>{% endif %}
+<div class="wm-field">
+    <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+    {{ form.title }}
+    {% for e in form.title.errors %}<p class="wm-error">{{ e }}</p>{% endfor %}
+</div>
+<div class="wm-field">
+    <label for="{{ form.content.id_for_label }}">{{ form.content.label }} <small>(BBCode accepté)</small></label>
+    {{ form.content }}
+    {% for e in form.content.errors %}<p class="wm-error">{{ e }}</p>{% endfor %}
+</div>
+<div class="wm-field-row">
+    <div class="wm-field">
+        <span class="wm-label">{{ form.consoles.label }}</span>
+        <div class="wm-console-choices">
+            {% for box in form.consoles %}
+            <label class="wm-era-choice">{{ box.tag }}<span>{{ box.choice_label }}</span></label>
+            {% endfor %}
+        </div>
+        {% for e in form.consoles.errors %}<p class="wm-error">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="wm-field">
+        <span class="wm-label">{{ form.era.label }}</span>
+        <div class="wm-era-choices">
+            {% for radio in form.era %}
+            <label class="wm-era-choice">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+            {% endfor %}
+        </div>
+        {% for e in form.era.errors %}<p class="wm-error">{{ e }}</p>{% endfor %}
+        <label for="{{ form.year.id_for_label }}" class="wm-label--small">{{ form.year.label }}</label>
+        {{ form.year }}
+        {% for e in form.year.errors %}<p class="wm-error">{{ e }}</p>{% endfor %}
+    </div>
+</div>
+<div class="wm-field">
+    <label for="{{ form.question.id_for_label }}">{{ form.question.label }}</label>
+    {{ form.question }}
+    {% for e in form.question.errors %}<p class="wm-error">{{ e }}</p>{% endfor %}
+</div>
+<div class="wm-field">
+    <label for="{{ form.image.id_for_label }}">{{ form.image.label }}</label>
+    {{ form.image }}
+    {% for e in form.image.errors %}<p class="wm-error">{{ e }}</p>{% endfor %}
+</div>
+<p class="wm-form-note">Ce qui compte, ce n'est pas la qualité de l'écriture : c'est l'émotion et le souvenir. Ton souvenir sera relu par l'équipe avant d'apparaître sur le Mur.</p>

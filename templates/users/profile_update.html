@@ -48,6 +48,30 @@
         </div>
 
         <div class="profile-card">
+            <h3>Profil de gamer</h3>
+            <div class="form-section">
+                <div class="form-row two-cols">
+                    <div>
+                        <label>{{ user_form.favorite_console.label }}</label>
+                        {{ user_form.favorite_console }}
+                    </div>
+                    <div>
+                        <label>{{ user_form.favorite_game.label }}</label>
+                        {{ user_form.favorite_game }}
+                    </div>
+                    <div>
+                        <label>{{ user_form.favorite_game_genre.label }}</label>
+                        {{ user_form.favorite_game_genre }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label>{{ user_form.anecdote.label }}</label>
+                    {{ user_form.anecdote }}
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-card">
             <h3>E-mail &amp; confidentialité</h3>
             <div class="form-section">
                 <div class="form-row">

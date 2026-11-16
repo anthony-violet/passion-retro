@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% load users_custom_tags %}
 {% load bbcode_tags %}
+{% load wall_memories_tags %}
 
 {% block content %}
 <div class="container discover-teaser">
@@ -31,9 +32,40 @@
                 <h3>Échanger</h3>
                 <p>Forum, messagerie et discussions entre passionnés.</p>
             </li>
+            <li class="discover-feature">
+                <h3>Raconter</h3>
+                <p>Tes souvenirs de jeu vidéo sur le <a href="{% url 'wall_memories:wall' %}">Mur des souvenirs</a>.</p>
+            </li>
         </ul>
     </div>
 </div>
+<div class="container home-memories">
+    <h2>🧡 Le Mur des souvenirs</h2>
+    <p class="home-memories__tagline"><em>« Parce que certains souvenirs ne s'effacent jamais. »</em></p>
+    {% if featured_memory %}
+    <article class="home-memories__memory">
+        <p class="home-memories__kicker">{% if featured_memory_is_daily %}🗓️ Le souvenir du jour{% else %}✨ Le dernier souvenir partagé{% endif %} · {{ featured_memory.get_era_display }}</p>
+        <h3><a href="{{ featured_memory.get_absolute_url }}">{{ featured_memory.title }}</a></h3>
+        <p>{{ featured_memory.content|plain_excerpt:260 }}</p>
+        <p class="home-memories__author">Raconté par <a href="{% url 'profile' featured_memory.author.id %}" class="{{ featured_memory.author.username_decoration|default:'' }}">{{ featured_memory.author.username }}</a></p>
+    </article>
+    {% else %}
+    <p>Raconte un moment de jeu vidéo qui a marqué ton enfance, et découvre ceux des autres membres.</p>
+    {% endif %}
+    <div class="discover-actions">
+        <a href="{% url 'wall_memories:wall' %}" class="btn btn-primary">Voir le Mur des souvenirs</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'wall_memories:create' %}" class="btn btn-add">Partager un souvenir</a>
+        {% endif %}
+    </div>
+</div>
+<style>
+    .home-memories__tagline { margin-top: -.3rem; }
+    .home-memories__memory { padding: .8rem 1rem; margin: .6rem 0 1rem; border-left: 4px solid var(--text-link-hover); background: var(--bg-post-card, transparent); border-radius: 4px; }
+    .home-memories__memory h3 { margin: .2rem 0 .4rem; }
+    .home-memories__kicker { margin: 0; font-size: .8em; text-transform: uppercase; letter-spacing: .06em; opacity: .75; }
+    .home-memories__author { margin: 0; font-size: .9em; }
+</style>
 <div class="container">
     <h2>{{ edito.title }}</h2>
     <div>{{ edito.content|linebreaksbr|bbcode|safe }}</div>

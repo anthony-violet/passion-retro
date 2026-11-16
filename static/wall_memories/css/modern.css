@@ -1,0 +1,58 @@
+/* Mur des souvenirs — thème Modern : un fil épuré façon réseau social actuel. */
+
+.wm--modern {
+    --wm-font-title: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --wm-bg: #120b26;
+    --wm-surface: rgba(255, 255, 255, .04);
+    --wm-text: var(--text-primary, #e2e8f0);
+    --wm-card-bg: rgba(255, 255, 255, .045);
+    --wm-card-text: #e2e8f0;
+    --wm-border: rgba(255, 255, 255, .1);
+    --wm-accent: #7c3aed;
+    --wm-accent-2: #a78bfa;
+    --wm-radius: 16px;
+    --wm-chip: rgba(255, 255, 255, .07);
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+.wm-modern-hero { display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center; text-align: left !important;
+    background: radial-gradient(circle at 85% 20%, rgba(124,58,237,.35), transparent 55%), radial-gradient(circle at 10% 90%, rgba(37,99,235,.25), transparent 50%), rgba(255,255,255,.04) !important; border: 1px solid rgba(255,255,255,.1) !important; backdrop-filter: blur(10px); padding: 2.2rem !important; }
+@media (max-width: 720px) { .wm-modern-hero { grid-template-columns: 1fr; } }
+.wm--modern .wm-hero__kicker { color: #a78bfa; font-weight: 700; letter-spacing: .12em; }
+.wm--modern .wm-hero__title { font-weight: 800; letter-spacing: -.03em; color: #f8fafc; }
+.wm--modern .wm-hero__tagline { font-style: normal; color: #cbd5e1; }
+.wm--modern .wm-hero__intro { margin-left: 0; }
+.wm--modern .wm-hero__actions { justify-content: flex-start; }
+.wm-modern-hero__stats { display: flex; gap: 1rem; margin: 0; }
+.wm-modern-hero__stats div { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 1rem 1.4rem; text-align: center; min-width: 110px; }
+.wm-modern-hero__stats dt { font-size: .75em; text-transform: uppercase; letter-spacing: .1em; color: #94a3b8; }
+.wm-modern-hero__stats dd { margin: .2rem 0 0; font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #a78bfa, #60a5fa); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.wm--modern .wm-btn { border-radius: 10px; }
+.wm--modern .wm-btn { border-color: rgba(255,255,255,.1); background: rgba(255,255,255,.06); color: #e2e8f0 !important; }
+.wm--modern .wm-btn--primary { background: linear-gradient(135deg, #7c3aed, #2563eb); border-color: transparent; color: #fff !important; box-shadow: 0 6px 20px rgba(124,58,237,.35); }
+.wm--modern .wm-filter { border-color: transparent; background: var(--wm-chip); }
+.wm--modern .wm-filter.is-active { background: linear-gradient(135deg, #7c3aed, #2563eb); color: #fff !important; }
+.wm--modern .wm-filters__archives select { background: rgba(255,255,255,.05); color: #e2e8f0; border-color: rgba(255,255,255,.1); }
+.wm--modern .wm-filters__archives option { background: #120b26; }
+.wm--modern .wm-section-title { font-weight: 800; }
+
+/* Fil en colonne unique, très aéré */
+.wm--modern .wm-grid { grid-template-columns: minmax(0, 1fr); max-width: 720px; margin: 0 auto; gap: 1.8rem; }
+.wm-modern-card { backdrop-filter: blur(10px); transition: border-color .2s ease, transform .2s ease; }
+.wm-modern-card:hover { border-color: rgba(167,139,250,.45); transform: translateY(-2px); }
+.wm-modern-card__header { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: 1rem 1rem 0; }
+.wm-modern-card__era { font-size: .75em; color: #cbd5e1; background: var(--wm-chip); padding: .2rem .6rem; border-radius: 999px; white-space: nowrap; }
+.wm-modern-card .wm-card__photo { margin-top: .8rem; aspect-ratio: 16 / 9; }
+.wm-modern-card .wm-card__title { font-weight: 700; font-size: 1.2rem; color: #f8fafc; }
+.wm-modern-card .wm-card__question { color: #a78bfa; font-style: normal; }
+.wm--modern .wm-tags a { border: 0; color: #a78bfa !important; padding: 0; font-size: .85em; }
+.wm--modern .wm-react, .wm--modern .wm-fav { border-color: transparent; background: var(--wm-chip); color: #e2e8f0; }
+.wm--modern .wm-react.is-active, .wm--modern .wm-fav.is-active { background: rgba(124,58,237,.3); border-color: #7c3aed; color: #fff; }
+
+.wm--modern .wm-memory, .wm--modern .wm-comments, .wm--modern .wm-more, .wm--modern .wm-back { max-width: 720px; margin-left: auto; margin-right: auto; }
+.wm--modern .wm-memory { padding: 2rem; backdrop-filter: blur(10px); }
+.wm--modern .wm-memory__title { margin-top: 1rem; font-weight: 800; letter-spacing: -.03em; color: #f8fafc; }
+.wm--modern .wm-memory__question { background: rgba(124,58,237,.15); color: #c4b5fd; font-weight: 600; }
+.wm--modern .wm-comment { border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.03); }
+.wm--modern .wm-field input, .wm--modern .wm-field textarea, .wm--modern .wm-field select { background: rgba(255,255,255,.05); color: #e2e8f0; border-color: rgba(255,255,255,.12); }
+.wm--modern .wm-mine__item { background: rgba(255,255,255,.04); }
+.wm--modern .wm-modal { border-radius: 18px; }

@@ -1,0 +1,20 @@
+{% load wall_memories_tags %}
+<article class="wm-card wm-rg-cart{% if featured %} wm-card--featured{% endif %}">
+    <div class="wm-rg-cart__top" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="wm-rg-cart__label">
+        {% if memory.image %}
+        <a href="{{ memory.get_absolute_url }}" class="wm-card__photo"><img src="{{ memory.image.url }}" alt="" loading="lazy"></a>
+        {% endif %}
+        <h3 class="wm-card__title"><a href="{{ memory.get_absolute_url }}">{{ memory.title }}</a></h3>
+        <span class="wm-rg-cart__meta">{{ memory.get_era_display|upper }}{% if memory.year %} · {{ memory.year }}{% endif %}{% for c in memory.consoles.all %} · {{ c.name|upper }}{% endfor %}</span>
+    </div>
+    <div class="wm-card__body">
+        {% include 'wall_memories/_author.html' with person=memory.author when=memory.published_at compact=True %}
+        <p class="wm-card__excerpt">{{ memory.content|plain_excerpt:200 }}</p>
+        {% if memory.question %}<p class="wm-card__question">? {{ memory.question }}</p>{% endif %}
+    </div>
+    <footer class="wm-card__footer">
+        {% include 'wall_memories/_reactions.html' with compact=True %}
+        <a href="{{ memory.get_absolute_url }}#comments" class="wm-card__comments">💬 x{{ memory.comments_count }}</a>
+    </footer>
+</article>

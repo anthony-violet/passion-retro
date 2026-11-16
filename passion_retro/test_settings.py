@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "panel",
     "version",
     "forum_api",
+    "wall_memories",
 ]
 
 SITE_ID = 1
@@ -77,6 +78,9 @@ TEMPLATES = [
                 "passion_retro.context_processors.seo_context",
                 "passion_retro.context_processors.analytics_context",
                 "ephemerides.context_processors.pending_ephemerides_count",
+                "wall_memories.context_processors.pending_memories_count",
+                "wall_memories.context_processors.wall_widget",
+                "users.context_processors.announcement_banner",
             ],
         },
     },

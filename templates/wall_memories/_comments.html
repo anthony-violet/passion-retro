@@ -1,0 +1,28 @@
+{% load wall_memories_tags %}
+{# Liste des commentaires + formulaire. `label_*` permettent à chaque thème d'adapter les textes. #}
+<section class="wm-comments" id="comments">
+    <h2 class="wm-comments__title">{{ comments_title|default:"Vos souvenirs en réponse" }} <span>({{ memory.comments_count }})</span></h2>
+    {% for comment in comments %}
+    <article class="wm-comment" id="comment-{{ comment.pk }}">
+        {% include 'wall_memories/_author.html' with person=comment.author when=comment.created_at compact=True %}
+        <div class="wm-comment__body">{{ comment.content|safe_bbcode }}</div>
+        {% if user == comment.author or user.is_staff %}
+        <form method="post" action="{% url 'wall_memories:delete_comment' comment.pk %}" class="wm-comment__delete" onsubmit="return confirm('Supprimer ce commentaire ?')">
+            {% csrf_token %}<button type="submit">Supprimer</button>
+        </form>
+        {% endif %}
+    </article>
+    {% empty %}
+    <p class="wm-empty">{{ comments_empty|default:"Personne n'a encore répondu. Toi aussi, tu as vécu ça ?" }}</p>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+    <form method="post" action="{% url 'wall_memories:comment' memory.pk %}" class="wm-comment-form">
+        {% csrf_token %}
+        {{ comment_form.content }}
+        <button type="submit" class="wm-btn">{{ comment_button|default:"Raconter mon souvenir" }}</button>
+    </form>
+    {% else %}
+    <p class="wm-empty"><a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Connecte-toi</a> pour raconter ton propre souvenir.</p>
+    {% endif %}
+</section>

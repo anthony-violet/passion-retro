@@ -25,6 +25,11 @@ def robots_txt(request):
         "Disallow: /users/profile/contributions/",
         "Disallow: /users/contribute/",
         "Disallow: /games/bac/party",
+        "Disallow: /mur-des-souvenirs/partager/",
+        "Disallow: /mur-des-souvenirs/mes-souvenirs/",
+        "Disallow: /mur-des-souvenirs/mes-favoris/",
+        "Disallow: /mur-des-souvenirs/au-hasard/",
+        "Disallow: /nouveautes/fermer/",
         "",
         f"Sitemap: {base}/sitemap.xml",
         "",
@@ -44,6 +49,7 @@ def llms_txt(request):
 - [Accueil]({base}/) : éditorial et dernières actualités.
 - [Forum]({base}/forum/) : discussions communautaires sur la culture rétro.
 - [Éphémérides rétro]({base}/ephemerides/) : événements marquants survenus à la date du jour.
+- [Le Mur des souvenirs]({base}/mur-des-souvenirs/) : souvenirs d'enfance vidéoludiques racontés par les membres.
 - [Portail des jeux]({base}/games/) : jeux en ligne créés par la communauté.
 - [Livre d'or]({base}/guestbook/) : messages des visiteurs.
 - [Fil d'actualités (JSON)]({base}/api/news/) : titres, dates et extraits des dernières actualités.

@@ -1,0 +1,30 @@
+{% extends 'wall_memories/default/wall.html' %}
+
+{% block wm_hero %}
+<header class="wm-hero wm-modern-hero">
+    <div class="wm-modern-hero__text">
+        <p class="wm-hero__kicker">Communauté</p>
+        <h1 class="wm-hero__title">Le Mur des souvenirs</h1>
+        <p class="wm-hero__tagline">Parce que certains souvenirs ne s'effacent jamais.</p>
+        <p class="wm-hero__intro">Partagez les moments de jeu vidéo qui ont marqué votre enfance et retrouvez des souvenirs communs avec les autres membres.</p>
+        <div class="wm-hero__actions">
+            {% if user.is_authenticated %}
+            <a href="{% url 'wall_memories:create' %}" class="wm-btn wm-btn--primary" data-wm-open>+ Partager un souvenir</a>
+            <a href="{% url 'wall_memories:mine' %}" class="wm-btn">Mes souvenirs</a>
+            <a href="{% url 'wall_memories:favorites' %}" class="wm-btn">Favoris</a>
+            {% else %}
+            <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="wm-btn wm-btn--primary">Se connecter pour partager</a>
+            {% endif %}
+            <a href="{% url 'wall_memories:random' %}" class="wm-btn">Au hasard</a>
+        </div>
+    </div>
+    <dl class="wm-modern-hero__stats">
+        <div><dt>Souvenirs</dt><dd>{{ total_memories }}</dd></div>
+        <div><dt>Conteurs</dt><dd>{{ total_contributors }}</dd></div>
+    </dl>
+</header>
+{% endblock %}
+
+{% block wm_daily_title %}Souvenir du jour{% endblock %}
+{% block wm_board_title %}Fil des souvenirs{% endblock %}
+{% block wm_empty %}Aucun souvenir pour le moment. Soyez le premier à partager le vôtre.{% endblock %}

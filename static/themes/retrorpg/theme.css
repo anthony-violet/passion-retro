@@ -383,6 +383,33 @@ a.danger {
     color: #fcfc54;
 }
 
+/* Sous-menus en cascade (Magazine ▸ rubrique ▸ articles) */
+.menu-horizontal .dropdown--sub {
+    top: -3px;
+    min-width: 240px;
+    background: #0c0c1d;
+    border: 3px solid #fcfcfc;
+    box-shadow: 4px 4px 0 0 #000;
+    padding: 0;
+}
+
+.menu-horizontal .dropdown--sub > li {
+    border-bottom: 1px dashed #3c3c5c;
+}
+
+.menu-horizontal .dropdown--sub > li > a {
+    padding: 8px 12px;
+    color: #3cbcfc;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    line-height: 1.6;
+}
+
+.menu-horizontal .dropdown--sub > li > a:hover {
+    background: #181848;
+    color: #fcfc54;
+}
+
 /* Burger menu */
 .burger-menu {
     display: none;

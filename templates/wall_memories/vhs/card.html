@@ -1,0 +1,24 @@
+{% load wall_memories_tags %}
+<article class="wm-card wm-vhs-tape{% if featured %} wm-card--featured{% endif %}">
+    <div class="wm-vhs-tape__spine">
+        <span class="wm-vhs-tape__brand">MEMORY</span>
+        <span class="wm-vhs-tape__era">{{ memory.get_era_display }}{% if memory.year %} · {{ memory.year }}{% endif %}</span>
+        <span class="wm-vhs-tape__mode">SP · T-{{ memory.pk|stringformat:"03d" }}</span>
+    </div>
+    {% if memory.image %}
+    <a href="{{ memory.get_absolute_url }}" class="wm-card__photo wm-vhs-tape__screen"><img src="{{ memory.image.url }}" alt="" loading="lazy"></a>
+    {% endif %}
+    <div class="wm-card__body">
+        <h3 class="wm-card__title"><a href="{{ memory.get_absolute_url }}">{{ memory.title }}</a></h3>
+        {% include 'wall_memories/_author.html' with person=memory.author when=memory.published_at compact=True %}
+        <p class="wm-card__excerpt">{{ memory.content|plain_excerpt:220 }}</p>
+        {% if memory.consoles.all %}
+        <ul class="wm-tags">{% for c in memory.consoles.all %}<li><a href="{% url 'wall_memories:wall' %}?console={{ c.slug }}">{{ c.name }}</a></li>{% endfor %}</ul>
+        {% endif %}
+        {% if memory.question %}<p class="wm-card__question">▶ {{ memory.question }}</p>{% endif %}
+    </div>
+    <footer class="wm-card__footer">
+        {% include 'wall_memories/_reactions.html' with compact=True %}
+        <a href="{{ memory.get_absolute_url }}#comments" class="wm-card__comments">💬 {{ memory.comments_count|stringformat:"02d" }}</a>
+    </footer>
+</article>

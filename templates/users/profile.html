@@ -94,6 +94,30 @@
             </div>
         </div>
 
+        <div class="profile-card profile-memories">
+            <h3>🧡 {% if user.id == request.user.id %}Mes souvenirs{% else %}Ses souvenirs{% endif %}</h3>
+            {% if memories %}
+                <ul class="profile-memories__list">
+                    {% for memory in memories|slice:":5" %}
+                        <li><a href="{{ memory.get_absolute_url }}">{{ memory.title }}</a> <small>· {{ memory.get_era_display }} · {{ memory.reactions_count }} réaction{{ memory.reactions_count|pluralize }}</small></li>
+                    {% endfor %}
+                </ul>
+                {% if memories|length > 5 %}<p><small>… et {{ memories|length|add:"-5" }} autre{{ memories|length|add:"-5"|pluralize }} sur le Mur.</small></p>{% endif %}
+            {% elif user.id == request.user.id %}
+                <p class="no-items">Tu n'as pas encore partagé de souvenir sur le Mur.</p>
+            {% else %}
+                <p class="no-items">Aucun souvenir partagé pour le moment.</p>
+            {% endif %}
+            <p>
+                {% if user.id == request.user.id %}
+                    <a href="{% url 'wall_memories:create' %}" class="btn btn-add">Partager un souvenir</a>
+                    <a href="{% url 'wall_memories:mine' %}" class="btn">Mes souvenirs</a>
+                {% else %}
+                    <a href="{% url 'wall_memories:wall' %}" class="btn">Voir le Mur des souvenirs</a>
+                {% endif %}
+            </p>
+        </div>
+
         {% if user.id == request.user.id %}
             <div class="profile-card profile-inventory">
                 <h3>Inventaire</h3>

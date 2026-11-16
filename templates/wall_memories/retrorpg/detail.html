@@ -1,0 +1,21 @@
+{% extends 'wall_memories/default/detail.html' %}
+{% load wall_memories_tags %}
+{% block wm_back %}Retourner auprès du feu{% endblock %}
+{% block wm_memory %}
+<span class="wm-jrpg-speaker">{{ memory.author.username }}</span>
+<header class="wm-memory__header">
+    <h1 class="wm-memory__title">{{ memory.title }}</h1>
+    <p class="wm-card__kicker">{{ memory.get_era_display }}{% if memory.year %} · {{ memory.year }}{% endif %}</p>
+    {% include 'wall_memories/_author.html' with person=memory.author when=memory.published_at|default:memory.created_at %}
+</header>
+{% if memory.image %}<figure class="wm-memory__photo"><img src="{{ memory.image.url }}" alt="Photo illustrant le souvenir « {{ memory.title }} »"></figure>{% endif %}
+<div class="wm-memory__content">{{ memory.content|safe_bbcode }}</div>
+{% if memory.consoles.all %}
+<ul class="wm-tags">{% for c in memory.consoles.all %}<li><a href="{% url 'wall_memories:wall' %}?console={{ c.slug }}">{{ c.name }}</a></li>{% endfor %}</ul>
+{% endif %}
+{% if memory.question %}<p class="wm-memory__question">▶ {{ memory.question }}</p>{% endif %}
+{% endblock %}
+{% block wm_comments %}
+{% include 'wall_memories/_comments.html' with comments_title="✦ Les autres voyageurs répondent" comments_empty="« … » Personne n'a encore répondu." comment_button="▶ Prendre la parole" %}
+{% endblock %}
+{% block wm_more_title %}✦ D'autres histoires de {{ memory.author.username }}{% endblock %}

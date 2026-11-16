@@ -233,3 +233,101 @@ class LevelTitleTest(TestCase):
 
         self.assertEqual(self.user.level_number, 12)
         self.assertEqual(self.user.level_title, 'Aventurier')
+
+
+class AnnouncementTest(TestCase):
+    """Annonce de nouveauté : redirection unique, cadeau en XP, bandeau refermable."""
+
+    def setUp(self):
+        from users import announcements
+        self.key = announcements.current()['key']
+        self.gift = announcements.current()['xp']
+        self.user = User.objects.create_user(
+            username='annonce', email='annonce@test.com', password='pass12345', active=True
+        )
+
+    def _middleware(self, path='/', method='get', accept='text/html,application/xhtml+xml', **headers):
+        from django.test import RequestFactory
+        from users.middleware import AnnouncementMiddleware
+
+        request = getattr(RequestFactory(), method)(path, HTTP_ACCEPT=accept, **headers)
+        request.user = self.user
+        return AnnouncementMiddleware(lambda r: None).process_request(request)
+
+    def _experience(self):
+        level = self.user.levels.first()
+        return level.experience if level else 0
+
+    def test_member_redirected_once_until_seen(self):
+        response = self._middleware('/forum/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('announcement'))
+
+        self.client.force_login(self.user)
+        self.client.get(reverse('announcement'))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.last_announcement_seen, self.key)
+        self.assertIsNone(self._middleware('/forum/'))
+
+    def test_no_redirect_for_posts_ajax_admin_or_non_html(self):
+        self.assertIsNone(self._middleware('/forum/', method='post'))
+        self.assertIsNone(self._middleware('/forum/', HTTP_X_REQUESTED_WITH='XMLHttpRequest'))
+        self.assertIsNone(self._middleware('/panel/'))
+        self.assertIsNone(self._middleware('/static/x.css'))
+        self.assertIsNone(self._middleware('/forum/', accept='application/json'))
+        self.assertIsNone(self._middleware(reverse('announcement')))
+
+    def test_gift_xp_given_only_once(self):
+        self.client.force_login(self.user)
+        first = self.client.get(reverse('announcement'))
+        self.assertContains(first, f'{self.gift} XP')
+        self.assertEqual(self._experience(), self.gift)
+
+        second = self.client.get(reverse('announcement'))
+        self.assertNotContains(second, "je t'offre")
+        self.assertEqual(self._experience(), self.gift)
+
+    def test_announcement_public_for_visitors(self):
+        response = self.client.get(reverse('announcement'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Le Mur des souvenirs')
+        self.assertContains(response, reverse('wall_memories:wall'))
+        self.assertNotContains(response, "je t'offre")
+
+    def test_banner_shown_then_closed_for_member(self):
+        self.client.force_login(self.user)
+        self.assertContains(self.client.get('/'), 'announcement-banner__close')
+        self.client.post(reverse('close_announcement_banner'), {'next': '/'})
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.announcement_banner_closed, self.key)
+        self.assertNotContains(self.client.get('/'), 'announcement-banner__close')
+
+    def test_banner_closed_by_cookie_for_visitor(self):
+        self.assertContains(self.client.get('/'), 'announcement-banner__close')
+        response = self.client.post(reverse('close_announcement_banner'), {'next': 'https://evil.example/'})
+        self.assertEqual(response.url, '/')
+        self.assertNotContains(self.client.get('/'), 'announcement-banner__close')
+
+
+class ProfileMemoriesTest(TestCase):
+    def setUp(self):
+        from django.utils import timezone
+        from wall_memories.models import Memory
+        self.author = User.objects.create_user(username='conteuse', email='c@test.com', password='pass12345', active=True)
+        self.visitor = User.objects.create_user(username='visiteur', email='v@test.com', password='pass12345', active=True)
+        Memory.objects.create(author=self.author, title='Souvenir public', content='x' * 30,
+                              status=Memory.STATUS_PUBLISHED, published_at=timezone.now())
+        Memory.objects.create(author=self.author, title='Souvenir en attente', content='x' * 30)
+
+    def test_profile_lists_only_published_memories(self):
+        self.client.force_login(self.visitor)
+        response = self.client.get(reverse('profile', args=[self.author.id]))
+        self.assertContains(response, 'Souvenir public')
+        self.assertNotContains(response, 'Souvenir en attente')
+        self.assertContains(response, 'Ses souvenirs')
+
+    def test_own_profile_offers_to_share(self):
+        self.client.force_login(self.author)
+        response = self.client.get(reverse('profile'))
+        self.assertContains(response, 'Mes souvenirs')
+        self.assertContains(response, reverse('wall_memories:create'))

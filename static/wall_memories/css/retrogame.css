@@ -1,0 +1,64 @@
+/* Mur des souvenirs — thème RetroGame : cartouches, HUD d'arcade, typographie pixel. */
+
+.wm--retrogame {
+    --wm-font-title: 'Courier New', 'Lucida Console', monospace;
+    --wm-bg: #0e1318;
+    --wm-surface: #121a21;
+    --wm-text: #d8ffe9;
+    --wm-card-bg: #1b222a;
+    --wm-card-text: #d8ffe9;
+    --wm-border: #2a3a33;
+    --wm-accent: #00cc66;
+    --wm-accent-2: #ffd23f;
+    --wm-radius: 0;
+    /* Le thème RetroGame du site n'a pas encore de feuille de style dédiée :
+       le Mur fournit son propre écran d'arcade. */
+    background: #0e1318;
+    color: #d8ffe9;
+    padding: 1rem;
+    border: 4px solid #000;
+    box-shadow: inset 0 0 0 2px #145c38;
+}
+.wm--retrogame .wm-hint, .wm--retrogame .wm-daily__note { background: #000; color: #9fd9bb; border-color: #145c38; }
+.wm--retrogame .wm-hero__title, .wm--retrogame .wm-section-title, .wm--retrogame .wm-btn,
+.wm--retrogame .wm-filter, .wm-rg-hud { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.wm-rg-hero { background: #000 !important; border: 4px solid #00cc66 !important; box-shadow: 0 0 0 4px #000, 0 0 0 8px #145c38 !important; image-rendering: pixelated; }
+.wm-rg-hud { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .8rem; font-family: 'Courier New', monospace; font-size: .85em; color: #fff; margin-bottom: 1.2rem; }
+.wm-rg-hud strong { color: #ffd23f; }
+.wm--retrogame .wm-hero__title { color: #00cc66; text-shadow: 4px 4px 0 #145c38; font-size: clamp(1.5rem, 4vw, 2.6rem); }
+.wm--retrogame .wm-hero__intro { color: #9fd9bb; }
+.wm--retrogame .wm-btn { border-radius: 0; border: 3px solid #00cc66; background: #000; color: #00cc66 !important; box-shadow: 4px 4px 0 #145c38; }
+.wm--retrogame .wm-btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 #145c38; }
+.wm--retrogame .wm-btn--primary { background: #00cc66; color: #000 !important; }
+.wm-rg-blink { animation: wm-rg-blink 1.1s steps(2) infinite; }
+@keyframes wm-rg-blink { 50% { opacity: .35; } }
+.wm--retrogame .wm-filter { border-radius: 0; border-width: 2px; background: #000; }
+.wm--retrogame .wm-filter.is-active { background: #ffd23f; border-color: #ffd23f; color: #000 !important; }
+.wm--retrogame .wm-filter.is-active::before { content: '▶ '; }
+.wm--retrogame .wm-section-title { color: #ffd23f; }
+
+/* Cartouche */
+.wm--retrogame .wm-grid { gap: 2.4rem 2rem; }
+.wm-rg-cart { border: 0 !important; border-radius: 10px 10px 4px 4px !important; background: linear-gradient(#5b5f66, #3c4047) !important; padding: 0 .7rem;
+    box-shadow: inset 0 -6px 0 #2a2d33, 0 8px 0 #1a1c20; overflow: visible !important; }
+.wm-rg-cart:hover { transform: translateY(-4px); }
+.wm-rg-cart__top { display: flex; justify-content: center; gap: 10px; padding: .5rem 0 .4rem; }
+.wm-rg-cart__top span { width: 30%; height: 6px; background: #2a2d33; border-radius: 3px; }
+.wm-rg-cart__label { background: #f4f0e0; color: #111; border: 3px solid #1a1c20; padding: .6rem; text-align: center; }
+.wm-rg-cart .wm-card__photo { margin-bottom: .5rem; aspect-ratio: 16 / 10; image-rendering: pixelated; }
+.wm-rg-cart .wm-card__title { font-family: 'Courier New', monospace; font-weight: 900; text-transform: uppercase; font-size: 1rem; margin: 0; }
+.wm-rg-cart .wm-card__title a { color: #c0142e !important; }
+.wm-rg-cart__meta { display: block; font-size: .65em; font-weight: 700; margin-top: .3rem; color: #333; }
+.wm-rg-cart .wm-card__body { padding: .8rem .2rem .2rem; color: #e8eef0; }
+.wm-rg-cart .wm-card__footer { padding: .6rem .2rem 1rem; border-top-color: #2a2d33; }
+.wm-rg-cart .wm-card__question { color: #ffd23f; }
+.wm--retrogame .wm-react, .wm--retrogame .wm-fav { border-radius: 0; border-color: #2a3a33; background: #000; }
+
+.wm--retrogame .wm-memory { border: 4px solid #00cc66; background: #000; box-shadow: 8px 8px 0 #145c38; }
+.wm--retrogame .wm-memory__title { color: #ffd23f; text-transform: uppercase; }
+.wm--retrogame .wm-memory__photo img { image-rendering: pixelated; border: 4px solid #fff; border-radius: 0; }
+.wm--retrogame .wm-memory__question { background: #001a0d; border: 2px dashed #00cc66; border-radius: 0; }
+.wm--retrogame .wm-comment { border-radius: 0; border-width: 2px; }
+.wm--retrogame .wm-modal { border-radius: 0; border: 4px solid #00cc66; background: #000; }
+.wm--retrogame .wm-era-choice span { border-radius: 0; }
+.wm--retrogame .wm-field input, .wm--retrogame .wm-field textarea, .wm--retrogame .wm-field select, .wm--retrogame .wm-filters__archives select { border-radius: 0; background: #000; color: #d8ffe9; border-color: #00cc66; }

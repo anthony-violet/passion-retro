@@ -1,0 +1,221 @@
+/* ==========================================================================
+   Mur des souvenirs — structure commune à tous les thèmes.
+   Chaque thème (wall_memories/css/<thème>.css) habille ces blocs.
+   Les couleurs par défaut reprennent les variables du thème du site.
+   ========================================================================== */
+
+.wm {
+    --wm-bg: var(--bg-container, #fff);
+    --wm-surface: var(--bg-post-card, #fafbfd);
+    --wm-text: var(--text-primary, #2c2c2c);
+    --wm-muted: color-mix(in srgb, var(--wm-text) 60%, transparent);
+    --wm-accent: var(--text-link, #1464b4);
+    --wm-accent-2: var(--text-link-hover, #d94f00);
+    --wm-border: var(--border-container, #b0b8c8);
+    --wm-radius: 8px;
+    --wm-card-bg: var(--wm-surface);
+    --wm-card-text: var(--wm-text);
+    --wm-font-title: inherit;
+
+    color: var(--wm-text);
+    padding: 0 0 2rem;
+    overflow-x: clip; /* les cartes inclinées ne doivent pas élargir la page */
+    line-height: 1.5;
+}
+
+.wm *, .wm *::before, .wm *::after { box-sizing: border-box; }
+/* Certains thèmes du site imposent une couleur globale aux titres : le Mur gère les siennes. */
+.wm h1, .wm h2, .wm h3 { color: inherit; }
+.wm-card, .wm-memory, .wm-comment { color: var(--wm-card-text); }
+.wm a { color: var(--wm-accent); }
+.wm a:hover { color: var(--wm-accent-2); }
+.wm img { max-width: 100%; }
+
+/* --- Messages ------------------------------------------------------------- */
+.wm-messages { list-style: none; margin: 0 0 1rem; padding: 0; }
+.wm-message { padding: .6rem .9rem; border-radius: var(--wm-radius); margin-bottom: .4rem;
+    background: var(--bg-notification-success, #dff0d8); color: var(--text-notification-success, #2d6a2d); }
+.wm-message--error { background: var(--bg-notification-error, #fde8e8); color: var(--text-notification-error, #7b1a1a); }
+
+/* --- Boutons -------------------------------------------------------------- */
+.wm-btn {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .55rem 1rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--wm-border); background: var(--wm-bg); color: var(--wm-text) !important;
+    font: inherit; font-weight: 600; text-decoration: none; line-height: 1.2;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.wm-btn:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,.15); }
+.wm-btn--primary { background: var(--wm-accent); border-color: var(--wm-accent); color: #fff !important; }
+.wm-btn--small { padding: .3rem .7rem; font-size: .85em; }
+.wm-btn--danger { background: var(--text-danger, #b11); border-color: var(--text-danger, #b11); color: #fff !important; }
+
+/* --- En-tête -------------------------------------------------------------- */
+.wm-hero { border-radius: var(--wm-radius); padding: 2.2rem 1.5rem; margin-bottom: 1.5rem; text-align: center;
+    background: var(--wm-surface); border: 1px solid var(--wm-border); }
+.wm-hero__kicker { margin: 0 0 .3rem; font-size: .85em; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+.wm-hero__title { margin: 0; font-family: var(--wm-font-title); font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.1; }
+.wm-hero__tagline { margin: .5rem 0 0; font-style: italic; font-size: 1.1em; }
+.wm-hero__intro { max-width: 46rem; margin: .9rem auto 0; color: var(--wm-muted); }
+.wm-hero__stats { display: flex; gap: 1.2rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+.wm-stat strong { font-size: 1.5em; font-family: var(--wm-font-title); }
+.wm-hero__actions { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; margin-top: 1.2rem; }
+
+.wm-section-title { font-family: var(--wm-font-title); font-size: 1.35rem; margin: 0 0 .8rem; }
+
+/* --- Souvenir du jour ----------------------------------------------------- */
+.wm-daily { margin-bottom: 2rem; }
+.wm-daily__note { margin: -.4rem 0 .8rem; color: var(--wm-muted); font-size: .9em; }
+
+/* --- Filtres -------------------------------------------------------------- */
+.wm-filters { display: flex; flex-wrap: wrap; gap: .8rem; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.wm-filters__sorts { list-style: none; display: flex; flex-wrap: wrap; gap: .35rem; margin: 0; padding: 0; }
+.wm-filter { display: inline-block; padding: .35rem .8rem; border-radius: 999px; text-decoration: none;
+    border: 1px solid var(--wm-border); font-size: .9em; color: var(--wm-text) !important; background: var(--wm-bg); }
+.wm-filter.is-active { background: var(--wm-accent); border-color: var(--wm-accent); color: #fff !important; }
+.wm-filters__archives { display: flex; gap: .4rem; flex-wrap: wrap; }
+.wm-filters__archives select { padding: .35rem .5rem; border-radius: 6px; border: 1px solid var(--wm-border);
+    background: var(--bg-input, #fff); color: inherit; font: inherit; font-size: .9em; }
+.wm-hint { margin: 0 0 1rem; padding: .6rem .9rem; border-radius: var(--wm-radius); background: var(--wm-surface);
+    border: 1px dashed var(--wm-border); font-size: .92em; }
+.wm-hint--warning { border-style: solid; border-color: var(--text-link-hover, #d94f00); }
+
+/* --- Grille & cartes ------------------------------------------------------ */
+.wm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 2.2rem 2rem; align-items: start; }
+.wm-card { position: relative; display: flex; flex-direction: column; overflow: hidden;
+    background: var(--wm-card-bg); color: var(--wm-card-text); border: 1px solid var(--wm-border); border-radius: var(--wm-radius); }
+.wm-card--featured { max-width: 760px; }
+.wm-card__photo { display: block; aspect-ratio: 4 / 3; overflow: hidden; background: rgba(0,0,0,.08); }
+.wm-card__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.wm-card__body { padding: 1rem 1rem .4rem; flex: 1; }
+.wm-card__kicker { margin: .6rem 0 .1rem; font-size: .75em; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.wm-card__title { margin: 0 0 .4rem; font-family: var(--wm-font-title); font-size: 1.15rem; line-height: 1.25; }
+.wm-card__title a { color: inherit !important; text-decoration: none; }
+.wm-card__title a:hover { text-decoration: underline; }
+.wm-card__excerpt { margin: 0 0 .6rem; font-size: .95em; }
+.wm-card__question { margin: .4rem 0; font-style: italic; font-weight: 600; }
+.wm-card__footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .4rem;
+    padding: .6rem 1rem .8rem; border-top: 1px solid color-mix(in srgb, var(--wm-border) 60%, transparent); }
+.wm-card__comments { font-size: .85em; text-decoration: none; white-space: nowrap; }
+
+.wm-tags { list-style: none; display: flex; flex-wrap: wrap; gap: .3rem; margin: .3rem 0; padding: 0; }
+.wm-tags a { display: inline-block; font-size: .75em; padding: .15rem .55rem; border-radius: 999px; text-decoration: none;
+    border: 1px solid var(--wm-border); color: inherit !important; }
+
+/* --- Auteur --------------------------------------------------------------- */
+.wm-author { display: flex; align-items: center; gap: .6rem; }
+.wm-author__avatar { position: relative; flex-shrink: 0; display: inline-block; line-height: 0; }
+.wm-author__avatar img { border-radius: 6px; object-fit: cover; }
+.wm-author__avatar .level-badge { position: absolute; bottom: -6px; right: -10px; }
+.wm-author__info { display: flex; flex-direction: column; min-width: 0; }
+.wm-author__name { font-weight: 700; text-decoration: none; }
+.wm-author__rank { font-size: .8em; opacity: .75; }
+
+/* --- Réactions ------------------------------------------------------------ */
+.wm-reactions { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+.wm-reactions form { margin: 0; display: inline; }
+.wm-react, .wm-fav { display: inline-flex; align-items: center; gap: .3rem; cursor: pointer; font: inherit; font-size: .85em;
+    padding: .25rem .6rem; border-radius: 999px; border: 1px solid var(--wm-border); background: transparent; color: inherit; }
+.wm-react.is-static { cursor: default; }
+.wm-react.is-active, .wm-fav.is-active { background: color-mix(in srgb, var(--wm-accent) 18%, transparent); border-color: var(--wm-accent); font-weight: 700; }
+.wm-react__emoji { font-size: 1.1em; line-height: 1; }
+.wm-reactions--compact .wm-fav__label { display: none; }
+.wm-pop { animation: wm-pop .35s ease; }
+@keyframes wm-pop { 50% { transform: scale(1.25); } }
+
+/* --- Page détail ---------------------------------------------------------- */
+.wm-back { margin: 0 0 1rem; }
+.wm-memory { background: var(--wm-card-bg); color: var(--wm-card-text); border: 1px solid var(--wm-border);
+    border-radius: var(--wm-radius); padding: 1.6rem; margin-bottom: 1.5rem; }
+.wm-memory__title { margin: 0 0 .8rem; font-family: var(--wm-font-title); font-size: clamp(1.5rem, 3vw, 2.2rem); line-height: 1.15; }
+.wm-memory__photo { margin: 1.2rem 0; text-align: center; }
+.wm-memory__photo img { max-height: 520px; border-radius: 6px; }
+.wm-memory__content { font-size: 1.05em; margin: 1.2rem 0; overflow-wrap: anywhere; }
+.wm-memory__question { margin: 1rem 0; padding: .8rem 1rem; border-radius: var(--wm-radius); font-weight: 700; font-size: 1.05em;
+    background: color-mix(in srgb, var(--wm-accent) 12%, transparent); }
+.wm-memory__reactions { margin-top: 1.2rem; }
+.wm-owner-actions { display: flex; gap: .5rem; margin-top: 1rem; }
+.wm-owner-actions form { margin: 0; }
+
+/* --- Commentaires --------------------------------------------------------- */
+.wm-comments { margin-bottom: 1.5rem; }
+.wm-comments__title { font-family: var(--wm-font-title); font-size: 1.3rem; }
+.wm-comments__title span { opacity: .6; font-size: .8em; }
+.wm-comment { position: relative; padding: .9rem 1rem; margin-bottom: .7rem; border-radius: var(--wm-radius);
+    background: var(--wm-card-bg); color: var(--wm-card-text); border: 1px solid var(--wm-border); }
+.wm-comment__body { margin-top: .5rem; overflow-wrap: anywhere; }
+.wm-comment__delete { position: absolute; top: .6rem; right: .8rem; margin: 0; }
+.wm-comment__delete button { background: none; border: 0; color: var(--text-danger, #b11); cursor: pointer; font-size: .8em; }
+.wm-comment-form { display: flex; flex-direction: column; gap: .6rem; align-items: flex-start; margin-top: 1rem; }
+.wm-comment-form .textarea-preview-container, .wm-comment-form textarea { width: 100%; }
+
+.wm-more__list { padding-left: 1.2rem; }
+.wm-empty { color: var(--wm-muted); font-style: italic; }
+.wm-empty--board { grid-column: 1 / -1; text-align: center; padding: 2rem 1rem; }
+
+/* --- Pagination ----------------------------------------------------------- */
+.wm-pagination { display: flex; gap: 1rem; justify-content: center; align-items: center; margin-top: 1.5rem; }
+
+/* --- Formulaire (modale et page) ------------------------------------------ */
+.wm-modal { margin: auto; width: min(680px, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); padding: 0; border: 0; overflow: auto;
+    border-radius: 14px; background: var(--wm-bg); color: var(--wm-text); box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+.wm-modal::backdrop { background: rgba(10, 10, 20, .65); backdrop-filter: blur(2px); }
+.wm-modal__header { position: relative; padding: 1.3rem 1.5rem .6rem; }
+.wm-modal__header h1, .wm-modal__header h2 { margin: 0; font-family: var(--wm-font-title); font-size: 1.5rem; }
+.wm-modal__header p { margin: .3rem 0 0; color: var(--wm-muted); }
+.wm-modal__close { position: absolute; top: .8rem; right: .9rem; background: none; border: 0; font-size: 1.2rem; cursor: pointer; color: inherit; }
+.wm-modal__body { padding: .6rem 1.5rem; }
+.wm-modal__footer { display: flex; justify-content: flex-end; gap: .5rem; padding: .8rem 1.5rem 1.3rem; }
+.wm-page-form { max-width: 720px; margin: 0 auto; background: var(--wm-bg); border: 1px solid var(--wm-border); border-radius: 14px; }
+
+.wm-field { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1rem; min-width: 0; }
+.wm-field label, .wm-label { font-weight: 700; }
+.wm-field small { font-weight: 400; opacity: .7; }
+.wm-label--small { font-weight: 600; font-size: .9em; margin-top: .6rem; }
+.wm-field input[type="text"], .wm-field input[type="number"], .wm-field textarea, .wm-field select {
+    width: 100%; padding: .55rem .7rem; border-radius: 6px; border: 1px solid var(--border-input, var(--wm-border));
+    background: var(--bg-input, #fff); color: inherit; font: inherit; }
+.wm-field textarea { min-height: 9rem; resize: vertical; }
+.wm-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 640px) { .wm-field-row { grid-template-columns: 1fr; } }
+.wm-era-choices { display: flex; flex-wrap: wrap; gap: .35rem; }
+.wm-console-choices { display: flex; flex-wrap: wrap; gap: .3rem; max-height: 11rem; overflow-y: auto; padding: .4rem;
+    border: 1px solid var(--wm-border); border-radius: 6px; }
+.wm-console-choices .wm-era-choice span { font-size: .8em; padding: .25rem .6rem; }
+.wm-era-choice { position: relative; font-weight: 600 !important; }
+.wm-era-choice input { position: absolute; opacity: 0; pointer-events: none; }
+.wm-era-choice span { display: inline-block; padding: .35rem .75rem; border-radius: 999px; border: 1px solid var(--wm-border); cursor: pointer; font-size: .9em; }
+.wm-era-choice input:checked + span { background: var(--wm-accent); border-color: var(--wm-accent); color: #fff; }
+.wm-era-choice input:focus-visible + span { outline: 2px solid var(--wm-accent); outline-offset: 2px; }
+.wm-error, .wm-errors { color: var(--text-danger, #b11); font-size: .9em; margin: 0; }
+.wm-form-note { font-size: .85em; color: var(--wm-muted); margin: 0; }
+
+/* --- Mes souvenirs -------------------------------------------------------- */
+.wm-page-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .8rem; margin-bottom: 1rem; }
+.wm-page-header h1 { margin: 0; font-family: var(--wm-font-title); }
+.wm-mine { list-style: none; padding: 0; margin: 0; }
+.wm-mine__item { display: grid; grid-template-columns: 1fr auto auto; gap: .8rem; align-items: center; padding: .8rem 1rem; margin-bottom: .5rem;
+    border: 1px solid var(--wm-border); border-radius: var(--wm-radius); background: var(--wm-card-bg); color: var(--wm-card-text); }
+@media (max-width: 640px) { .wm-mine__item { grid-template-columns: 1fr; } }
+.wm-mine__title { font-weight: 700; display: block; }
+.wm-mine__reason { margin: .3rem 0 0; font-size: .85em; }
+.wm-mine__stats { font-size: .85em; opacity: .8; }
+.wm-status { font-size: .8em; padding: .2rem .6rem; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.wm-status--pending { color: #b8860b; }
+.wm-status--published { color: #2e8b57; }
+.wm-status--rejected { color: #c0392b; }
+.wm-status--hidden { color: #777; }
+
+@media (prefers-reduced-motion: reduce) {
+    .wm *, .wm *::before, .wm *::after { animation: none !important; transition: none !important; }
+}
+
+/* Réactions compactes des cartes : tenir sur une ligne dans les colonnes étroites. */
+.wm-reactions--compact { gap: .25rem; }
+.wm-reactions--compact .wm-react, .wm-reactions--compact .wm-fav { padding: .18rem .45rem; font-size: .8em; }
+
+/* --- Mosaïque ------------------------------------------------------------- *
+ * Activée par wall.js sur les grilles [data-wm-masonry] : chaque carte occupe
+ * le nombre de rangées de 4px dont elle a besoin, l'ordre de lecture reste
+ * de gauche à droite. Sans JavaScript, la grille classique s'applique. */
+.wm-grid.is-masonry { grid-auto-rows: 4px; row-gap: 0 !important; align-items: start; }

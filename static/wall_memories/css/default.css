@@ -1,0 +1,77 @@
+/* Mur des souvenirs — thème Classic : un album photo, des polaroïds punaisés sur du liège. */
+
+.wm--default {
+    --wm-font-title: 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+    --wm-card-bg: #fffdf7;
+    --wm-card-text: #2c2c2c;
+    --wm-border: #d9cfbf;
+    --wm-accent: #c0392b;
+    --wm-accent-2: #8e2418;
+}
+
+.wm--default .wm-hero {
+    background:
+        radial-gradient(circle at 20% 30%, rgba(255,255,255,.18) 0 2px, transparent 3px) 0 0 / 22px 22px,
+        linear-gradient(135deg, #b98b5e, #a0744a);
+    color: #fffaf0;
+    border: 10px solid #6e4b2a;
+    border-radius: 6px;
+    box-shadow: inset 0 0 40px rgba(0,0,0,.35), 0 4px 14px rgba(0,0,0,.25);
+}
+.wm--default .wm-hero__intro { color: #fbeedd; }
+.wm--default .wm-hero .wm-btn:not(.wm-btn--primary) { background: #fffdf7; border-color: #fffdf7; }
+
+/* Le tableau en liège */
+.wm--default .wm-board {
+    padding: 1.4rem;
+    border-radius: 6px;
+    background:
+        radial-gradient(circle, rgba(90,55,25,.25) 1px, transparent 1.5px) 0 0 / 9px 9px,
+        radial-gradient(circle, rgba(255,240,210,.25) 1px, transparent 1.5px) 4px 5px / 11px 11px,
+        #c89b6d;
+    border: 10px solid #6e4b2a;
+    box-shadow: inset 0 0 30px rgba(0,0,0,.3);
+}
+.wm--default .wm-board .wm-section-title,
+.wm--default .wm-board .wm-hint { color: #2b1a0c; }
+.wm--default .wm-board .wm-section-title { background: #fffdf7; display: inline-block; padding: .2rem .8rem; transform: rotate(-1deg);
+    box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+.wm--default .wm-board .wm-hint { background: rgba(255,253,247,.9); }
+
+/* Les polaroïds */
+.wm--default .wm-card {
+    border: 0;
+    border-radius: 2px;
+    padding: 12px 12px 0;
+    box-shadow: 0 6px 14px rgba(0,0,0,.3);
+    transform: rotate(-1.4deg);
+    transition: transform .2s ease, box-shadow .2s ease;
+    overflow: visible;
+}
+.wm--default .wm-grid .wm-card:nth-child(2n) { transform: rotate(1.2deg); }
+.wm--default .wm-grid .wm-card:nth-child(3n) { transform: rotate(-.6deg); }
+.wm--default .wm-grid .wm-card:hover { transform: rotate(0) scale(1.02); z-index: 2; box-shadow: 0 12px 26px rgba(0,0,0,.35); }
+.wm--default .wm-card__pin {
+    position: absolute; top: -9px; left: 50%; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; z-index: 3;
+    background: radial-gradient(circle at 35% 35%, #ff8a80, #c0392b 60%, #7b1d12);
+    box-shadow: 0 3px 4px rgba(0,0,0,.4);
+}
+.wm--default .wm-card__photo { border: 1px solid #e6dccb; aspect-ratio: 1 / 1; }
+.wm--default .wm-card__body { padding: .7rem .2rem .2rem; }
+.wm--default .wm-card__title { font-size: 1.25rem; }
+.wm--default .wm-card__footer { padding: .5rem .2rem .8rem; border-top-style: dashed; }
+
+.wm--default .wm-daily .wm-card { transform: rotate(-.8deg); }
+
+/* Détail : une page d'album */
+.wm--default .wm-memory {
+    border: 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,.2);
+    background:
+        linear-gradient(90deg, transparent 2.6rem, rgba(192,57,43,.35) 2.6rem 2.7rem, transparent 2.7rem),
+        repeating-linear-gradient(#fffdf7 0 1.7rem, #e8eef8 1.7rem 1.75rem);
+    padding-left: 3.4rem;
+}
+.wm--default .wm-memory__photo img { padding: 10px 10px 34px; background: #fff; box-shadow: 0 6px 14px rgba(0,0,0,.25); transform: rotate(1deg); border-radius: 2px; }
+.wm--default .wm-comment { background: #fffdf7; border-color: #e6dccb; }
+.wm--default .wm-modal { background: #fffdf7; color: #2c2c2c; }

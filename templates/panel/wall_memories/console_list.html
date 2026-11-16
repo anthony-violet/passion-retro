@@ -1,0 +1,49 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>🕹️ Consoles du Mur des souvenirs</h2>
+    <div class="panel-actions">
+        <a href="{% url 'panel_memories' %}" class="btn btn-small">← Souvenirs</a>
+        <a href="{% url 'panel_memory_console_create' %}" class="btn btn-add">+ Nouvelle console</a>
+    </div>
+</div>
+
+<div class="panel-section">
+    <p class="panel-section-subtitle">Liste proposée aux membres lorsqu'ils partagent un souvenir. Une console utilisée ne peut pas être supprimée : elle est désactivée.</p>
+    <table class="panel-table">
+        <thead>
+            <tr>
+                <th>Ordre</th>
+                <th>Nom</th>
+                <th>Constructeur</th>
+                <th>Sortie</th>
+                <th>Souvenirs</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for console, count in consoles %}
+            <tr{% if not console.is_active %} style="opacity:.55"{% endif %}>
+                <td>{{ console.order }}</td>
+                <td>{{ console.name }}</td>
+                <td>{{ console.manufacturer|default:"—" }}</td>
+                <td>{{ console.release_year|default:"—" }}</td>
+                <td>{{ count }}</td>
+                <td>{% if console.is_active %}✅{% else %}—{% endif %}</td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_memory_console_edit' console.id %}" class="btn btn-small btn-warning">Modifier</a>
+                    <form method="post" action="{% url 'panel_memory_console_delete' console.id %}" style="display:inline" onsubmit="return confirm('Supprimer cette console ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="panel-empty">Aucune console.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

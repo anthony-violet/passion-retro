@@ -1,0 +1,62 @@
+/* Mur des souvenirs — thème RPG SNES/GBA : parchemins, sceaux de cire, registre de guilde. */
+
+.wm--rpg {
+    --wm-font-title: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+    --wm-bg: #0d1b2a;
+    --wm-surface: #13263a;
+    --wm-text: #3b2a14;
+    --wm-card-bg: #f1e3c2;
+    --wm-card-text: #3b2a14;
+    --wm-border: #8a6a3a;
+    --wm-accent: #c9a24a;
+    --wm-accent-2: #f3d27a;
+    --wm-radius: 4px;
+}
+.wm-rpg-hero { padding: .6rem !important; background: linear-gradient(#1a3d5c, #0d1b2a) !important; border: 2px solid #c9a24a !important;
+    color: #e8e0d0; --wm-muted: #cfc4ae; }
+.wm--rpg .wm-hero__tagline { color: #f3d27a; }
+.wm--rpg .wm-stat { color: #e8e0d0; }
+.wm--rpg .wm-stat strong { color: #f3d27a; }
+.wm-rpg-hero__frame { border: 1px solid rgba(201,162,74,.5); padding: 2rem 1.2rem; border-radius: 2px; }
+.wm--rpg .wm-hero__title { color: #f3d27a; text-shadow: 0 2px 0 #000, 0 0 18px rgba(243,210,122,.35); }
+.wm--rpg .wm-hero__kicker { color: #c9a24a; }
+.wm--rpg .wm-hero__intro { color: #cfc4ae; }
+.wm--rpg .wm-btn { border-radius: 3px; background: linear-gradient(#2a4d6e, #16304a); border-color: #c9a24a; color: #f3e6c8 !important; }
+.wm--rpg .wm-btn--primary { background: linear-gradient(#e0b85a, #a77c2a); color: #2a1a05 !important; }
+.wm--rpg .wm-filter { border-radius: 3px; background: #13263a; border-color: #5a4a2a; color: #e8e0d0 !important; }
+.wm--rpg .wm-filter.is-active { background: #c9a24a; border-color: #c9a24a; color: #2a1a05 !important; }
+.wm--rpg .wm-section-title { color: #5a2d0c; text-shadow: 0 1px 0 rgba(255,255,255,.6); }
+.wm--rpg .wm-filters__archives select { background: #f6ead0; color: #3b2a14; border-color: #8a6a3a; }
+
+/* Parchemin */
+.wm-rpg-scroll { border: 0 !important; overflow: visible !important; border-radius: 3px !important;
+    background: radial-gradient(ellipse at center, #f6ead0 40%, #e2cc9c) !important; box-shadow: 0 6px 16px rgba(0,0,0,.55), inset 0 0 30px rgba(120,80,30,.35); }
+.wm-rpg-scroll::before, .wm-rpg-scroll::after { content: ''; position: absolute; left: -6px; right: -6px; height: 14px; border-radius: 7px;
+    background: linear-gradient(#b8935a, #7a5a2a); box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+.wm-rpg-scroll::before { top: -7px; }
+.wm-rpg-scroll::after { bottom: -7px; }
+.wm-rpg-scroll__head { display: flex; padding-right: 2.6rem !important; justify-content: space-between; align-items: center; padding: 1rem 1rem 0; color: #7a4e1c;
+    font-family: var(--wm-font-title); font-size: .8em; letter-spacing: .1em; text-transform: uppercase; }
+.wm-rpg-scroll .wm-card__photo { margin: .6rem 1rem 0; border: 3px double #8a6a3a; filter: sepia(.25); }
+.wm-rpg-scroll .wm-card__title { color: #5a2d0c; font-size: 1.25rem; }
+.wm-rpg-scroll .wm-tags a { border-color: #8a6a3a; }
+.wm-rpg-scroll .wm-card__footer { border-top: 1px dashed #b39565; padding-bottom: 1.2rem; }
+.wm-rpg-scroll .wm-card__comments, .wm-rpg-scroll a { color: #7a3b0c; }
+.wm-rpg-scroll__seal { position: absolute; right: 12px; top: 12px; width: 30px; height: 30px; border-radius: 50%; opacity: .85;
+    background: radial-gradient(circle at 35% 35%, #d9534f, #8b1a1a 70%); box-shadow: 0 2px 3px rgba(0,0,0,.4); pointer-events: none; }
+.wm-rpg-scroll .wm-react.is-active { background: rgba(139,26,26,.15); border-color: #8b1a1a; }
+
+/* Détail */
+.wm--rpg .wm-memory { background: radial-gradient(ellipse at center, #f6ead0 40%, #e2cc9c); border: 3px double #8a6a3a; box-shadow: inset 0 0 40px rgba(120,80,30,.35); }
+.wm--rpg .wm-memory a { color: #7a3b0c; }
+.wm-rpg-nameplate { display: flex; align-items: center; justify-content: center; gap: .8rem; margin: -1.6rem -1.6rem 1rem; padding: .8rem;
+    background: linear-gradient(#1a3d5c, #0d1b2a); color: #f3d27a; border-bottom: 2px solid #c9a24a; }
+.wm-rpg-nameplate .wm-memory__title { margin: 0; color: #f3d27a; text-align: center; }
+.wm--rpg .wm-memory__question { background: rgba(139,26,26,.1); border-left: 4px solid #8b1a1a; }
+.wm--rpg .wm-comment { background: #f1e3c2; color: #3b2a14; border: 1px solid #8a6a3a; }
+.wm--rpg .wm-comment a { color: #7a3b0c; }
+.wm--rpg .wm-modal { background: #f1e3c2; color: #3b2a14; border: 3px double #8a6a3a; }
+.wm--rpg .wm-modal__header h2 { color: #5a2d0c; }
+.wm--rpg .wm-modal .wm-btn:not(.wm-btn--primary) { color: #f3e6c8 !important; }
+.wm--rpg .wm-mine__item a { color: #7a3b0c; }
+.wm--rpg .wm-back a, .wm--rpg .wm-more a, .wm--rpg .wm-hint a { color: #7a3b0c; }

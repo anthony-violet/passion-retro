@@ -82,3 +82,26 @@ class UserStatsMiddleware(MiddlewareMixin):
         request.online_members = online_members_count
         request.online_member_ids = online_member_ids
         request.theme_active = theme_active
+
+class AnnouncementMiddleware(MiddlewareMixin):
+    """Redirige une seule fois chaque membre vers l'annonce de nouveauté en cours.
+
+    Uniquement pour une navigation classique (GET d'une page HTML) : jamais
+    pendant un envoi de formulaire, un appel AJAX ou sur l'admin.
+    """
+
+    def process_request(self, request):
+        from . import announcements
+
+        user = getattr(request, 'user', None)
+        if not user or not user.is_authenticated or request.method != 'GET':
+            return None
+        if announcements.has_seen(user):
+            return None
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return None
+        if 'text/html' not in request.headers.get('accept', ''):
+            return None
+        if request.path.startswith(announcements.EXCLUDED_PREFIXES):
+            return None
+        return redirect('announcement')

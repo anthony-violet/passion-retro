@@ -1,0 +1,13 @@
+{% load users_custom_tags %}
+<div class="wm-author{% if compact %} wm-author--compact{% endif %}">
+    <a href="{% url 'profile' person.id %}" class="wm-author__avatar">
+        <span class="{{ person.border_avatar|default:'' }}">
+            <img src="/media/{{ person.avatar }}" alt="{{ person.username }}" width="{% if compact %}36{% else %}52{% endif %}" height="{% if compact %}36{% else %}52{% endif %}" loading="lazy">
+        </span>
+        {% if not compact %}{% user_level_badge person %}{% endif %}
+    </a>
+    <div class="wm-author__info">
+        <a href="{% url 'profile' person.id %}" class="wm-author__name {{ person.username_decoration|default:'' }}">{{ person.username }}</a>
+        <span class="wm-author__rank">{{ person.level_title }}{% if when %} · <time datetime="{{ when|date:'c' }}" title="{{ when|date:'d/m/Y H:i' }}">il y a {{ when|timesince }}</time>{% endif %}</span>
+    </div>
+</div>

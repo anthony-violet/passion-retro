@@ -72,6 +72,21 @@
     </ul>
     <center><a href="{% url 'guestbook_home' %}#form" class="btn btn-add">Laisser un message</a></center>
 </div>
+{% with memory=wall_random_memory %}
+<div class="menu">
+    <h2>Mur des souvenirs</h2>
+    {% if memory %}
+        {% load wall_memories_tags %}
+        <p class="wall-widget__title"><strong><a href="{{ memory.get_absolute_url }}">{{ memory.title }}</a></strong></p>
+        <p class="wall-widget__excerpt">{{ memory.content|plain_excerpt:110 }}</p>
+        <p class="wall-widget__author">— {{ memory.author.username }}, {{ memory.get_era_display|lower }}</p>
+        <center><a href="{{ memory.get_absolute_url }}" class="btn btn-small">Lire</a> <a href="{% url 'wall_memories:wall' %}" class="btn btn-small">Voir le Mur</a></center>
+    {% else %}
+        <p>Raconte un souvenir de jeu vidéo qui a marqué ton enfance.</p>
+        <center><a href="{% url 'wall_memories:wall' %}" class="btn btn-small">Voir le Mur</a></center>
+    {% endif %}
+</div>
+{% endwith %}
 <div class="menu">
     <h2>Éphémérides</h2>
     {% include './ephemerides.html' %}

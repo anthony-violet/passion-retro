@@ -85,6 +85,20 @@
             </div>
         </div>
     </div>
+    <div class="panel-stat-card {% if pending_memories > 0 %}panel-stat-warning{% endif %}">
+        <div class="panel-stat-icon">🧡</div>
+        <div class="panel-stat-body">
+            <div class="panel-stat-value">{{ total_memories }}</div>
+            <div class="panel-stat-label">Souvenirs</div>
+            <div class="panel-stat-sub">
+                {% if pending_memories > 0 %}
+                    <a href="{% url 'panel_memories' %}">{{ pending_memories }} en attente</a>
+                {% else %}
+                    Aucun en attente
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="panel-section">

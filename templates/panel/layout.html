@@ -50,6 +50,18 @@
                     <span class="panel-badge panel-badge-warning">{{ pending_ephemerides_count }}</span>
                 {% endif %}
             </a>
+            <a href="{% url 'panel_memories' %}" class="panel-nav-item {% if request.resolver_match.url_name == 'panel_memories' or request.resolver_match.url_name == 'panel_memory_review' %}active{% endif %}">
+                🧡 Mur des souvenirs
+                {% if pending_memories_count > 0 %}
+                    <span class="panel-badge panel-badge-warning">{{ pending_memories_count }}</span>
+                {% endif %}
+            </a>
+            <a href="{% url 'panel_memory_comments' %}" class="panel-nav-item {% if 'panel_memory_comment' in request.resolver_match.url_name %}active{% endif %}">
+                💬 Commentaires souvenirs
+            </a>
+            <a href="{% url 'panel_memory_consoles' %}" class="panel-nav-item {% if 'panel_memory_console' in request.resolver_match.url_name %}active{% endif %}">
+                🕹️ Consoles
+            </a>
             <div class="panel-nav-separator"></div>
             <a href="{% url 'home' %}" class="panel-nav-item">← Retour au site</a>
         </nav>

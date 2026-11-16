@@ -1,0 +1,28 @@
+{% extends 'wall_memories/_base.html' %}
+
+{% block wm_content %}
+<p class="wm-back"><a href="{% url 'wall_memories:wall' %}">← Retour au Mur des souvenirs</a></p>
+<header class="wm-page-header">
+    <h1>Mes souvenirs</h1>
+    <a href="{% url 'wall_memories:create' %}" class="wm-btn wm-btn--primary" data-wm-open>❤️ Partager un souvenir</a>
+</header>
+<ul class="wm-mine">
+    {% for memory in my_memories %}
+    <li class="wm-mine__item wm-mine__item--{{ memory.status }}">
+        <div>
+            <a href="{{ memory.get_absolute_url }}" class="wm-mine__title">{{ memory.title }}</a>
+            <small>{{ memory.get_era_display }} · envoyé le {{ memory.created_at|date:"d/m/Y" }}</small>
+            {% if memory.status == 'rejected' and memory.rejection_reason %}<p class="wm-mine__reason">Motif : {{ memory.rejection_reason }}</p>{% endif %}
+        </div>
+        <span class="wm-status wm-status--{{ memory.status }}">{{ memory.get_status_display }}</span>
+        {% if memory.is_published %}
+        <span class="wm-mine__stats">{{ memory.reactions_count }} réaction{{ memory.reactions_count|pluralize }} · {{ memory.comments_count }} commentaire{{ memory.comments_count|pluralize }}</span>
+        {% else %}
+        <a href="{% url 'wall_memories:edit' memory.pk %}" class="wm-btn wm-btn--small">Modifier</a>
+        {% endif %}
+    </li>
+    {% empty %}
+    <li class="wm-empty">Tu n'as pas encore partagé de souvenir. Le premier est souvent le plus beau !</li>
+    {% endfor %}
+</ul>
+{% endblock %}

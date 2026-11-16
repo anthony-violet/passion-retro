@@ -7,6 +7,7 @@ from quiz.models import Quiz
 from guestbook.models import Guestbook
 from shop.models import Item
 from ephemerides.models import ContributedEphemeride
+from wall_memories.models import Memory
 
 
 @staff_required
@@ -32,6 +33,9 @@ def dashboard(request):
         'pending_ephemerides': ContributedEphemeride.objects.filter(
             status=ContributedEphemeride.STATUS_PENDING
         ).count(),
+
+        'total_memories': Memory.objects.filter(status=Memory.STATUS_PUBLISHED).count(),
+        'pending_memories': Memory.objects.filter(status=Memory.STATUS_PENDING).count(),
 
         'total_items': Item.objects.count(),
     }

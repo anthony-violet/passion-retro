@@ -1,0 +1,30 @@
+{% extends 'wall_memories/default/wall.html' %}
+
+{% block wm_hero %}
+<header class="wm-hero wm-rpg-hero">
+    <div class="wm-rpg-hero__frame">
+        <p class="wm-hero__kicker">⚔ Chroniques de la guilde ⚔</p>
+        <h1 class="wm-hero__title">Le Mur des souvenirs</h1>
+        <p class="wm-hero__tagline">« Parce que certains souvenirs ne s'effacent jamais. »</p>
+        <p class="wm-hero__intro">Aventurier, chaque héros garde en lui le récit de ses premières quêtes. Inscris le tien dans le grand registre et parcours les légendes des autres membres de la guilde.</p>
+        <div class="wm-hero__stats">
+            <span class="wm-stat">📜 <strong>{{ total_memories }}</strong> récit{{ total_memories|pluralize }} consigné{{ total_memories|pluralize }}</span>
+            <span class="wm-stat">🛡 <strong>{{ total_contributors }}</strong> conteur{{ total_contributors|pluralize }}</span>
+        </div>
+        <div class="wm-hero__actions">
+            {% if user.is_authenticated %}
+            <a href="{% url 'wall_memories:create' %}" class="wm-btn wm-btn--primary" data-wm-open>✒ Consigner un souvenir</a>
+            <a href="{% url 'wall_memories:mine' %}" class="wm-btn">📖 Mon journal</a>
+            <a href="{% url 'wall_memories:favorites' %}" class="wm-btn">🔖 Mes trésors</a>
+            {% else %}
+            <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="wm-btn wm-btn--primary">Rejoindre la guilde</a>
+            {% endif %}
+            <a href="{% url 'wall_memories:random' %}" class="wm-btn">🎲 Lancer les dés</a>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block wm_daily_title %}🕯 Le récit ressorti des archives{% endblock %}
+{% block wm_board_title %}📜 Le grand registre des souvenirs{% endblock %}
+{% block wm_empty %}Le registre est encore vierge… Sois le premier à y inscrire ta légende.{% endblock %}

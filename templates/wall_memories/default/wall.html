@@ -1,0 +1,53 @@
+{% extends 'wall_memories/_base.html' %}
+{% load wall_memories_tags %}
+
+{% block wm_content %}
+{% block wm_hero %}
+<header class="wm-hero">
+    <div class="wm-hero__inner">
+        <p class="wm-hero__kicker">📌 L'album de souvenirs de la communauté</p>
+        <h1 class="wm-hero__title">{% block wm_title %}Le Mur des souvenirs{% endblock %}</h1>
+        <p class="wm-hero__tagline">{% block wm_tagline %}« Parce que certains souvenirs ne s'effacent jamais. »{% endblock %}</p>
+        <p class="wm-hero__intro">{% block wm_intro %}Un premier Noël avec une console, des mercredis après-midi chez un copain, un boss qui t'a fait trembler… Raconte ce que le jeu vidéo a représenté dans ta vie, et découvre les souvenirs des autres.{% endblock %}</p>
+        <div class="wm-hero__stats">
+            {% block wm_stats %}
+            <span class="wm-stat"><strong>{{ total_memories }}</strong> souvenir{{ total_memories|pluralize }} partagé{{ total_memories|pluralize }}</span>
+            <span class="wm-stat"><strong>{{ total_contributors }}</strong> membre{{ total_contributors|pluralize }} conteur{{ total_contributors|pluralize }}</span>
+            {% endblock %}
+        </div>
+        <div class="wm-hero__actions">
+            {% if user.is_authenticated %}
+            <a href="{% url 'wall_memories:create' %}" class="wm-btn wm-btn--primary" data-wm-open>{% block wm_share_label %}❤️ Partager un souvenir{% endblock %}</a>
+            <a href="{% url 'wall_memories:mine' %}" class="wm-btn">Mes souvenirs</a>
+            <a href="{% url 'wall_memories:favorites' %}" class="wm-btn">🔖 Mes favoris</a>
+            {% else %}
+            <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" class="wm-btn wm-btn--primary">Connecte-toi pour partager un souvenir</a>
+            {% endif %}
+            <a href="{% url 'wall_memories:random' %}" class="wm-btn">🎲 Surprends-moi</a>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% if memory_of_the_day %}
+<section class="wm-daily">
+    <h2 class="wm-section-title">{% block wm_daily_title %}🗓️ Le souvenir du jour{% endblock %}</h2>
+    <p class="wm-daily__note">Publié il y a {{ memory_of_the_day.published_at|timesince }} : une seconde vie pour un souvenir de la communauté.</p>
+    {% include wm_card with memory=memory_of_the_day featured=True %}
+</section>
+{% endif %}
+
+<section class="wm-board">
+    <h2 class="wm-section-title">{% block wm_board_title %}Les souvenirs de la communauté{% endblock %}{% if console %} · {{ console.name }}{% endif %}</h2>
+    {% include 'wall_memories/_filters.html' %}
+
+    <div class="wm-grid {% block wm_grid_class %}{% endblock %}"{% if wm_masonry %} data-wm-masonry{% endif %}>
+        {% for memory in memories %}
+            {% include wm_card %}
+        {% empty %}
+            <p class="wm-empty wm-empty--board">{% block wm_empty %}Aucun souvenir ici pour l'instant… Et si tu étais le premier à raconter le tien ?{% endblock %}</p>
+        {% endfor %}
+    </div>
+    {% include 'wall_memories/_pagination.html' %}
+</section>
+{% endblock %}

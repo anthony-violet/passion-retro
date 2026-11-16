@@ -1,0 +1,6 @@
+<div class="panel-actions" style="margin-bottom:1rem;flex-wrap:wrap;gap:.4rem;display:flex;">
+    {% for value, label in statuses %}
+    <a href="?status={{ value }}" class="btn btn-small {% if status == value %}btn-primary{% endif %}">{{ label }}</a>
+    {% endfor %}
+    <a href="?status=all" class="btn btn-small {% if status == 'all' %}btn-primary{% endif %}">Tous</a>
+</div>

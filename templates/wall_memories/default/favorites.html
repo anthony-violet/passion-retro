@@ -1,0 +1,14 @@
+{% extends 'wall_memories/_base.html' %}
+
+{% block wm_content %}
+<p class="wm-back"><a href="{% url 'wall_memories:wall' %}">← Retour au Mur des souvenirs</a></p>
+<header class="wm-page-header"><h1>🔖 Mes souvenirs favoris</h1></header>
+<div class="wm-grid"{% if wm_masonry %} data-wm-masonry{% endif %}>
+    {% for memory in memories %}
+        {% include wm_card %}
+    {% empty %}
+        <p class="wm-empty wm-empty--board">Garde ici les souvenirs qui te parlent le plus, grâce au bouton 🔖 de chaque souvenir.</p>
+    {% endfor %}
+</div>
+{% include 'wall_memories/_pagination.html' %}
+{% endblock %}

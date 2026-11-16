@@ -1,0 +1,7 @@
+{% if page_obj and page_obj.has_other_pages %}
+<nav class="wm-pagination" aria-label="Pagination">
+    {% if page_obj.has_previous %}<a class="wm-pagination__link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.previous_page_number }}">‹ Précédents</a>{% endif %}
+    <span class="wm-pagination__current">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="wm-pagination__link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ page_obj.next_page_number }}">Suivants ›</a>{% endif %}
+</nav>
+{% endif %}

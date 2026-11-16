@@ -1,0 +1,22 @@
+{% extends 'wall_memories/_base.html' %}
+
+{% block wm_content %}
+<p class="wm-back"><a href="{% url 'wall_memories:wall' %}">← Retour au Mur des souvenirs</a></p>
+<section class="wm-page-form">
+    <form method="post" action="{% if memory %}{% url 'wall_memories:edit' memory.pk %}{% else %}{% url 'wall_memories:create' %}{% endif %}" enctype="multipart/form-data" class="wm-form">
+        <header class="wm-modal__header">
+            <h1>{% if memory %}Modifier mon souvenir{% else %}Raconte-nous ton souvenir ❤️{% endif %}</h1>
+            <p>Un moment, une émotion, une anecdote... Fais-nous voyager dans le temps.</p>
+        </header>
+        <div class="wm-modal__body">
+            {% include 'wall_memories/_form_fields.html' %}
+        </div>
+        <footer class="wm-modal__footer">
+            <a href="{% url 'wall_memories:wall' %}" class="wm-btn">Annuler</a>
+            <button type="submit" class="wm-btn wm-btn--primary">{% if memory %}Enregistrer{% else %}Partager mon souvenir{% endif %}</button>
+        </footer>
+    </form>
+</section>
+{% endblock %}
+
+{% block wm_modal %}{% endblock %}

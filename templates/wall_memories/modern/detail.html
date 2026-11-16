@@ -1,0 +1,19 @@
+{% extends 'wall_memories/default/detail.html' %}
+{% load wall_memories_tags %}
+{% block wm_back %}Retour au fil{% endblock %}
+{% block wm_memory %}
+<header class="wm-memory__header">
+    {% include 'wall_memories/_author.html' with person=memory.author when=memory.published_at|default:memory.created_at %}
+    <h1 class="wm-memory__title">{{ memory.title }}</h1>
+    <p class="wm-card__kicker">{{ memory.get_era_display }}{% if memory.year %} · {{ memory.year }}{% endif %}</p>
+</header>
+{% if memory.image %}<figure class="wm-memory__photo"><img src="{{ memory.image.url }}" alt="Photo illustrant le souvenir « {{ memory.title }} »"></figure>{% endif %}
+<div class="wm-memory__content">{{ memory.content|safe_bbcode }}</div>
+{% if memory.consoles.all %}
+<ul class="wm-tags">{% for c in memory.consoles.all %}<li><a href="{% url 'wall_memories:wall' %}?console={{ c.slug }}">#{{ c.name }}</a></li>{% endfor %}</ul>
+{% endif %}
+{% if memory.question %}<p class="wm-memory__question">{{ memory.question }}</p>{% endif %}
+{% endblock %}
+{% block wm_comments %}
+{% include 'wall_memories/_comments.html' with comments_title="Commentaires" comments_empty="Aucun commentaire pour l'instant." comment_button="Publier" %}
+{% endblock %}

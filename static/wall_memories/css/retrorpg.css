@@ -1,0 +1,64 @@
+/* Mur des souvenirs — thème Retro RPG : fenêtres de dialogue bleues des JRPG 16 bits. */
+
+.wm--retrorpg {
+    --wm-font-title: 'Trebuchet MS', Verdana, sans-serif;
+    --wm-jrpg-window: linear-gradient(#3a4fc4, #1a237e 60%, #0d1257);
+    --wm-card-bg: #1a237e;
+    --wm-card-text: #ffffff;
+    --wm-border: #ffffff;
+    --wm-accent: #2a5caa;
+    --wm-accent-2: #ffe066;
+    --wm-radius: 8px;
+}
+.wm-jrpg-window, .wm-jrpg-card, .wm--retrorpg .wm-memory, .wm--retrorpg .wm-comment, .wm-jrpg-menu, .wm--retrorpg .wm-modal {
+    background: var(--wm-jrpg-window) !important; color: #fff !important;
+    border: 3px solid #fff !important; border-radius: 8px !important;
+    box-shadow: 0 0 0 2px #0d1257, inset 0 0 0 2px #7d8ce8, 0 6px 14px rgba(0,0,0,.35) !important;
+    text-shadow: 1px 1px 0 #000;
+}
+.wm--retrorpg .wm-jrpg-window a, .wm-jrpg-card a, .wm--retrorpg .wm-memory a, .wm--retrorpg .wm-comment a, .wm-jrpg-menu a, .wm--retrorpg .wm-modal a { color: #ffe066 !important; }
+
+.wm-jrpg-hero { display: grid; grid-template-columns: 1fr 240px; gap: 1rem; padding: 0 !important; background: none !important; border: 0 !important; text-align: left !important; }
+@media (max-width: 760px) { .wm-jrpg-hero { grid-template-columns: 1fr; } }
+.wm-jrpg-window { position: relative; padding: 1.8rem 1.4rem 1.4rem; margin-top: .9rem; }
+.wm--retrorpg .wm-hero__intro { color: #e3e8ff; margin-left: 0; }
+.wm--retrorpg .wm-hero__title { color: #fff; }
+.wm--retrorpg .wm-hero__tagline { color: #ffe066; }
+.wm-jrpg-speaker { position: absolute; top: -.9rem; left: 1rem; padding: .15rem .8rem; font-size: .8em; font-weight: 700; color: #fff;
+    background: #0d1257; border: 2px solid #fff; border-radius: 6px; text-shadow: 1px 1px 0 #000; }
+.wm-jrpg-cursor { position: absolute; right: 1rem; bottom: .5rem; color: #fff; animation: wm-jrpg-bounce .8s ease-in-out infinite; }
+@keyframes wm-jrpg-bounce { 50% { transform: translateY(4px); } }
+.wm-jrpg-menu { padding: 1rem; margin-top: .9rem; display: flex; flex-direction: column; justify-content: space-between; }
+.wm-jrpg-menu ul { list-style: none; margin: 0; padding: 0; }
+.wm-jrpg-menu li a { display: block; padding: .3rem 0 .3rem 1.2rem; text-decoration: none; color: #fff !important; position: relative; }
+.wm-jrpg-menu li a:hover::before, .wm-jrpg-menu li a:focus::before { content: '☞'; position: absolute; left: 0; color: #ffe066; }
+.wm-jrpg-status { display: flex; justify-content: space-between; margin: 1rem 0 0; padding-top: .6rem; border-top: 1px solid rgba(255,255,255,.4); }
+.wm-jrpg-status dt { font-size: .75em; color: #b8c2ff; }
+.wm-jrpg-status dd { margin: 0; font-size: 1.4rem; font-weight: 700; color: #ffe066; }
+
+.wm--retrorpg .wm-filter { border-radius: 6px; }
+.wm--retrorpg .wm-filter.is-active { background: #1a237e; border-color: #fff; }
+
+/* Une carte = une bulle de dialogue */
+.wm--retrorpg .wm-grid { gap: 2.6rem 2rem; padding-top: .8rem; }
+.wm-jrpg-card { overflow: visible !important; }
+.wm-jrpg-card .wm-card__body { padding-top: 1.3rem; }
+.wm-jrpg-card .wm-card__photo { margin: 1.3rem .9rem 0; border: 2px solid #fff; border-radius: 4px; }
+.wm-jrpg-card .wm-card__title a { color: #fff !important; }
+.wm-jrpg-card .wm-card__excerpt { font-size: .95em; }
+.wm-jrpg-card .wm-card__question { color: #ffe066; }
+.wm-jrpg-card .wm-author { margin-top: .6rem; }
+.wm-jrpg-card .wm-card__footer { border-top-color: rgba(255,255,255,.3); padding-bottom: 1.4rem; }
+.wm--retrorpg .wm-tags a { border-color: rgba(255,255,255,.6); }
+.wm--retrorpg .wm-react, .wm--retrorpg .wm-fav { border-color: rgba(255,255,255,.6); color: #fff; }
+.wm--retrorpg .wm-react.is-active, .wm--retrorpg .wm-fav.is-active { background: rgba(255,224,102,.25); border-color: #ffe066; }
+
+.wm--retrorpg .wm-memory { position: relative; margin-top: 1rem; }
+.wm--retrorpg .wm-memory .wm-jrpg-speaker { top: -1rem; }
+.wm--retrorpg .wm-memory__question { background: rgba(0,0,0,.25); border: 1px solid #ffe066; color: #ffe066; }
+.wm--retrorpg .wm-comments__title, .wm--retrorpg .wm-section-title { color: var(--text-primary, inherit); }
+.wm--retrorpg .wm-modal__header p { color: #d3d9ff; }
+.wm--retrorpg .wm-field input, .wm--retrorpg .wm-field textarea, .wm--retrorpg .wm-field select { background: #0d1257; color: #fff; border-color: #7d8ce8; text-shadow: none; }
+.wm--retrorpg .wm-modal .wm-btn { color: #1a237e !important; text-shadow: none; }
+.wm--retrorpg .wm-modal .wm-btn--primary { color: #fff !important; }
+.wm--retrorpg .wm-mine__item { background: #1a237e; color: #fff; }

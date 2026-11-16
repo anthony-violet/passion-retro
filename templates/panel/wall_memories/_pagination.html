@@ -1,0 +1,7 @@
+{% if page_obj.has_other_pages %}
+<div class="panel-actions" style="margin-top:1rem;gap:.5rem;display:flex;align-items:center;">
+    {% if page_obj.has_previous %}<a class="btn btn-small" href="?status={{ status }}&page={{ page_obj.previous_page_number }}">‹ Précédent</a>{% endif %}
+    <span>Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a class="btn btn-small" href="?status={{ status }}&page={{ page_obj.next_page_number }}">Suivant ›</a>{% endif %}
+</div>
+{% endif %}

@@ -1,0 +1,26 @@
+{% extends 'wall_memories/default/detail.html' %}
+{% load wall_memories_tags %}
+
+{% block wm_back %}Retourner au grand registre{% endblock %}
+
+{% block wm_memory %}
+<div class="wm-rpg-nameplate">
+    <span>⚔</span>
+    <h1 class="wm-memory__title">{{ memory.title }}</h1>
+    <span>⚔</span>
+</div>
+<p class="wm-card__kicker">Quête · {{ memory.get_era_display }}{% if memory.year %} · An {{ memory.year }}{% endif %}</p>
+{% include 'wall_memories/_author.html' with person=memory.author when=memory.published_at|default:memory.created_at %}
+{% if memory.image %}<figure class="wm-memory__photo"><img src="{{ memory.image.url }}" alt="Photo illustrant le souvenir « {{ memory.title }} »"></figure>{% endif %}
+<div class="wm-memory__content">{{ memory.content|safe_bbcode }}</div>
+{% if memory.consoles.all %}
+<ul class="wm-tags">{% for c in memory.consoles.all %}<li><a href="{% url 'wall_memories:wall' %}?console={{ c.slug }}">{{ c.name }}</a></li>{% endfor %}</ul>
+{% endif %}
+{% if memory.question %}<p class="wm-memory__question">❓ {{ memory.question }}</p>{% endif %}
+{% endblock %}
+
+{% block wm_comments %}
+{% include 'wall_memories/_comments.html' with comments_title="🗨 Les compagnons répondent" comments_empty="Aucun compagnon n'a encore pris la plume." comment_button="✒ Ajouter mon récit" %}
+{% endblock %}
+
+{% block wm_more_title %}📜 Autres récits de {{ memory.author.username }}{% endblock %}

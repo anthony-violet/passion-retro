@@ -1,0 +1,16 @@
+<dialog class="wm-modal" id="wm-modal" aria-labelledby="wm-modal-title">
+    <form method="post" action="{% url 'wall_memories:create' %}" enctype="multipart/form-data" class="wm-form">
+        <header class="wm-modal__header">
+            <h2 id="wm-modal-title">{% block wm_modal_title %}Raconte-nous ton souvenir ❤️{% endblock %}</h2>
+            <p>{% block wm_modal_intro %}Un moment, une émotion, une anecdote... Fais-nous voyager dans le temps.{% endblock %}</p>
+            <button type="button" class="wm-modal__close" data-wm-close aria-label="Fermer">✕</button>
+        </header>
+        <div class="wm-modal__body">
+            {% include 'wall_memories/_form_fields.html' %}
+        </div>
+        <footer class="wm-modal__footer">
+            <button type="button" class="wm-btn" data-wm-close>Annuler</button>
+            <button type="submit" class="wm-btn wm-btn--primary">{% block wm_modal_submit %}Partager mon souvenir{% endblock %}</button>
+        </footer>
+    </form>
+</dialog>

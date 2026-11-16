@@ -55,7 +55,10 @@ class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = [
-            'avatar', 'first_name', 'last_name', 'biography', 'theme',
+            'avatar', 'first_name', 'last_name', 
+            'favorite_console', 'favorite_game', 'favorite_game_genre',
+            'anecdote',
+            'biography', 'theme',
             'email', 'show_email',
             'website', 'twitter', 'discord', 'youtube',
         ]
@@ -71,9 +74,17 @@ class UserUpdateForm(forms.ModelForm):
             'twitter': 'Twitter / X (pseudo)',
             'discord': 'Discord (pseudo)',
             'youtube': 'YouTube (chaîne)',
+            'favorite_console': 'Console(s) favorite(s)',
+            'favorite_game': 'Jeu(x) favori(s)',
+            'favorite_game_genre': 'Genre(s) favori(s)',
+            'anecdote': 'Une anecdote à raconter ?'
         }
         widgets = {
             'biography': forms.Textarea(attrs={'rows': 5}),
+            'favorite_console': forms.TextInput(attrs={'placeholder': 'SNES, MegaDrive, etc'}),
+            'favorite_game': forms.TextInput(attrs={'placeholder': 'Le jeu qui a changé ta vie ?'}),
+            'favorite_game_genre': forms.TextInput(attrs={'placeholder': 'RPG, Action, Sport, etc'}),
+            'anecdote': forms.Textarea(attrs={'rows': 5}),
             'website': forms.URLInput(attrs={'placeholder': 'https://...'}),
             'twitter': forms.TextInput(attrs={'placeholder': '@pseudo'}),
             'discord': forms.TextInput(attrs={'placeholder': 'pseudo#0000'}),

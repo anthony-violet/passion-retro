@@ -1,0 +1,19 @@
+{% load wall_memories_tags %}
+<article class="wm-card wm-jrpg-card{% if featured %} wm-card--featured{% endif %}">
+    <span class="wm-jrpg-speaker">{{ memory.author.username }}</span>
+    {% if memory.image %}
+    <a href="{{ memory.get_absolute_url }}" class="wm-card__photo"><img src="{{ memory.image.url }}" alt="" loading="lazy"></a>
+    {% endif %}
+    <div class="wm-card__body">
+        <h3 class="wm-card__title"><a href="{{ memory.get_absolute_url }}">{{ memory.title }}</a></h3>
+        <p class="wm-card__kicker">{{ memory.get_era_display }}{% if memory.year %} · {{ memory.year }}{% endif %}{% for c in memory.consoles.all %} · {{ c.name }}{% endfor %}</p>
+        <p class="wm-card__excerpt">« {{ memory.content|plain_excerpt:210 }} »</p>
+        {% if memory.question %}<p class="wm-card__question">▶ {{ memory.question }}</p>{% endif %}
+        {% include 'wall_memories/_author.html' with person=memory.author when=memory.published_at compact=True %}
+    </div>
+    <footer class="wm-card__footer">
+        {% include 'wall_memories/_reactions.html' with compact=True %}
+        <a href="{{ memory.get_absolute_url }}#comments" class="wm-card__comments">▶ {{ memory.comments_count }} réponse{{ memory.comments_count|pluralize }}</a>
+    </footer>
+    <span class="wm-jrpg-cursor" aria-hidden="true">▼</span>
+</article>
