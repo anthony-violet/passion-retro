@@ -43,7 +43,25 @@ LOGGING = {
 
 # Nom du site - peut être surchargé via .env
 SITE_NAME = os.getenv("SITE_NAME", "NostalGeek")
-SITE_URL = os.getenv("SITE_URL", "http://localhost:5500")
+
+
+def _normalize_site_url(value):
+    """Garantit une URL absolue (schéma + hôte) sans slash final.
+
+    Un SITE_URL sans schéma (ex. "nostalgeek.fr") produisait des URLs vides
+    dans le sitemap ("https:///") et des liens relatifs dans robots.txt / JSON-LD.
+    """
+    value = (value or "").strip().rstrip("/")
+    if not value:
+        return "http://localhost:5500"
+    if "://" not in value:
+        host = value.split("/")[0].split(":")[0]
+        local = host in ("localhost", "127.0.0.1", "0.0.0.0") or host.endswith(".localhost")
+        value = f"{'http' if local else 'https'}://{value}"
+    return value
+
+
+SITE_URL = _normalize_site_url(os.getenv("SITE_URL"))
 GTM_CONTAINER_ID = os.getenv("GTM_CONTAINER_ID", "")
 
 # Quick-start development settings - unsuitable for production

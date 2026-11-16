@@ -64,8 +64,10 @@ def theme_context(request):
 def _canonical_url(request):
     url = request.build_absolute_uri(request.path)
     page = request.GET.get("page") if hasattr(request, "GET") else None
-    if page:
-        url = f"{url}?{urlencode({'page': page})}"
+    # Seul un numéro de page entier > 1 est conservé : ?page=1, ?page=abc,
+    # ?page=01… pointent tous vers l'URL sans paramètre.
+    if page and page.isdigit() and int(page) > 1:
+        url = f"{url}?{urlencode({'page': int(page)})}"
     return url
 
 

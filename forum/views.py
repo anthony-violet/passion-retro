@@ -3,7 +3,7 @@ from django.conf import settings
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
+from django.http import Http404, HttpResponseForbidden
 from django.utils import timezone
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -13,7 +13,17 @@ from .notifications import notify_topic_subscribers, update_subscription
 from django.db.models import Max, F
 from users.decorators import groups_required
 from users.leveling import grant_experience
-from passion_retro.seo import breadcrumb_jsonld, discussion_jsonld, plain_text
+from passion_retro.seo import absolute_url, breadcrumb_jsonld, discussion_jsonld, plain_text
+from posts.models import Post as Article
+
+MODERATOR_GROUPS = ('Modérateur', 'Admininistrateur', 'Super Admin')
+
+
+def _is_moderator(user):
+    return bool(
+        user.is_authenticated
+        and user.groups.filter(name__in=MODERATOR_GROUPS).exists()
+    )
 
 def forum_home(request):
     categories = Category.objects.all()
@@ -95,8 +105,11 @@ def forum_home(request):
     return render(request, "components/forum_home.html", context)
 
 def topic_list(request, forum_id):
-    forum = Forum.objects.get(id=forum_id)
-    topics = Topic.objects.filter(forum=forum).select_related(
+    forum = get_object_or_404(Forum, id=forum_id)
+    topics = Topic.objects.filter(forum=forum)
+    if not _is_moderator(request.user):
+        topics = topics.filter(active=True)
+    topics = topics.select_related(
         'author'
     ).annotate(
         last_post_date=Max('posts__created')
@@ -174,12 +187,14 @@ def topic_list(request, forum_id):
 def create_topic(request, forum_id):
     if not request.user.is_active:
         return HttpResponseForbidden("Vous n'êtes pas autorisé à créer un sujet.")
-    
+
+    forum = get_object_or_404(Forum, id=forum_id)
+
     if request.method == 'POST':
         topic_form = request.POST
         # On créer le topic via le model Topic
         topic = Topic(
-            forum=Forum.objects.get(id=forum_id),
+            forum=forum,
             author=request.user,
             title=topic_form['title'],
         )
@@ -204,7 +219,6 @@ def create_topic(request, forum_id):
         # on renvoie l'utilisateur sur la page du topic contenu l'id du forum et du topic créer
         return redirect('post_list', forum_id=forum_id, topic_id=topic.id)
     
-    forum = Forum.objects.get(id=forum_id)
     topic_form = CreateTopic()
     context = {
         'forum': forum,
@@ -213,12 +227,24 @@ def create_topic(request, forum_id):
     return render(request, "forum/create_topic.html", context)
 
 def topic_detail(request, topic_id, forum_id):
+    topic = get_object_or_404(
+        Topic.objects.select_related('author', 'forum').prefetch_related(
+            'author__levels'
+        ),
+        id=topic_id,
+    )
+    if not topic.active and not _is_moderator(request.user):
+        raise Http404("Ce sujet n'existe pas ou a été désactivé.")
+
+    # Une seule URL par sujet : /forum/<mauvais_forum>/<topic>/ → 301
+    if topic.forum_id != forum_id:
+        target = reverse('post_list', args=[topic.forum_id, topic.id])
+        if request.META.get('QUERY_STRING'):
+            target = f"{target}?{request.META['QUERY_STRING']}"
+        return redirect(target, permanent=True)
+
     if request.method == 'GET':
         Topic.objects.filter(pk=topic_id).update(views=F('views') + 1)
-
-    topic = Topic.objects.select_related('author', 'forum').prefetch_related(
-        'author__levels'
-    ).get(id=topic_id)
 
     subscription = None
     if request.user.is_authenticated:
@@ -303,6 +329,17 @@ def topic_detail(request, topic_id, forum_id):
         ),
     }
 
+    # Les news sont recopiées dans un sujet du forum : on désigne l'article
+    # comme version canonique pour éviter le contenu dupliqué.
+    article = Article.objects.filter(
+        active=True,
+        forum_link=f"forum/{topic.forum_id}/{topic.id}/",
+    ).only('slug').first()
+    if article:
+        context['seo_canonical'] = absolute_url(
+            request, reverse('view_post', args=[article.slug])
+        )
+
     return render(request, "forum/topic_detail.html", context)
 
 @require_http_methods(['GET', 'POST'])
@@ -325,7 +362,7 @@ def unsubscribe_topic(request, token):
 
 @groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
 def lock_topic(request, topic_id):
-    topic = Topic.objects.get(id=topic_id)
+    topic = get_object_or_404(Topic, id=topic_id)
     topic.state = 'closed'
     topic.save()
     messages.success(request, 'Sujet verrouillé avec succès.')
@@ -333,7 +370,7 @@ def lock_topic(request, topic_id):
 
 @groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
 def unlock_topic(request, topic_id):
-    topic = Topic.objects.get(id=topic_id)
+    topic = get_object_or_404(Topic, id=topic_id)
     topic.state = 'open'
     topic.save()
     messages.success(request, 'Sujet déverrouillé avec succès.')
@@ -341,7 +378,7 @@ def unlock_topic(request, topic_id):
 
 @groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
 def deactivate_post(request, post_id):
-    post = Post.objects.get(id=post_id)
+    post = get_object_or_404(Post, id=post_id)
     post.active = False
     post.save()
     messages.success(request, 'Message désactivé avec succès.')
@@ -349,31 +386,31 @@ def deactivate_post(request, post_id):
 
 @groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
 def activate_post(request, post_id):
-    post = Post.objects.get(id=post_id)
+    post = get_object_or_404(Post, id=post_id)
     post.active = True
     post.save()
     messages.success(request, 'Message activé avec succès.')
     return redirect('post_list', forum_id=post.topic.forum.id, topic_id=post.topic.id)
 
 @groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
-def deactivate_topic(request, topic_id):
-    topic = Topic.objects.get(id=topic_id)
+def deactivate_topic(request, topic_id, forum_id=None):
+    topic = get_object_or_404(Topic, id=topic_id)
     topic.active = False
-    topic.save()
+    topic.save(update_fields=['active'])
     messages.success(request, 'Sujet désactivé avec succès.')
     return redirect('topic_list', forum_id=topic.forum.id)
 
 @groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
-def activate_topic(request, topic_id):
-    topic = Topic.objects.get(id=topic_id)
+def activate_topic(request, topic_id, forum_id=None):
+    topic = get_object_or_404(Topic, id=topic_id)
     topic.active = True
-    topic.save()
+    topic.save(update_fields=['active'])
     messages.success(request, 'Sujet activé avec succès.')
     return redirect('topic_list', forum_id=topic.forum.id)
 
 @login_required
 def edit_post(request, post_id):
-    post = Post.objects.get(id=post_id)
+    post = get_object_or_404(Post, id=post_id)
     
     # Vérifier si l'utilisateur a le droit d'éditer
     if not (request.user == post.author or request.user.groups.filter(name__in=['Administrateur', 'Super Admin']).exists()):

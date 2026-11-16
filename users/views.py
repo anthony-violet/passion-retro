@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
@@ -187,7 +187,7 @@ def profile(request):
     return render(request, 'users/profile.html', _profile_context(user))
 
 def another_profile(request, user_id):
-    user = User.objects.get(id=user_id)
+    user = get_object_or_404(User, id=user_id)
     return render(request, 'users/profile.html', _profile_context(user))
 
 @login_required(login_url='login')

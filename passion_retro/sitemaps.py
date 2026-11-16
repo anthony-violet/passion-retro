@@ -62,7 +62,7 @@ class TopicSitemap(ConfiguredSitemap):
     changefreq = "weekly"
 
     def items(self):
-        return Topic.objects.filter(state="open").order_by("-updated")
+        return Topic.objects.filter(active=True).order_by("-updated")
 
     def lastmod(self, obj):
         return obj.updated
