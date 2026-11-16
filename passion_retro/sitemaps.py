@@ -1,11 +1,30 @@
+import re
 from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib.sitemaps import Sitemap
+from django.db.models import Exists, OuterRef, Q
 from django.urls import reverse
 
+from forum.models import Post as ForumPost
 from forum.models import Topic
 from posts.models import Post
+
+
+_FORUM_LINK_RE = re.compile(r"^/?forum/\d+/(\d+)/?$")
+
+
+def _news_topic_ids():
+    """Identifiants des sujets du forum recopiés depuis une news active."""
+    ids = []
+    links = Post.objects.filter(active=True).exclude(forum_link__isnull=True).exclude(
+        forum_link=""
+    ).values_list("forum_link", flat=True)
+    for link in links:
+        match = _FORUM_LINK_RE.match(link)
+        if match:
+            ids.append(int(match.group(1)))
+    return ids
 
 
 class _ConfiguredSite:
@@ -48,7 +67,12 @@ class PostSitemap(ConfiguredSitemap):
     changefreq = "monthly"
 
     def items(self):
-        return Post.objects.filter(active=True).order_by("-updated")
+        # Un sous-article dont le parent est désactivé n'est plus listé.
+        return (
+            Post.objects.filter(active=True)
+            .filter(Q(post_parent__isnull=True) | Q(post_parent__active=True))
+            .order_by("-updated")
+        )
 
     def lastmod(self, obj):
         return obj.updated
@@ -62,7 +86,17 @@ class TopicSitemap(ConfiguredSitemap):
     changefreq = "weekly"
 
     def items(self):
-        return Topic.objects.filter(active=True).order_by("-updated")
+        return (
+            Topic.objects.filter(active=True)
+            # Au moins un message visible : sinon la page est vide.
+            .filter(
+                Exists(ForumPost.objects.filter(topic=OuterRef("pk"), active=True))
+            )
+            # Les sujets copiés d'une news ont pour canonical l'article :
+            # seule l'URL canonique doit figurer dans le sitemap.
+            .exclude(id__in=_news_topic_ids())
+            .order_by("-updated")
+        )
 
     def lastmod(self, obj):
         return obj.updated

@@ -295,3 +295,62 @@ class SiteUrlNormalizationTest(TestCase):
         self.assertEqual(n('nostalgeek.fr'), 'https://nostalgeek.fr')
         self.assertEqual(n('https://nostalgeek.fr/'), 'https://nostalgeek.fr')
         self.assertEqual(n(''), 'http://localhost:5500')
+
+
+class SitemapExclusionTest(TestCase):
+    def setUp(self):
+        from posts.models import Post as Article
+        self.Article = Article
+        self.user = User.objects.create_user(
+            username='sm', email='sm@test.com', password='pass12345', active=True
+        )
+        category = Category.objects.create(name='Cat', description='d')
+        self.forum = Forum.objects.create(category=category, author=self.user, name='F', description='d')
+
+    def _topic(self, title, active_posts=True):
+        topic = Topic.objects.create(forum=self.forum, author=self.user, title=title)
+        Post.objects.create(topic=topic, author=self.user, content='x', active=active_posts)
+        return topic
+
+    def _sitemap(self):
+        return self.client.get('/sitemap.xml').content.decode()
+
+    def test_news_topic_excluded_but_regular_topic_kept(self):
+        regular = self._topic('Normal')
+        news_topic = self._topic('News')
+        self.Article.objects.create(
+            title='Actu', slug='actu', content='x', type='news', active=True,
+            author=self.user, forum_link=f'forum/{self.forum.id}/{news_topic.id}/',
+        )
+        xml = self._sitemap()
+        self.assertIn(f'/forum/{self.forum.id}/{regular.id}/<', xml)
+        self.assertNotIn(f'/forum/{self.forum.id}/{news_topic.id}/<', xml)
+        self.assertIn('/posts/actu/<', xml)
+
+    def test_topic_of_inactive_news_stays_listed(self):
+        topic = self._topic('News retirée')
+        self.Article.objects.create(
+            title='Actu', slug='actu', content='x', type='news', active=False,
+            author=self.user, forum_link=f'forum/{self.forum.id}/{topic.id}/',
+        )
+        self.assertIn(f'/forum/{self.forum.id}/{topic.id}/<', self._sitemap())
+
+    def test_topic_without_visible_post_excluded(self):
+        empty = self._topic('Vide', active_posts=False)
+        self.assertNotIn(f'/forum/{self.forum.id}/{empty.id}/<', self._sitemap())
+
+    def test_child_of_inactive_parent_excluded(self):
+        parent = self.Article.objects.create(
+            title='Parent', slug='parent', content='x', type='article', active=False, author=self.user,
+        )
+        self.Article.objects.create(
+            title='Enfant', slug='enfant', content='x', type='article', active=True,
+            author=self.user, post_parent=parent, parent=False,
+        )
+        self.Article.objects.create(
+            title='Seul', slug='seul', content='x', type='article', active=True, author=self.user,
+        )
+        xml = self._sitemap()
+        self.assertNotIn('/posts/enfant/<', xml)
+        self.assertNotIn('/posts/parent/<', xml)
+        self.assertIn('/posts/seul/<', xml)

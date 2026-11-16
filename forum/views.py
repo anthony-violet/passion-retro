@@ -333,7 +333,8 @@ def topic_detail(request, topic_id, forum_id):
     # comme version canonique pour éviter le contenu dupliqué.
     article = Article.objects.filter(
         active=True,
-        forum_link=f"forum/{topic.forum_id}/{topic.id}/",
+        # Même règle que le sitemap : on ne compare que l'id du sujet.
+        forum_link__regex=rf"^/?forum/\d+/{topic.id}/?$",
     ).only('slug').first()
     if article:
         context['seo_canonical'] = absolute_url(
