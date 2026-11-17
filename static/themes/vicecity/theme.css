@@ -369,7 +369,7 @@ body.theme-vicecity a:hover { color: var(--text-link-hover); text-shadow: 0 0 8p
 /* ---------- Boutons et champs ---------- */
 .theme-vicecity .btn,
 .theme-vicecity input[type="submit"],
-.theme-vicecity button:not(.seasonal-toggle):not(.announcement-banner__close):not(.burger-icon) {
+.theme-vicecity button:not(.seasonal-toggle):not(.announcement-banner__close):not(.burger-icon):not(.wm *) {
     border-radius: 999px;
     font-weight: 700;
     letter-spacing: .4px;
@@ -718,3 +718,25 @@ body.theme-vicecity a:hover { color: var(--text-link-hover); text-shadow: 0 0 8p
     .theme-vicecity .btn:hover,
     .theme-vicecity input[type="submit"]:hover { transform: none; }
 }
+
+/* ---------- Mur des souvenirs : boutons ----------
+   Le mur garde son style « Classic » (polaroïds), pensé pour un thème clair :
+   ses boutons blancs prenaient le texte clair du thème (blanc sur blanc).
+   La règle générale des boutons du thème ne s'applique pas au mur (:not(.wm *)). */
+.theme-vicecity .wm--default {
+    --wm-accent: var(--vc-pink);
+    --wm-accent-2: var(--vc-teal);
+}
+.theme-vicecity .wm-btn--primary {
+    background: var(--bg-button);
+    border-color: transparent;
+    box-shadow: var(--shadow-button);
+}
+.theme-vicecity .wm-btn--primary:hover { background: var(--bg-button-hover); box-shadow: var(--shadow-button-hover); }
+.theme-vicecity .wm--default .wm-hero .wm-btn:not(.wm-btn--primary) {
+    background: rgba(255, 255, 255, .08);
+    border-color: rgba(33, 230, 193, .55);
+    color: #fff !important;
+}
+.theme-vicecity .wm--default .wm-hero .wm-btn:not(.wm-btn--primary):hover { background: rgba(33, 230, 193, .16); }
+.theme-vicecity .wm-filter.is-active { background: var(--bg-active-page); border-color: transparent; }

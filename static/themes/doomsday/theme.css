@@ -523,7 +523,7 @@ body.theme-doomsday a:hover { color: var(--text-link-hover); text-shadow: 0 0 10
 /* ---------- Boutons et champs ---------- */
 .theme-doomsday .btn,
 .theme-doomsday input[type="submit"],
-.theme-doomsday button:not(.seasonal-toggle):not(.announcement-banner__close):not(.burger-icon) {
+.theme-doomsday button:not(.seasonal-toggle):not(.announcement-banner__close):not(.burger-icon):not(.wm *) {
     border-radius: 2px;
     font-family: var(--dd-font);
     font-stretch: 115%;
@@ -897,3 +897,31 @@ body.theme-doomsday a:hover { color: var(--text-link-hover); text-shadow: 0 0 10
     letter-spacing: .3px;
     opacity: .7;
 }
+
+/* ---------- Mur des souvenirs : boutons ----------
+   Le mur garde son style « Classic » (polaroïds), pensé pour un thème clair :
+   ses boutons blancs prenaient le texte clair du thème (blanc sur blanc).
+   La règle générale des boutons du thème ne s'applique pas au mur (:not(.wm *)). */
+.theme-doomsday .wm--default {
+    --wm-accent: var(--dd-red);
+    --wm-accent-2: #ff5257;
+}
+.theme-doomsday :is(.wm-btn, .wm-filter) {
+    border-radius: 2px;
+    font-stretch: 110%;
+    font-weight: 700;
+    letter-spacing: .6px;
+}
+.theme-doomsday .wm-btn--primary {
+    background: var(--bg-button);
+    border-color: transparent;
+    box-shadow: var(--shadow-button);
+}
+.theme-doomsday .wm-btn--primary:hover { background: var(--bg-button-hover); box-shadow: var(--shadow-button-hover); }
+.theme-doomsday .wm--default .wm-hero .wm-btn:not(.wm-btn--primary) {
+    background: rgba(255, 255, 255, .06);
+    border-color: rgba(255, 255, 255, .3);
+    color: #fff !important;
+}
+.theme-doomsday .wm--default .wm-hero .wm-btn:not(.wm-btn--primary):hover { background: rgba(255, 255, 255, .12); }
+.theme-doomsday .wm-filter.is-active { background: var(--dd-red); border-color: var(--dd-red); }
