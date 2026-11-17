@@ -8,7 +8,7 @@ from django.db import models
 class SeasonalEvent(models.Model):
     """Période d'affichage d'un décor thématique ou d'une édition spéciale.
 
-    Une ligne par décor (Noël, édition Vice City…), éditée depuis le panel.
+    Une ligne par décor (Noël, éditions Vice City et Doomsday…), éditée depuis le panel.
     - « Se répète chaque année » : seuls le jour et le mois comptent (l'année est
       ignorée) et la période peut passer le cap du 31 décembre.
     - Sinon, la période est fixe, du jour de début au jour de fin inclus.
@@ -16,9 +16,11 @@ class SeasonalEvent(models.Model):
 
     CHRISTMAS = "christmas"
     VICECITY = "vicecity"
+    DOOMSDAY = "doomsday"
     KEY_CHOICES = [
         (CHRISTMAS, "Décor de Noël"),
         (VICECITY, "Édition spéciale Vice City"),
+        (DOOMSDAY, "Édition spéciale Doomsday"),
     ]
 
     MODE_AUTO = "auto"

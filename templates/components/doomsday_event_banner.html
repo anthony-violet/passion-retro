@@ -1,0 +1,34 @@
+{% load doomsday_tags %}
+{# Encart événementiel de l'accueil pendant l'édition spéciale Doomsday, façon carton de bande-annonce. #}
+{% doomsday_countdown as countdown %}
+<section class="dd-event" aria-labelledby="dd-event-title">
+    <div class="dd-event__grain" aria-hidden="true"></div>
+    <span class="dd-event__kicker">Phase Six · La saga du Multivers</span>
+    <h2 id="dd-event-title" class="dd-event__title"><span class="dd-event__pre">{{ site_name }} se prépare pour</span> Avengers : Doomsday</h2>
+    <p class="dd-event__text">
+        Sept ans après <em>Endgame</em>, les Avengers se rassemblent à nouveau. Face à eux : Robert Downey Jr.,
+        de retour dans le MCU sous le masque du <strong>Docteur Fatalis</strong>. Avengers, Thunderbolts, X-Men et
+        Quatre Fantastiques vont devoir unir leurs forces avant que le multivers ne s'effondre.
+    </p>
+    <p class="dd-event__text">
+        Théories, pronostics, et souvenirs de ces séances où toute la salle s'est levée d'un bond…
+        On en parle ici jusqu'au {{ countdown.release|date:"j F Y" }}, et bien après.
+    </p>
+    {% if countdown.days > 0 %}
+    <div class="dd-countdown" data-release="{{ countdown.release|date:'Y-m-d' }}" role="timer" aria-live="off" aria-label="Sortie dans {{ countdown.days }} jour{{ countdown.days|pluralize }}">
+        <span class="dd-countdown__unit"><b data-unit="d">{{ countdown.days }}</b><small>jours</small></span>
+        <span class="dd-countdown__unit"><b data-unit="h">--</b><small>heures</small></span>
+        <span class="dd-countdown__unit"><b data-unit="m">--</b><small>min</small></span>
+        <span class="dd-countdown__unit"><b data-unit="s">--</b><small>sec</small></span>
+    </div>
+    {% elif countdown.days == 0 %}
+    <div class="dd-release-card">Aujourd'hui au cinéma</div>
+    {% else %}
+    <div class="dd-release-card">Actuellement au cinéma</div>
+    {% endif %}
+    <div class="dd-event__actions">
+        <a href="{% url 'news_list' %}" class="btn">Les actus</a>
+        <a href="{% url 'forum_home' %}" class="btn btn-add">Débattre sur le forum</a>
+        <a href="{% url 'wall_memories:wall' %}" class="btn">Raconter mes souvenirs</a>
+    </div>
+</section>

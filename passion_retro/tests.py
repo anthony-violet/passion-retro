@@ -106,6 +106,12 @@ class SeasonalEventsTest(TestCase):
         self.assertEqual(vice.mode, 'off')
         self.assertIsNone(vice.start_date)
         self.assertFalse(vice.is_active(date(2026, 12, 1)))
+        doom = SeasonalEvent.objects.get(key='doomsday')
+        self.assertEqual((doom.mode, doom.repeat_yearly), ('auto', False))
+        self.assertFalse(doom.is_active(date(2026, 12, 8)))
+        self.assertTrue(doom.is_active(date(2026, 12, 16)))
+        self.assertTrue(doom.is_active(date(2027, 1, 4)))
+        self.assertFalse(doom.is_active(date(2027, 1, 5)))
 
     def test_yearly_period_crosses_new_year(self):
         from datetime import date
@@ -234,6 +240,7 @@ class SeasonalEventsTest(TestCase):
     def test_vice_layout_and_home_banner(self):
         from passion_retro.theme_config import get_layout_config
         self.assertEqual(get_layout_config('vicecity')['menu_type'], 'horizontal')
+        self._set('doomsday', mode='off')  # sinon prioritaire le 15/12
         self._set('vicecity', mode='on')
         from django.conf import settings
         with self.settings(MIDDLEWARE=[*settings.MIDDLEWARE,
@@ -249,6 +256,7 @@ class SeasonalEventsTest(TestCase):
 
     def test_vice_toggle_stays_visible_after_opting_out(self):
         from django.conf import settings
+        self._set('doomsday', mode='off')  # sinon prioritaire le 15/12
         self._set('vicecity', mode='on')
         with self.settings(MIDDLEWARE=[*settings.MIDDLEWARE,
                                        'users.middleware.UserStatsMiddleware',
@@ -270,6 +278,7 @@ class SeasonalEventsTest(TestCase):
 
     def test_vice_banner_has_vector_logo_and_hud(self):
         from django.conf import settings
+        self._set('doomsday', mode='off')  # sinon prioritaire le 15/12
         self._set('vicecity', mode='on')
         with self.settings(MIDDLEWARE=[*settings.MIDDLEWARE,
                                        'users.middleware.UserStatsMiddleware',
@@ -281,6 +290,89 @@ class SeasonalEventsTest(TestCase):
         # Logo figé : aucune police Pricedown chargée par le site.
         self.assertNotIn('Pricedown', html)
         self.assertNotIn('@font-face', html)
+
+    # --- Édition spéciale Doomsday ------------------------------------------
+
+    def _full_middleware(self):
+        from django.conf import settings
+        return self.settings(MIDDLEWARE=[*settings.MIDDLEWARE,
+                                         'users.middleware.UserStatsMiddleware',
+                                         'passion_retro.seasonal.SpecialEditionThemeMiddleware'])
+
+    def test_doomsday_theme_forced_during_its_period(self):
+        from datetime import date
+        from unittest import mock
+        with mock.patch('passion_retro.seasonal.timezone.localdate', return_value=date(2026, 12, 10)):
+            request = self._run_middleware()
+        self.assertEqual(request.theme_active, 'doomsday')
+        self.assertEqual(request.special_edition, 'doomsday')
+        self.assertEqual(request.user.theme, 'rpg')
+        with mock.patch('passion_retro.seasonal.timezone.localdate', return_value=date(2026, 11, 20)):
+            self.assertEqual(self._run_middleware().theme_active, 'rpg')
+
+    def test_only_one_special_edition_at_a_time(self):
+        self._set('vicecity', mode='on')
+        self._set('doomsday', mode='on')
+        self.assertEqual(self._run_middleware().theme_active, 'doomsday')
+        # Quitter Doomsday ne bascule pas sur Vice City : on revient au thème du membre.
+        request = self._run_middleware(cookies={'doom_edition_off': '1'})
+        self.assertEqual(request.theme_active, 'rpg')
+        self.assertEqual(request.special_edition, 'doomsday')
+        self._set('doomsday', mode='off')
+        self.assertEqual(self._run_middleware().theme_active, 'vicecity')
+
+    def test_doomsday_page_banner_countdown_and_toggle(self):
+        from datetime import date
+        from passion_retro.theme_config import get_layout_config
+        self.assertEqual(get_layout_config('doomsday')['menu_type'], 'vertical')
+        self._set('doomsday', mode='on')
+        with self._full_middleware():
+            html = self._get_home(date(2026, 11, 17)).content.decode()
+        self.assertIn('themes/doomsday/theme.css', html)
+        self.assertIn('themes/doomsday/doomsday.js', html)
+        self.assertIn('theme-doomsday', html)
+        self.assertIn('dd-banner', html)
+        self.assertIn('Édition spéciale MCU', html)
+        self.assertIn('Phase Six', html)
+        self.assertIn('Docteur Fatalis', html)
+        self.assertIn('J-29', html)
+        self.assertIn('Menace · Inconnue', html)  # visiteur
+        self.assertIn('dd-event', html)
+        self.assertIn('data-unit="d">29<', html)
+        self.assertIn('16 décembre 2026', html)
+        self.assertIn('🛡️ Quitter l’édition spéciale', html)
+        self.assertIn('non affilié à Marvel ni à Disney', html)
+        self.assertNotIn('vc-event', html)
+
+    def test_doomsday_after_release(self):
+        from datetime import date
+        self._set('doomsday', mode='on')
+        with self._full_middleware():
+            html = self._get_home(date(2026, 12, 16)).content.decode()
+        self.assertIn('Jour J', html)
+        with self._full_middleware():
+            html = self._get_home(date(2026, 12, 20)).content.decode()
+        self.assertIn('Actuellement au cinéma', html)
+        self.assertNotIn('data-unit', html)
+
+    def test_doomsday_opt_out_keeps_toggle(self):
+        self._set('doomsday', mode='on')
+        with self._full_middleware():
+            html = self._get_home(doom_edition_off='1').content.decode()
+        self.assertNotIn('themes/doomsday/theme.css', html)
+        self.assertNotIn('non affilié à Marvel', html)
+        self.assertIn(reverse('toggle_event', args=['doomsday']), html)
+        self.assertIn('Réactiver l’édition spéciale', html)
+        response = self.client.post(reverse('toggle_event', args=['doomsday']))
+        self.assertEqual(response.cookies['doom_edition_off'].value, '')
+
+    def test_threat_level(self):
+        from types import SimpleNamespace
+        from home.templatetags.doomsday_tags import threat_level
+        self.assertEqual(threat_level(SimpleNamespace(is_authenticated=False))['label'], 'Inconnue')
+        user = SimpleNamespace(is_authenticated=True, level_number=50)
+        self.assertEqual(threat_level(user)['level'], 5)
+        self.assertEqual(threat_level(user)['label'], 'Apocalyptique')
 
     # --- Panel ---------------------------------------------------------------
 
@@ -305,6 +397,7 @@ class SeasonalEventsTest(TestCase):
         response = self.client.get(url)
         self.assertContains(response, 'Décor de Noël')
         self.assertContains(response, 'Édition spéciale Vice City')
+        self.assertContains(response, 'Édition spéciale Doomsday')
         response = self.client.post(url, {
             'key': 'vicecity', 'vicecity-mode': 'auto',
             'vicecity-start_date': '2026-11-19', 'vicecity-end_date': '2026-12-03',

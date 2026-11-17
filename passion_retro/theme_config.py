@@ -165,6 +165,26 @@ THEME_CONFIGS = {
             },
         },
     },
+    "doomsday": {
+        "name": "Édition spéciale Doomsday",
+        "extends": "default",
+        "special_edition": True,
+        "layout": {
+            "navbar": "top",
+            "left_menu": True,
+            "right_menu": True,
+            "menu_type": "vertical",
+        },
+        "css_vars": {
+            "colors": {
+                "primary": "#e62429",
+                "secondary": "#2fe38a",
+                "bg_body": "#070b0a",
+                "bg_container": "#101716",
+                "text_primary": "#e6efec",
+            },
+        },
+    },
 }
 
 

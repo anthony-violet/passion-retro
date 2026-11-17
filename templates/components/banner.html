@@ -1,5 +1,5 @@
 {% load static %}
-{% load vice_tags %}
+{% load vice_tags doomsday_tags %}
 {% if request.theme_active == 'rpg' %}
 <div class="banner-container">
     <div class="banner rpg-banner">
@@ -49,6 +49,60 @@
             <span class="vc-edition">Édition spéciale</span>
             <div class="banner-text vc-logo-wrap" id="bannerText">{% include 'components/vicecity_logo.svg' %}</div>
             <div class="vc-tagline">Vice Nights · soleil, néons &amp; nostalgie</div>
+        </div>
+    </div>
+</div>
+{% elif request.theme_active == 'doomsday' %}
+{% threat_level request.user as threat %}
+{% doomsday_countdown as countdown %}
+<div class="banner-container">
+    <div class="banner dd-banner">
+        <div class="dd-scene" aria-hidden="true">
+            <div class="dd-sky"></div>
+            <div class="dd-incursion"></div>
+            <div class="dd-beams"></div>
+            <div class="dd-flash"></div>
+            <div class="dd-portal">
+                <svg class="dd-portal__runes" viewBox="0 0 200 200">
+                    <circle cx="100" cy="100" r="92" />
+                    <circle cx="100" cy="100" r="80" stroke-dasharray="2 6" />
+                    <g class="dd-portal__ticks">
+                        <path d="M100 4v12M100 184v12M4 100h12M184 100h12M32 32l8 8M160 160l8 8M32 168l8-8M160 40l8-8" />
+                    </g>
+                    <polygon points="100,26 164,137 36,137" />
+                    <polygon points="100,174 36,63 164,63" />
+                </svg>
+            </div>
+            <img class="dd-fatalis" src="{% static 'themes/doomsday/img/fatalis.webp' %}" alt="" width="560" height="640" decoding="async">
+            <svg class="dd-castle" viewBox="0 0 1200 140" preserveAspectRatio="none">
+                <path d="M0 140V112l90-26 70 14 60-30 40 10 18-6V52l6-14 6 14v20h14V60l8-18 8 18v22h20V40l10-26 10 26v44h16V62l7-16 7 16v28l40 6 60-24 50 16 70-34 40 12 20-8V58l5-12 5 12v20h12V44l8-22 8 22v34h14V62l6-14 6 14v18l60 10 70-30 60 18 50-12 90 28 60-18 60 20v66z"/>
+            </svg>
+            <div class="dd-fog"></div>
+            <div class="dd-sparks">{% for i in "123456789012" %}<span></span>{% endfor %}</div>
+            <div class="dd-flare"></div>
+            <div class="dd-grain"></div>
+        </div>
+
+        <div class="dd-title-wrap">
+            <span class="dd-kicker">{{ site_name }} présente · Édition spéciale MCU</span>
+            <div class="banner-text dd-title" id="bannerText">Avengers</div>
+            <div class="dd-subtitle">Doomsday</div>
+            <div class="dd-tagline">Au cinéma le {{ countdown.release|date:"j F" }}</div>
+        </div>
+
+        <div class="dd-hud">
+            <div class="dd-hud__panel dd-hud__panel--phase">
+                <span class="dd-hud__label">Phase Six</span>
+                <span class="dd-hud__small">La saga du Multivers</span>
+            </div>
+            <div class="dd-hud__panel" aria-label="Sortie en salles le {{ countdown.release|date:'j F Y' }}">
+                <span class="dd-hud__label">Sortie en salles</span>
+                <span class="dd-hud__value">{% if countdown.days > 0 %}J-{{ countdown.days }}{% elif countdown.days == 0 %}Jour J{% else %}En salles{% endif %}</span>
+            </div>
+            <div class="dd-hud__panel" aria-label="Niveau de menace : {{ threat.label }}">
+                <span class="dd-hud__label">Menace · {{ threat.label }}</span>
+                <span class="dd-hud__bar" aria-hidden="true">{% for on in threat.segments %}<i{% if on %} class="is-on"{% endif %}></i>{% endfor %}</span>
+            </div>
         </div>
     </div>
 </div>

@@ -11,7 +11,7 @@
 </p>
 {% for row in rows %}
 <div class="panel-section" id="event-{{ row.event.key }}">
-    <h3>{% if row.event.key == 'christmas' %}🎄{% else %}🌴{% endif %} {{ row.event }}</h3>
+    <h3>{% if row.event.key == 'christmas' %}🎄{% elif row.event.key == 'doomsday' %}🛡️{% else %}🌴{% endif %} {{ row.event }}</h3>
     <p>
         Aujourd'hui ({{ today|date:"d/m/Y" }}) :
         {% if row.active_today %}<strong>✔ affiché</strong>{% else %}<strong>✘ masqué</strong>{% endif %}

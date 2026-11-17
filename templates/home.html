@@ -4,7 +4,7 @@
 {% load wall_memories_tags %}
 
 {% block content %}
-{% if vice_enabled %}{% include './components/vice_event_banner.html' %}{% endif %}
+{% if special_edition_enabled and special_edition == 'vicecity' %}{% include './components/vice_event_banner.html' %}{% elif special_edition_enabled and special_edition == 'doomsday' %}{% include './components/doomsday_event_banner.html' %}{% endif %}
 <div class="container discover-teaser">
     <h2>Bienvenue sur {{ site_name }} !</h2>
     <div class="discover-teaser-body">
