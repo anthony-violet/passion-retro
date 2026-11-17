@@ -64,6 +64,7 @@ urlpatterns = [
     # Maintenance
     path('maintenance/', maintenance.maintenance_view, name='panel_maintenance'),
     path('decors/', seasonal.seasonal_list, name='panel_seasonal'),
+    path('decors/apercu/', seasonal.seasonal_preview, name='panel_seasonal_preview'),
 
     # Versions
     path('versions/', version.version_list, name='panel_version'),

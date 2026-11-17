@@ -409,6 +409,81 @@ class SeasonalEventsTest(TestCase):
         # Noël n'a pas bougé
         self.assertEqual(SeasonalEvent.objects.get(key='christmas').mode, 'auto')
 
+    def test_panel_shows_status_of_each_event(self):
+        from datetime import date
+        from unittest import mock
+        self._staff()
+        self._set('vicecity', mode='auto', start_date=date(2026, 11, 10), end_date=date(2026, 11, 30))
+        with mock.patch('django.utils.timezone.localdate', return_value=date(2026, 11, 17)):
+            html = self.client.get(reverse('panel_seasonal')).content.decode()
+        self.assertIn('🌴 Édition spéciale Vice City', html)  # thème du jour
+        self.assertIn('Jusqu&#x27;au 30 novembre 2026 inclus.', html)
+        self.assertIn('Commence le 9 décembre 2026 (dans 22 jours).', html)  # Doomsday
+        self.assertIn('Commence le 1 décembre 2026 (dans 14 jours).', html)  # Noël
+        # Noël revient chaque année : les dates affichées sont celles de la prochaine période
+        self.assertIn('value="2026-12-01"', html)
+        self.assertIn('value="2027-01-10"', html)
+        self.assertNotIn('2000-12-01', html)
+
+        # Deux éditions en même temps : celle de priorité 2 attend
+        with mock.patch('django.utils.timezone.localdate', return_value=date(2026, 12, 10)):
+            self._set('vicecity', end_date=date(2026, 12, 31))
+            html = self.client.get(reverse('panel_seasonal')).content.decode()
+        self.assertIn('En attente', html)
+        self.assertIn('« Édition spéciale Doomsday » est prioritaire.', html)
+
+        self._set('vicecity', mode='off')
+        with mock.patch('django.utils.timezone.localdate', return_value=date(2027, 2, 1)):
+            html = self.client.get(reverse('panel_seasonal')).content.decode()
+        self.assertIn('Désactivé', html)
+        self.assertIn('Terminé', html)  # Doomsday, période passée
+
+    def test_staff_preview_of_theme_and_christmas(self):
+        from datetime import date
+        self._staff()
+        url = reverse('panel_seasonal_preview')
+        with self._full_middleware():  # le client garde les middlewares de sa 1re requête
+            self.assertContains(self.client.get(reverse('panel_seasonal')), 'Aperçu rapide')
+            self.assertEqual(self.client.get(url).status_code, 405)
+
+            response = self.client.post(url, {'theme': 'doomsday', 'christmas': '1'})
+            self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
+            html = self._get_home(date(2026, 11, 17)).content.decode()  # hors de toute période
+            self.assertIn('theme-doomsday', html)
+            self.assertIn('dd-event', html)
+            self.assertIn('christmas/christmas.js', html)
+            self.assertIn('staff-preview-bar', html)
+            self.assertIn('Édition spéciale Doomsday + décor de Noël</strong>', html)
+
+            # Décor de Noël seul : thème habituel du membre
+            self.client.post(url, {'christmas_only': '1'})
+            html = self._get_home(date(2026, 11, 17)).content.decode()
+            self.assertNotIn('theme-doomsday', html)
+            self.assertIn('christmas/christmas.js', html)
+
+            # Thème inconnu ignoré, puis arrêt de l'aperçu
+            self.client.post(url, {'theme': '../evil'})
+            self.assertEqual(self.client.session['staff_preview'], {'theme': None, 'christmas': False})
+            response = self.client.post(url, {'stop': '1', 'next': '/forum/'})
+            self.assertRedirects(response, '/forum/', fetch_redirect_response=False)
+            self.assertNotIn('staff_preview', self.client.session)
+
+    def test_preview_ignored_for_members(self):
+        from datetime import date
+        from users.models import User
+        member = User.objects.create_user(username='membre2', email='m2@test.com', password='pass12345', active=True)
+        self.client.force_login(member)
+        with self._full_middleware():
+            self.assertRedirects(self.client.post(reverse('panel_seasonal_preview'), {'theme': 'doomsday'}),
+                                 reverse('home'), fetch_redirect_response=False)
+            session = self.client.session
+            session['staff_preview'] = {'theme': 'doomsday', 'christmas': True}
+            session.save()
+            html = self._get_home(date(2026, 11, 17)).content.decode()
+        self.assertIn('theme-', html)
+        self.assertNotIn('theme-doomsday', html)
+        self.assertNotIn('staff-preview-bar', html)
+
     def test_panel_rejects_invalid_period(self):
         from home.models import SeasonalEvent
         self._staff()

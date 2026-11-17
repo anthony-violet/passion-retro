@@ -1,0 +1,201 @@
+/* Panel « Décors & événements ».
+   Couleurs neutres (currentColor, transparences) : la page doit rester lisible
+   sur tous les thèmes, y compris les éditions spéciales sombres. */
+
+/* ---------- Aujourd'hui ---------- */
+.ps-today__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    padding: 14px 14px 4px;
+}
+.ps-today__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border: 1px solid rgba(127, 127, 127, .25);
+    border-radius: 6px;
+}
+.ps-today__label {
+    font-size: .68rem;
+    font-weight: bold;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    opacity: .65;
+}
+.ps-today__item strong { font-size: 1rem; }
+.ps-today__item small { opacity: .7; }
+.ps-note {
+    margin: 0;
+    padding: 8px 14px 14px;
+    font-size: .78rem;
+    line-height: 1.5;
+    opacity: .75;
+}
+
+/* ---------- Cartes ---------- */
+.ps-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+    gap: 16px;
+}
+.ps-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 14px 16px 16px;
+    border-left: 4px solid rgba(127, 127, 127, .35);
+}
+.ps-card--success { border-left-color: #2e9e5b; }
+.ps-card--info    { border-left-color: #3a78c9; }
+.ps-card--warning { border-left-color: #d08a12; }
+
+.ps-card__head { display: flex; align-items: center; gap: 10px; }
+.ps-card__icon { font-size: 1.7rem; line-height: 1; }
+.ps-card__title { flex: 1; min-width: 0; }
+.ps-card__title h3 {
+    margin: 0;
+    padding: 0;
+    font-size: .98rem;
+    border: 0;
+    background: none;
+}
+.ps-card__kind { font-size: .72rem; opacity: .65; }
+
+.ps-status {
+    flex-shrink: 0;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: .7rem;
+    font-weight: bold;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+    background: rgba(127, 127, 127, .18);
+}
+.ps-status--success { background: #d4edda; color: #1a5c1a; }
+.ps-status--info    { background: #dde8f8; color: #1a3d7c; }
+.ps-status--warning { background: #fff3cd; color: #7a4f00; }
+
+.ps-card__desc { margin: 0; font-size: .8rem; line-height: 1.45; opacity: .8; }
+.ps-card__detail { margin: 0; font-size: .8rem; line-height: 1.45; }
+.ps-card__detail span { font-weight: bold; }
+
+.ps-errors {
+    padding: 8px 10px;
+    border-radius: 4px;
+    background: rgba(220, 53, 69, .12);
+    border: 1px solid rgba(220, 53, 69, .45);
+    font-size: .8rem;
+}
+.ps-errors p, .ps-errors ul { margin: 0; padding: 0; list-style: none; }
+
+/* ---------- Mode : sélecteur segmenté ---------- */
+.ps-mode {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+}
+.ps-mode legend {
+    margin-bottom: 4px;
+    padding: 0;
+    font-size: .72rem;
+    font-weight: bold;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    opacity: .75;
+}
+.ps-mode__option {
+    flex: 1;
+    position: relative;
+    margin: 0;
+    cursor: pointer;
+}
+.ps-mode__option input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+}
+.ps-mode__option span {
+    display: block;
+    padding: 7px 6px;
+    text-align: center;
+    font-size: .78rem;
+    font-weight: bold;
+    border: 1px solid rgba(127, 127, 127, .4);
+    margin-left: -1px;
+    transition: background .15s, color .15s;
+}
+.ps-mode__option:first-of-type span { border-radius: 5px 0 0 5px; margin-left: 0; }
+.ps-mode__option:last-of-type span { border-radius: 0 5px 5px 0; }
+.ps-mode__option:hover span { background: rgba(127, 127, 127, .12); }
+.ps-mode__option input:checked + span {
+    background: #2a5caa;
+    border-color: #2a5caa;
+    color: #fff;
+}
+.ps-mode__option input[value="off"]:checked + span { background: #6c757d; border-color: #6c757d; }
+.ps-mode__option input:focus-visible + span { outline: 2px solid #2a5caa; outline-offset: 2px; }
+
+/* ---------- Dates ---------- */
+.ps-dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+    align-items: end;
+    transition: opacity .15s;
+}
+.ps-dates__yearly { grid-column: 1 / -1; font-size: .8rem; }
+/* Les dates ne servent qu'en mode « Selon les dates » */
+.ps-card:has(.ps-mode input[value="auto"]:not(:checked)) .ps-dates { opacity: .45; }
+
+.ps-card__actions { display: flex; justify-content: flex-end; margin-top: 2px; }
+.ps-card__actions .btn { margin: 0; }
+
+@media (max-width: 480px) {
+    .ps-cards { grid-template-columns: 1fr; }
+    .ps-dates { grid-template-columns: 1fr; }
+}
+
+/* ---------- Aperçu rapide ---------- */
+.ps-preview__form { padding: 0 14px 14px; }
+.ps-preview__intro { padding: 10px 0 4px; }
+.ps-preview__current {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0 0;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: rgba(42, 92, 170, .1);
+    font-size: .85rem;
+}
+.ps-preview__current .btn { margin: 0 0 0 auto; }
+.ps-preview__group { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.ps-preview__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ps-preview__extras { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; }
+.theme-doomsday .ps-chip,
+.ps-chip {
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid rgba(127, 127, 127, .45);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: .8rem;
+    font-weight: bold;
+    letter-spacing: 0;
+    text-transform: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+.ps-chip:hover { background: rgba(127, 127, 127, .14); }
+.ps-chip--edition { border-color: rgba(208, 138, 18, .7); }
+.ps-chip.is-current { background: #2a5caa; border-color: #2a5caa; color: #fff; }

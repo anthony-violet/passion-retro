@@ -1,45 +1,133 @@
 {% extends 'panel/layout.html' %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/panel_seasonal.css' %}">{% endblock %}
 
 {% block panel_content %}
 <div class="panel-page-header">
     <h2>🎉 Décors &amp; événements</h2>
 </div>
-<p>
-    Périodes d'affichage des décors thématiques et éditions spéciales.
-    Les visiteurs peuvent toujours les masquer depuis le footer.
-    Les changements peuvent mettre jusqu'à une minute à apparaître sur le site.
-</p>
-{% for row in rows %}
-<div class="panel-section" id="event-{{ row.event.key }}">
-    <h3>{% if row.event.key == 'christmas' %}🎄{% elif row.event.key == 'doomsday' %}🛡️{% else %}🌴{% endif %} {{ row.event }}</h3>
-    <p>
-        Aujourd'hui ({{ today|date:"d/m/Y" }}) :
-        {% if row.active_today %}<strong>✔ affiché</strong>{% else %}<strong>✘ masqué</strong>{% endif %}
+
+{# --- Ce que voient les visiteurs aujourd'hui --- #}
+<div class="panel-section ps-today">
+    <div class="panel-section-header"><h3>Aujourd'hui, {{ today|date:"l j F Y" }}</h3></div>
+    <div class="ps-today__grid">
+        <div class="ps-today__item">
+            <span class="ps-today__label">Thème du site</span>
+            {% if shown_edition %}
+                <strong>{{ shown_edition_icon }} {{ shown_edition }}</strong>
+                <small>imposé à tous les visiteurs</small>
+            {% else %}
+                <strong>Thème de chaque membre</strong>
+                <small>aucune édition spéciale en cours</small>
+            {% endif %}
+        </div>
+        <div class="ps-today__item">
+            <span class="ps-today__label">Décor de Noël</span>
+            {% if christmas_today %}<strong>🎄 Affiché</strong>{% else %}<strong>Masqué</strong>{% endif %}
+            <small>par-dessus le thème</small>
+        </div>
+    </div>
+    <p class="ps-note">
+        Chaque visiteur peut masquer un décor depuis le footer. Une seule édition spéciale s'affiche à la fois :
+        en cas de chevauchement, la priorité 1 l'emporte. Les changements apparaissent sur le site en moins d'une minute.
     </p>
-    <form method="post" class="panel-form">
+</div>
+
+{# --- Aperçu rapide : visible uniquement par ce membre du staff --- #}
+<div class="panel-section ps-preview">
+    <div class="panel-section-header"><h3>👁 Aperçu rapide</h3></div>
+    <form method="post" action="{% url 'panel_seasonal_preview' %}" class="ps-preview__form">
         {% csrf_token %}
-        <input type="hidden" name="key" value="{{ row.event.key }}">
-        {{ row.form.non_field_errors }}
-        <div class="panel-form-group">
-            <label>{{ row.form.mode.label }}</label>
-            {{ row.form.mode }}
+        <p class="ps-note ps-preview__intro">
+            Affiche le site avec un thème ou un décor <strong>pour toi seul</strong>, sans rien activer pour les visiteurs.
+            Une barre en bas de page permet d'arrêter l'aperçu.
+        </p>
+        {% if staff_preview %}
+        <p class="ps-preview__current">
+            En cours : <strong>{% if staff_preview.theme_name %}{{ staff_preview.theme_name }}{% else %}thème habituel{% endif %}{% if staff_preview.christmas %} + décor de Noël{% endif %}</strong>
+            <button type="submit" name="stop" value="1" class="btn btn-danger">Arrêter l'aperçu</button>
+        </p>
+        {% endif %}
+        <div class="ps-preview__group">
+            <span class="ps-today__label">Éditions spéciales</span>
+            <div class="ps-preview__chips">
+                {% for key, name, icon in preview_editions %}
+                <button type="submit" name="theme" value="{{ key }}" class="ps-chip ps-chip--edition{% if staff_preview.theme == key %} is-current{% endif %}">{{ icon }} {{ name }}</button>
+                {% endfor %}
+            </div>
         </div>
-        <div class="panel-form-group">
-            <label for="{{ row.form.start_date.id_for_label }}">{{ row.form.start_date.label }}</label>
-            {{ row.form.start_date }} {{ row.form.start_date.errors }}
+        <div class="ps-preview__group">
+            <span class="ps-today__label">Thèmes du site</span>
+            <div class="ps-preview__chips">
+                {% for key, name, icon in preview_themes %}
+                <button type="submit" name="theme" value="{{ key }}" class="ps-chip{% if staff_preview.theme == key %} is-current{% endif %}">{{ name }}</button>
+                {% endfor %}
+            </div>
         </div>
-        <div class="panel-form-group">
-            <label for="{{ row.form.end_date.id_for_label }}">{{ row.form.end_date.label }}</label>
-            {{ row.form.end_date }} {{ row.form.end_date.errors }}
-        </div>
-        <div class="panel-form-checkboxes">
-            <label class="panel-checkbox">{{ row.form.repeat_yearly }} {{ row.form.repeat_yearly.label }}</label>
-            <small>Coché : seuls le jour et le mois comptent, la période revient tous les ans (et peut passer le 31 décembre).</small>
-        </div>
-        <div class="panel-form-actions">
-            <button type="submit" class="btn btn-add">Enregistrer</button>
+        <div class="ps-preview__group ps-preview__extras">
+            <label class="panel-checkbox"><input type="checkbox" name="christmas" value="1"{% if staff_preview.christmas %} checked{% endif %}> 🎄 Ajouter le décor de Noël</label>
+            <button type="submit" name="christmas_only" value="1" class="ps-chip">🎄 Décor de Noël seul</button>
         </div>
     </form>
 </div>
+
+{# --- Un réglage par décor --- #}
+<div class="ps-cards">
+{% for card in cards %}
+    <form method="post" class="panel-section ps-card ps-card--{{ card.tone }}" id="event-{{ card.event.key }}">
+        {% csrf_token %}
+        <input type="hidden" name="key" value="{{ card.event.key }}">
+
+        <div class="ps-card__head">
+            <span class="ps-card__icon" aria-hidden="true">{{ card.info.icon }}</span>
+            <div class="ps-card__title">
+                <h3>{{ card.event }}</h3>
+                <span class="ps-card__kind">
+                    {{ card.info.kind }}{% if card.priority %} · priorité {{ card.priority }}{% endif %}
+                </span>
+            </div>
+            <span class="ps-status ps-status--{{ card.tone }}">{{ card.status }}</span>
+        </div>
+
+        <p class="ps-card__desc">{{ card.info.description }}</p>
+        <p class="ps-card__detail"><span>{{ card.period }}</span> · {{ card.detail }}</p>
+
+        {% if card.form.errors %}
+        <div class="ps-errors" role="alert">
+            {{ card.form.non_field_errors }}
+            {% for field in card.form %}{% for error in field.errors %}<p>{{ field.label }} : {{ error }}</p>{% endfor %}{% endfor %}
+        </div>
+        {% endif %}
+
+        <fieldset class="ps-mode">
+            <legend>Affichage</legend>
+            {% for radio in card.form.mode %}
+            <label class="ps-mode__option">
+                {{ radio.tag }}
+                <span>{% if radio.data.value == 'auto' %}Selon les dates{% elif radio.data.value == 'on' %}Toujours{% else %}Désactivé{% endif %}</span>
+            </label>
+            {% endfor %}
+        </fieldset>
+
+        <div class="ps-dates">
+            <div class="panel-form-group">
+                <label for="{{ card.form.start_date.id_for_label }}">Début</label>
+                {{ card.form.start_date }}
+            </div>
+            <div class="panel-form-group">
+                <label for="{{ card.form.end_date.id_for_label }}">Fin (incluse)</label>
+                {{ card.form.end_date }}
+            </div>
+            <label class="panel-checkbox ps-dates__yearly" title="Seuls le jour et le mois comptent ; la période peut passer le 31 décembre.">
+                {{ card.form.repeat_yearly }} {{ card.form.repeat_yearly.label }}
+            </label>
+        </div>
+
+        <div class="ps-card__actions">
+            <button type="submit" class="btn btn-add">Enregistrer</button>
+        </div>
+    </form>
 {% endfor %}
+</div>
 {% endblock %}

@@ -135,6 +135,13 @@
         <p>{{ site_name }} &copy;2024 - 2026. Version 1.2 <a href="/version/history">Historique</a>{% if special_edition %} · {% with on=special_edition_icon|add:' Quitter l’édition spéciale' off=special_edition_icon|add:' Réactiver l’édition spéciale' %}{% include './components/seasonal_toggle.html' with key=special_edition enabled=special_edition_enabled label_on=on label_off=off %}{% endwith %}{% endif %}{% if christmas_active %} · {% include './components/seasonal_toggle.html' with key='christmas' enabled=christmas_enabled label_on='❄ Masquer le décor de Noël' label_off='❄ Afficher le décor de Noël' %}{% endif %}{% if analytics_tracking %} · <a href="#" id="manage-cookies-link">Gérer mes cookies</a>{% endif %}</p>
         {% if request.theme_active == 'doomsday' %}<p class="footer-legal">Avengers, Avengers : Doomsday, Docteur Fatalis et les personnages Marvel sont des marques et créations de Marvel / The Walt Disney Company. {{ site_name }} est un site de fans, non affilié à Marvel ni à Disney.</p>{% endif %}
     </div>
+    {% if staff_preview %}
+    <div class="staff-preview-bar" role="status">
+        <span>👁 Aperçu : <strong>{% if staff_preview.theme_name %}{{ staff_preview.theme_name }}{% else %}thème habituel{% endif %}{% if staff_preview.christmas %} + décor de Noël{% endif %}</strong> — visible par toi seul</span>
+        <a href="{% url 'panel_seasonal' %}">Changer</a>
+        <form method="post" action="{% url 'panel_seasonal_preview' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" name="stop" value="1" class="seasonal-toggle">Arrêter l'aperçu</button></form>
+    </div>
+    {% endif %}
     {% if analytics_tracking %}{% include './components/consent_banner.html' %}{% endif %}
 </body>
 </html>

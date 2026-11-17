@@ -32,6 +32,10 @@ OPT_OUT_COOKIES = {
     **{key: edition["cookie"] for key, edition in SPECIAL_EDITIONS.items()},
 }
 
+# Aperçu réservé à l'équipe : thème et décor de Noël choisis depuis le panel,
+# visibles uniquement par ce membre du staff (stockés dans sa session).
+PREVIEW_SESSION_KEY = "staff_preview"
+
 # Sortie d'Avengers: Doomsday dans les salles françaises (compte à rebours).
 DOOMSDAY_RELEASE = date(2026, 12, 16)
 
@@ -44,6 +48,14 @@ def event_active(key: str, today: date | None = None) -> bool:
 
 def opted_out(request, key: str) -> bool:
     return request.COOKIES.get(OPT_OUT_COOKIES[key]) == "1"
+
+
+def staff_preview(request):
+    """Aperçu en cours pour ce membre du staff ({"theme": str|None, "christmas": bool}) ou None."""
+    user = getattr(request, "user", None)
+    if not (user and user.is_authenticated and getattr(user, "is_staff", False)) or not hasattr(request, "session"):
+        return None
+    return request.session.get(PREVIEW_SESSION_KEY) or None
 
 
 def current_special_edition(request, today: date | None = None):
@@ -69,6 +81,17 @@ class SpecialEditionThemeMiddleware(MiddlewareMixin):
         if enabled:
             request.theme_active = SPECIAL_EDITIONS[key]["theme"]
 
+        preview = staff_preview(request)
+        request.staff_preview = preview
+        if preview and preview.get("theme"):
+            theme = preview["theme"]
+            request.theme_active = theme
+            # Aperçu d'une édition spéciale : bannière, encart et footer comme en vrai.
+            edition = next((k for k, e in SPECIAL_EDITIONS.items() if e["theme"] == theme), None)
+            request.special_edition = edition
+            request.special_edition_active = edition is not None
+            request.special_edition_enabled = edition is not None
+
 
 def seasonal_context(request):
     christmas = event_active("christmas")
@@ -76,9 +99,24 @@ def seasonal_context(request):
         edition, enabled = request.special_edition, request.special_edition_enabled
     else:  # middleware absent (ex. tests) : on affiche le bouton, sans imposer le thème
         edition, enabled = current_special_edition(request)[0], False
+    christmas_enabled = christmas and not opted_out(request, "christmas")
+    preview = getattr(request, "staff_preview", None)
+    preview_context = None
+    if preview:
+        from .theme_config import THEME_CONFIGS
+
+        theme = preview.get("theme")
+        if preview.get("christmas"):
+            christmas = christmas_enabled = True
+        preview_context = {
+            "theme": theme,
+            "theme_name": THEME_CONFIGS[theme]["name"] if theme in THEME_CONFIGS else None,
+            "christmas": bool(preview.get("christmas")),
+        }
     return {
+        "staff_preview": preview_context,
         "christmas_active": christmas,
-        "christmas_enabled": christmas and not opted_out(request, "christmas"),
+        "christmas_enabled": christmas_enabled,
         "special_edition": edition,
         "special_edition_enabled": enabled,
         "special_edition_icon": SPECIAL_EDITIONS[edition]["icon"] if edition else "",
