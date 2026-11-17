@@ -11,7 +11,8 @@
             <h3>{{ v.name }}</h3>
             <hr />
             <strong>en {{ v.created_at|date:"F Y" }}</strong>
-            <p>{{ v.content|bbcode|safe|linebreaksbr }}</p>
+            {% comment %}Un div et pas un p : un p ne peut pas contenir de liste, le navigateur le fermait avant chaque liste et le texte suivant sortait du paragraphe.{% endcomment %}
+            <div class="version-content">{{ v.content|bbcode|safe|linebreaksbr }}</div>
         {% endfor %}
     {% endif %}
 
