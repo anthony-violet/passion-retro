@@ -5,19 +5,21 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 
-MONTH_CHOICES = [
-    (1, "janvier"), (2, "février"), (3, "mars"), (4, "avril"), (5, "mai"), (6, "juin"),
-    (7, "juillet"), (8, "août"), (9, "septembre"), (10, "octobre"), (11, "novembre"), (12, "décembre"),
-]
-DAY_CHOICES = [(d, str(d)) for d in range(1, 32)]
+class SeasonalEvent(models.Model):
+    """Période d'affichage d'un décor thématique ou d'une édition spéciale.
 
-
-class ChristmasSettings(models.Model):
-    """Réglages du décor de Noël (une seule ligne, éditée depuis le panel).
-
-    Les dates sont en jour/mois et se répètent chaque année ; une période peut
-    passer le cap du 31 décembre (ex. 1er décembre → 10 janvier).
+    Une ligne par décor (Noël, édition Vice City…), éditée depuis le panel.
+    - « Se répète chaque année » : seuls le jour et le mois comptent (l'année est
+      ignorée) et la période peut passer le cap du 31 décembre.
+    - Sinon, la période est fixe, du jour de début au jour de fin inclus.
     """
+
+    CHRISTMAS = "christmas"
+    VICECITY = "vicecity"
+    KEY_CHOICES = [
+        (CHRISTMAS, "Décor de Noël"),
+        (VICECITY, "Édition spéciale Vice City"),
+    ]
 
     MODE_AUTO = "auto"
     MODE_ON = "on"
@@ -27,50 +29,66 @@ class ChristmasSettings(models.Model):
         (MODE_ON, "Toujours activé"),
         (MODE_OFF, "Désactivé"),
     ]
-    CACHE_KEY = "christmas_settings"
 
-    mode = models.CharField("Mode", max_length=10, choices=MODE_CHOICES, default=MODE_AUTO)
-    start_day = models.PositiveSmallIntegerField("Jour de début", choices=DAY_CHOICES, default=1)
-    start_month = models.PositiveSmallIntegerField("Mois de début", choices=MONTH_CHOICES, default=12)
-    end_day = models.PositiveSmallIntegerField("Jour de fin", choices=DAY_CHOICES, default=10)
-    end_month = models.PositiveSmallIntegerField("Mois de fin", choices=MONTH_CHOICES, default=1)
+    CACHE_KEY = "seasonal_events"
+    CACHE_TIMEOUT = 60
+
+    key = models.CharField("Décor", max_length=30, choices=KEY_CHOICES, unique=True)
+    mode = models.CharField("Mode", max_length=10, choices=MODE_CHOICES, default=MODE_OFF)
+    start_date = models.DateField("Début", null=True, blank=True)
+    end_date = models.DateField("Fin (incluse)", null=True, blank=True)
+    repeat_yearly = models.BooleanField("Se répète chaque année", default=False)
 
     class Meta:
-        verbose_name = "Réglages du décor de Noël"
-        verbose_name_plural = "Réglages du décor de Noël"
+        verbose_name = "Décor thématique"
+        verbose_name_plural = "Décors thématiques"
+        ordering = ["key"]
 
     def __str__(self):
-        return "Décor de Noël"
+        return self.get_key_display()
 
     def clean(self):
-        # 2000 est bissextile : le 29 février est accepté, le 31 février non.
-        for label, day, month in (
-            ("start_day", self.start_day, self.start_month),
-            ("end_day", self.end_day, self.end_month),
-        ):
-            try:
-                date(2000, month, day)
-            except (TypeError, ValueError):
-                raise ValidationError({label: f"Le {day}/{month} n'existe pas."})
+        if bool(self.start_date) != bool(self.end_date):
+            raise ValidationError("Renseigne la date de début et la date de fin, ou aucune des deux.")
+        if self.mode == self.MODE_AUTO and not self.start_date:
+            raise ValidationError({"start_date": "Le mode automatique a besoin d'une période."})
+        if self.start_date and not self.repeat_yearly and self.end_date < self.start_date:
+            raise ValidationError({"end_date": "La fin doit être après le début."})
 
     def save(self, *args, **kwargs):
-        self.pk = 1
         super().save(*args, **kwargs)
         cache.delete(self.CACHE_KEY)
 
+    def delete(self, *args, **kwargs):
+        result = super().delete(*args, **kwargs)
+        cache.delete(self.CACHE_KEY)
+        return result
+
     @classmethod
-    def load(cls):
-        settings_obj = cache.get(cls.CACHE_KEY)
-        if settings_obj is None:
-            settings_obj, _ = cls.objects.get_or_create(pk=1)
-            cache.set(cls.CACHE_KEY, settings_obj, 60)
-        return settings_obj
+    def all_by_key(cls):
+        """Tous les décors, indexés par clé ; créés à la volée s'ils manquent."""
+        events = cache.get(cls.CACHE_KEY)
+        if events is None:
+            events = {event.key: event for event in cls.objects.all()}
+            for key, _label in cls.KEY_CHOICES:
+                if key not in events:
+                    events[key], _ = cls.objects.get_or_create(key=key)
+            cache.set(cls.CACHE_KEY, events, cls.CACHE_TIMEOUT)
+        return events
+
+    @classmethod
+    def get(cls, key):
+        return cls.all_by_key()[key]
 
     def includes(self, day: date) -> bool:
         """La date tombe-t-elle dans la période (bornes incluses) ?"""
+        if not self.start_date or not self.end_date:
+            return False
+        if not self.repeat_yearly:
+            return self.start_date <= day <= self.end_date
         current = (day.month, day.day)
-        start = (self.start_month, self.start_day)
-        end = (self.end_month, self.end_day)
+        start = (self.start_date.month, self.start_date.day)
+        end = (self.end_date.month, self.end_date.day)
         if start <= end:
             return start <= current <= end
         # La période passe le cap du 31 décembre.

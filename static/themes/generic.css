@@ -223,9 +223,9 @@ img {
 .profile-retro__list li { margin: 4px 0; }
 .profile-retro__complete { font-size: 0.9rem; font-style: italic; }
 
-/* Décor de Noël : bouton discret du footer (chargé même décor désactivé) */
-.xmas-toggle-form { display: inline; margin: 0; }
-.xmas-toggle {
+/* Décors thématiques : bouton discret du footer (chargé même décor désactivé) */
+.seasonal-toggle-form { display: inline; margin: 0; }
+.seasonal-toggle {
     background: none;
     border: 0;
     padding: 0;
@@ -235,4 +235,4 @@ img {
     cursor: pointer;
     opacity: .8;
 }
-.xmas-toggle:hover, .xmas-toggle:focus-visible { opacity: 1; }
+.seasonal-toggle:hover, .seasonal-toggle:focus-visible { opacity: 1; }

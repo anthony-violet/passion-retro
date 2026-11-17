@@ -129,7 +129,7 @@
     </div>
     {% if christmas_enabled %}<div class="xmas-trees" aria-hidden="true">🎄 ⭐ 🎄 🎁 🎄 ❄️ 🎄 🎁 🎄 ⭐ 🎄</div>{% endif %}
     <div class="footer">
-        <p>{{ site_name }} &copy;2024 - 2026. Version 1.2 <a href="/version/history">Historique</a>{% if christmas_active %} · {% include './components/christmas_toggle.html' %}{% endif %}{% if analytics_tracking %} · <a href="#" id="manage-cookies-link">Gérer mes cookies</a>{% endif %}</p>
+        <p>{{ site_name }} &copy;2024 - 2026. Version 1.2 <a href="/version/history">Historique</a>{% if vice_active %} · {% include './components/seasonal_toggle.html' with key='vicecity' enabled=vice_enabled label_on='🌴 Quitter l’édition spéciale' label_off='🌴 Réactiver l’édition spéciale' %}{% endif %}{% if christmas_active %} · {% include './components/seasonal_toggle.html' with key='christmas' enabled=christmas_enabled label_on='❄ Masquer le décor de Noël' label_off='❄ Afficher le décor de Noël' %}{% endif %}{% if analytics_tracking %} · <a href="#" id="manage-cookies-link">Gérer mes cookies</a>{% endif %}</p>
     </div>
     {% if analytics_tracking %}{% include './components/consent_banner.html' %}{% endif %}
 </body>

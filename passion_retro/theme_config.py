@@ -143,6 +143,28 @@ THEME_CONFIGS = {
             },
         },
     },
+    # Édition spéciale temporaire : imposée par passion_retro.seasonal pendant
+    # sa période, jamais proposée à l'achat ni enregistrée sur un membre.
+    "vicecity": {
+        "name": "Édition spéciale Vice City",
+        "extends": "default",
+        "special_edition": True,
+        "layout": {
+            "navbar": "top",
+            "left_menu": True,
+            "right_menu": True,
+            "menu_type": "horizontal",
+        },
+        "css_vars": {
+            "colors": {
+                "primary": "#ff2e88",
+                "secondary": "#21e6c1",
+                "bg_body": "#0b0620",
+                "bg_container": "#160d33",
+                "text_primary": "#f3eefe",
+            },
+        },
+    },
 }
 
 

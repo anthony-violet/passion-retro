@@ -38,8 +38,8 @@
             <a href="{% url 'panel_maintenance' %}" class="panel-nav-item {% if 'panel_maintenance' in request.resolver_match.url_name %}active{% endif %}">
                 🔧 Maintenance
             </a>
-            <a href="{% url 'panel_christmas' %}" class="panel-nav-item {% if request.resolver_match.url_name == 'panel_christmas' %}active{% endif %}">
-                🎄 Décor de Noël
+            <a href="{% url 'panel_seasonal' %}" class="panel-nav-item {% if request.resolver_match.url_name == 'panel_seasonal' %}active{% endif %}">
+                🎉 Décors &amp; événements
             </a>
             <a href="{% url 'panel_version' %}" class="panel-nav-item {% if 'panel_version' in request.resolver_match.url_name %}active{% endif %}">
                 🏷️ Versions

@@ -1,4 +1,5 @@
 {% load static %}
+{% load vice_tags %}
 {% if request.theme_active == 'rpg' %}
 <div class="banner-container">
     <div class="banner rpg-banner">
@@ -23,6 +24,34 @@
     </div>
 </div>
 <script src="{% static 'js/themes/rpg/banner.js' %}"></script>
+{% elif request.theme_active == 'vicecity' %}
+<div class="banner-container">
+    <div class="banner vc-banner">
+        <div class="vc-sun" aria-hidden="true"></div>
+        <svg class="vc-skyline" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 120V86h40V60h22v26h18V44h30v42h16V70h26v16h20V30h14V18h10v12h14v56h22V64h34v22h18V50h26v36h20V76h30V40h18V26h22v14h12v46h28V58h24v28h16V66h40v20h22V36h28v50h20V54h18v32h36V72h22v14h26V22h12V10h8v12h14v64h24V60h30v26h18V46h22v40h30V68h26v18h20V52h34v34h22V74h28v12h40V56h24v30h30V40h18v46h26V66h28v20h40v34z"/>
+        </svg>
+        <svg class="vc-palm vc-palm--left" viewBox="0 0 120 160" aria-hidden="true">
+            <path d="M58 160c4-40 6-76 2-112l6-1c5 36 3 74-1 113z"/>
+            <path d="M62 48C46 30 22 26 4 34c18-2 34 4 48 18C36 44 18 48 8 62c16-10 34-12 50-6-12 6-22 18-24 32 8-14 20-24 32-28 2 14-2 28-10 38 12-10 18-26 16-40 10 10 16 24 16 38 4-18-2-34-12-44 16 0 30 8 40 20-6-16-22-28-40-30 14-6 30-6 44 2-12-12-32-14-48-8 8-10 20-16 34-16-18-4-36 4-46 18z"/>
+        </svg>
+        <svg class="vc-palm vc-palm--right" viewBox="0 0 120 160" aria-hidden="true">
+            <path d="M58 160c4-40 6-76 2-112l6-1c5 36 3 74-1 113z"/>
+            <path d="M62 48C46 30 22 26 4 34c18-2 34 4 48 18C36 44 18 48 8 62c16-10 34-12 50-6-12 6-22 18-24 32 8-14 20-24 32-28 2 14-2 28-10 38 12-10 18-26 16-40 10 10 16 24 16 38 4-18-2-34-12-44 16 0 30 8 40 20-6-16-22-28-40-30 14-6 30-6 44 2-12-12-32-14-48-8 8-10 20-16 34-16-18-4-36 4-46 18z"/>
+        </svg>
+        <div class="vc-sea" aria-hidden="true"></div>
+        {% wanted_stars request.user as stars %}
+        <div class="vc-hud" aria-label="{% if request.user.is_authenticated %}{{ request.user.money }} pièces d'or{% else %}Visiteur{% endif %}">
+            <div class="vc-hud__cash">${% if request.user.is_authenticated %}{{ request.user.money }}{% else %}0{% endif %}</div>
+            <div class="vc-hud__stars" aria-hidden="true">{% for on in stars %}<span class="vc-hud__star{% if on %} is-on{% endif %}">★</span>{% endfor %}</div>
+        </div>
+        <div class="vc-title-wrap">
+            <span class="vc-edition">Édition spéciale</span>
+            <div class="banner-text vc-logo-wrap" id="bannerText">{% include 'components/vicecity_logo.svg' %}</div>
+            <div class="vc-tagline">Vice Nights · soleil, néons &amp; nostalgie</div>
+        </div>
+    </div>
+</div>
 {% elif request.theme_active == '80s' %}
 <div class="banner-container">
     <div class="banner">

@@ -70,137 +70,259 @@ class AnalyticsContextTests(SimpleTestCase):
                 self.assertTrue(analytics_context(self._request(path))["analytics_tracking"])
 
 
-class ChristmasDecorTest(TestCase):
-    """Décor de Noël : réglé dans le panel (par défaut 1er décembre → 10 janvier), masquable par cookie."""
+class SeasonalEventsTest(TestCase):
+    """Décors thématiques : périodes réglées dans le panel, masquables par cookie."""
 
     def setUp(self):
         from django.core.cache import cache
         cache.clear()
 
-    def _set(self, **fields):
-        from home.models import ChristmasSettings
-        obj, _ = ChristmasSettings.objects.get_or_create(pk=1)
+    def _set(self, key, **fields):
+        from home.models import SeasonalEvent
+        event = SeasonalEvent.objects.get(key=key)
         for name, value in fields.items():
-            setattr(obj, name, value)
-        obj.save()
+            setattr(event, name, value)
+        event.save()
 
     def _get_home(self, day=None, **cookies):
         from datetime import date
         from unittest import mock
         for name, value in cookies.items():
             self.client.cookies[name] = value
-        with mock.patch('passion_retro.christmas.timezone.localdate', return_value=day or date(2026, 12, 15)):
+        with mock.patch('passion_retro.seasonal.timezone.localdate', return_value=day or date(2026, 12, 15)):
             return self.client.get(reverse('home'))
 
-    def test_default_period_crosses_new_year(self):
-        from datetime import date
-        from home.models import ChristmasSettings
-        obj = ChristmasSettings()  # valeurs par défaut : 1/12 → 10/01
-        self.assertFalse(obj.includes(date(2026, 11, 30)))
-        self.assertTrue(obj.includes(date(2026, 12, 1)))
-        self.assertTrue(obj.includes(date(2026, 12, 25)))
-        self.assertTrue(obj.includes(date(2027, 1, 10)))
-        self.assertFalse(obj.includes(date(2027, 1, 11)))
-        self.assertFalse(obj.includes(date(2027, 7, 14)))
+    # --- Règles de dates -------------------------------------------------
 
-    def test_period_within_same_year(self):
+    def test_migration_seeds_christmas_and_vicecity(self):
         from datetime import date
-        from home.models import ChristmasSettings
-        obj = ChristmasSettings(start_day=15, start_month=12, end_day=31, end_month=12)
-        self.assertFalse(obj.includes(date(2026, 12, 14)))
-        self.assertTrue(obj.includes(date(2026, 12, 15)))
-        self.assertTrue(obj.includes(date(2026, 12, 31)))
-        self.assertFalse(obj.includes(date(2027, 1, 1)))
+        from home.models import SeasonalEvent
+        christmas = SeasonalEvent.objects.get(key='christmas')
+        self.assertEqual(christmas.mode, 'auto')
+        self.assertTrue(christmas.repeat_yearly)
+        self.assertEqual((christmas.start_date.month, christmas.start_date.day), (12, 1))
+        self.assertEqual((christmas.end_date.month, christmas.end_date.day), (1, 10))
+        vice = SeasonalEvent.objects.get(key='vicecity')
+        self.assertEqual(vice.mode, 'off')
+        self.assertIsNone(vice.start_date)
+        self.assertFalse(vice.is_active(date(2026, 12, 1)))
 
-    def test_invalid_date_rejected(self):
+    def test_yearly_period_crosses_new_year(self):
+        from datetime import date
+        from home.models import SeasonalEvent
+        event = SeasonalEvent(repeat_yearly=True, start_date=date(2000, 12, 1), end_date=date(2000, 1, 10))
+        self.assertFalse(event.includes(date(2026, 11, 30)))
+        self.assertTrue(event.includes(date(2026, 12, 1)))
+        self.assertTrue(event.includes(date(2027, 1, 10)))
+        self.assertFalse(event.includes(date(2027, 1, 11)))
+        self.assertTrue(event.includes(date(2031, 12, 24)))  # l'année est ignorée
+
+    def test_fixed_period_does_not_repeat(self):
+        from datetime import date
+        from home.models import SeasonalEvent
+        event = SeasonalEvent(repeat_yearly=False, start_date=date(2026, 11, 19), end_date=date(2026, 12, 3))
+        self.assertFalse(event.includes(date(2026, 11, 18)))
+        self.assertTrue(event.includes(date(2026, 11, 19)))
+        self.assertTrue(event.includes(date(2026, 12, 3)))
+        self.assertFalse(event.includes(date(2026, 12, 4)))
+        self.assertFalse(event.includes(date(2027, 11, 20)))
+
+    def test_modes(self):
+        from datetime import date
+        from home.models import SeasonalEvent
+        event = SeasonalEvent(mode='on')
+        self.assertTrue(event.is_active(date(2026, 7, 1)))
+        event = SeasonalEvent(mode='off', repeat_yearly=True, start_date=date(2000, 1, 1), end_date=date(2000, 12, 31))
+        self.assertFalse(event.is_active(date(2026, 7, 1)))
+
+    def test_validation(self):
+        from datetime import date
         from django.core.exceptions import ValidationError
-        from home.models import ChristmasSettings
-        with self.assertRaises(ValidationError):
-            ChristmasSettings(start_day=31, start_month=2).full_clean()
-        ChristmasSettings(start_day=29, start_month=2).full_clean()  # 29 février accepté
+        from home.models import SeasonalEvent
+        with self.assertRaises(ValidationError):  # fin avant début
+            SeasonalEvent(key='vicecity', mode='auto', start_date=date(2026, 12, 3), end_date=date(2026, 11, 19)).full_clean()
+        with self.assertRaises(ValidationError):  # automatique sans période
+            SeasonalEvent(key='vicecity', mode='auto').full_clean()
+        with self.assertRaises(ValidationError):  # une seule date
+            SeasonalEvent(key='vicecity', mode='on', start_date=date(2026, 12, 3)).full_clean()
+        # Période annuelle : la fin peut précéder le début (passage du 31 décembre).
+        SeasonalEvent(key='christmas', mode='auto', repeat_yearly=True,
+                      start_date=date(2000, 12, 1), end_date=date(2000, 1, 10)).clean()
 
-    def test_decor_shown_during_period(self):
+    # --- Noël --------------------------------------------------------------
+
+    def test_christmas_shown_during_period(self):
         response = self._get_home()
         self.assertContains(response, 'christmas/christmas.js')
         self.assertContains(response, 'xmas-trees')
-        self.assertContains(response, ' xmas"')
-        self.assertContains(response, 'Décor de Noël : activé')
+        self.assertContains(response, 'Masquer le décor de Noël')
 
-    def test_nothing_outside_period(self):
+    def test_christmas_hidden_outside_period(self):
         from datetime import date
         response = self._get_home(date(2026, 11, 17))
         self.assertNotContains(response, 'christmas/christmas.js')
-        self.assertNotContains(response, 'xmas-trees')
-        self.assertNotContains(response, 'Décor de Noël')
+        self.assertNotContains(response, 'décor de Noël')
 
-    def test_cookie_disables_decor_but_keeps_toggle(self):
-        from passion_retro.christmas import COOKIE_NAME
-        response = self._get_home(**{COOKIE_NAME: '1'})
+    def test_christmas_cookie_hides_decor_but_keeps_toggle(self):
+        response = self._get_home(xmas_decor_off='1')
         self.assertNotContains(response, 'christmas/christmas.js')
-        self.assertNotContains(response, 'xmas-trees')
-        self.assertContains(response, 'Décor de Noël : désactivé')
+        self.assertContains(response, 'Afficher le décor de Noël')
 
-    def test_toggle_view_switches_cookie(self):
-        from passion_retro.christmas import COOKIE_NAME
-        url = reverse('toggle_christmas')
-        response = self.client.post(url, {'next': '/forum/'})
-        self.assertRedirects(response, '/forum/', fetch_redirect_response=False)
-        self.assertEqual(response.cookies[COOKIE_NAME].value, '1')
-
-        self.client.cookies[COOKIE_NAME] = '1'
-        response = self.client.post(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
-        self.assertEqual(response.json(), {'enabled': True})
-        self.assertEqual(response.cookies[COOKIE_NAME].value, '')  # cookie supprimé
-
-    def test_toggle_view_refuses_get_and_external_redirect(self):
-        url = reverse('toggle_christmas')
-        self.assertEqual(self.client.get(url).status_code, 405)
-        response = self.client.post(url, {'next': 'https://exemple.com/'})
-        self.assertRedirects(response, '/', fetch_redirect_response=False)
-
-    def test_edited_dates_apply_to_site(self):
+    def test_edited_christmas_dates_apply(self):
         from datetime import date
-        self._set(start_day=15, start_month=11, end_day=20, end_month=11)
+        self._set('christmas', start_date=date(2000, 11, 15), end_date=date(2000, 11, 20))
         self.assertContains(self._get_home(date(2026, 11, 17)), 'christmas/christmas.js')
         self.assertNotContains(self._get_home(date(2026, 12, 15)), 'christmas/christmas.js')
 
-    def test_mode_forces_on_or_off(self):
-        from datetime import date
-        self._set(mode='on')
-        self.assertContains(self._get_home(date(2026, 7, 1)), 'christmas/christmas.js')
-        self._set(mode='off')
-        self.assertNotContains(self._get_home(date(2026, 12, 24)), 'christmas/christmas.js')
+    # --- Bouton du footer --------------------------------------------------
 
-    def test_panel_page_is_staff_only(self):
+    def test_toggle_switches_cookie(self):
+        url = reverse('toggle_event', args=['christmas'])
+        response = self.client.post(url, {'next': '/forum/'})
+        self.assertRedirects(response, '/forum/', fetch_redirect_response=False)
+        self.assertEqual(response.cookies['xmas_decor_off'].value, '1')
+        self.client.cookies['xmas_decor_off'] = '1'
+        response = self.client.post(url, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.json(), {'enabled': True})
+        self.assertEqual(response.cookies['xmas_decor_off'].value, '')
+
+        response = self.client.post(reverse('toggle_event', args=['vicecity']))
+        self.assertEqual(response.cookies['vice_edition_off'].value, '1')
+
+    def test_toggle_refuses_get_unknown_key_and_external_redirect(self):
+        url = reverse('toggle_event', args=['christmas'])
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.assertEqual(self.client.post(reverse('toggle_event', args=['inconnu'])).status_code, 404)
+        response = self.client.post(url, {'next': 'https://exemple.com/'})
+        self.assertRedirects(response, '/', fetch_redirect_response=False)
+
+    # --- Édition spéciale Vice City ----------------------------------------
+
+    def _run_middleware(self, cookies=None, user_theme='rpg'):
+        from types import SimpleNamespace
+        from passion_retro.seasonal import SpecialEditionThemeMiddleware
+        request = RequestFactory().get('/')
+        request.COOKIES.update(cookies or {})
+        request.user = SimpleNamespace(is_authenticated=True, theme=user_theme)
+        request.theme_active = user_theme  # choisi par UserStatsMiddleware
+        SpecialEditionThemeMiddleware(lambda r: None).process_request(request)
+        return request
+
+    def test_vice_theme_forced_during_period(self):
+        self._set('vicecity', mode='on')
+        request = self._run_middleware()
+        self.assertEqual(request.theme_active, 'vicecity')
+        self.assertEqual(request.user.theme, 'rpg')  # thème du membre intact
+
+    def test_vice_theme_untouched_when_inactive_or_opted_out(self):
+        self.assertEqual(self._run_middleware().theme_active, 'rpg')
+        self._set('vicecity', mode='on')
+        request = self._run_middleware(cookies={'vice_edition_off': '1'})
+        self.assertEqual(request.theme_active, 'rpg')
+        self.assertTrue(request.special_edition_active)
+        self.assertFalse(request.special_edition_enabled)
+
+    def test_vice_fixed_dates(self):
+        from datetime import date
+        from unittest import mock
+        self._set('vicecity', mode='auto', start_date=date(2026, 11, 19), end_date=date(2026, 12, 3))
+        with mock.patch('passion_retro.seasonal.timezone.localdate', return_value=date(2026, 11, 20)):
+            self.assertEqual(self._run_middleware().theme_active, 'vicecity')
+        with mock.patch('passion_retro.seasonal.timezone.localdate', return_value=date(2026, 12, 4)):
+            self.assertEqual(self._run_middleware().theme_active, 'rpg')
+
+    def test_vice_layout_and_home_banner(self):
+        from passion_retro.theme_config import get_layout_config
+        self.assertEqual(get_layout_config('vicecity')['menu_type'], 'horizontal')
+        self._set('vicecity', mode='on')
+        from django.conf import settings
+        with self.settings(MIDDLEWARE=[*settings.MIDDLEWARE,
+                                       'users.middleware.UserStatsMiddleware',
+                                       'passion_retro.seasonal.SpecialEditionThemeMiddleware']):
+            response = self._get_home()
+        html = response.content.decode()
+        self.assertIn('themes/vicecity/theme.css', html)
+        self.assertIn('theme-vicecity', html)
+        self.assertIn('vc-banner', html)
+        self.assertIn('vc-event', html)
+        self.assertIn('Quitter l’édition spéciale', html)
+
+    def test_vice_toggle_stays_visible_after_opting_out(self):
+        from django.conf import settings
+        self._set('vicecity', mode='on')
+        with self.settings(MIDDLEWARE=[*settings.MIDDLEWARE,
+                                       'users.middleware.UserStatsMiddleware',
+                                       'passion_retro.seasonal.SpecialEditionThemeMiddleware']):
+            html = self._get_home(vice_edition_off='1').content.decode()
+        self.assertNotIn('themes/vicecity/theme.css', html)
+        self.assertIn(reverse('toggle_event', args=['vicecity']), html)
+        self.assertIn('Réactiver l’édition spéciale', html)
+
+    def test_wanted_stars(self):
+        from types import SimpleNamespace
+        from home.templatetags.vice_tags import wanted_stars
+        visitor = SimpleNamespace(is_authenticated=False)
+        self.assertEqual(sum(wanted_stars(visitor)), 0)
+        for level, stars in ((1, 1), (10, 1), (11, 2), (26, 3), (50, 5), (99, 5)):
+            user = SimpleNamespace(is_authenticated=True, level_number=level)
+            self.assertEqual(sum(wanted_stars(user)), stars, level)
+            self.assertEqual(len(wanted_stars(user)), 5)
+
+    def test_vice_banner_has_vector_logo_and_hud(self):
+        from django.conf import settings
+        self._set('vicecity', mode='on')
+        with self.settings(MIDDLEWARE=[*settings.MIDDLEWARE,
+                                       'users.middleware.UserStatsMiddleware',
+                                       'passion_retro.seasonal.SpecialEditionThemeMiddleware']):
+            html = self._get_home().content.decode()
+        self.assertIn('class="vc-logo"', html)
+        self.assertIn('vc-hud__cash', html)
+        self.assertIn('$0', html)  # visiteur
+        # Logo figé : aucune police Pricedown chargée par le site.
+        self.assertNotIn('Pricedown', html)
+        self.assertNotIn('@font-face', html)
+
+    # --- Panel ---------------------------------------------------------------
+
+    def _staff(self):
         from users.models import User
-        url = reverse('panel_christmas')
+        staff = User.objects.create_user(username='modo', email='modo@test.com', password='pass12345',
+                                         active=True, is_staff=True)
+        self.client.force_login(staff)
+
+    def test_panel_is_staff_only(self):
+        from users.models import User
+        url = reverse('panel_seasonal')
         self.assertRedirects(self.client.get(url), reverse('home'), fetch_redirect_response=False)
         member = User.objects.create_user(username='membre', email='m@test.com', password='pass12345', active=True)
         self.client.force_login(member)
         self.assertRedirects(self.client.get(url), reverse('home'), fetch_redirect_response=False)
 
-    def test_panel_saves_settings(self):
-        from home.models import ChristmasSettings
-        from users.models import User
-        staff = User.objects.create_user(username='modo', email='modo@test.com', password='pass12345', active=True, is_staff=True)
-        self.client.force_login(staff)
-        url = reverse('panel_christmas')
-        self.assertContains(self.client.get(url), 'Décor de Noël')
+    def test_panel_lists_and_saves_events(self):
+        from home.models import SeasonalEvent
+        self._staff()
+        url = reverse('panel_seasonal')
+        response = self.client.get(url)
+        self.assertContains(response, 'Décor de Noël')
+        self.assertContains(response, 'Édition spéciale Vice City')
         response = self.client.post(url, {
-            'mode': 'auto', 'start_day': 5, 'start_month': 12, 'end_day': 6, 'end_month': 1,
+            'key': 'vicecity', 'vicecity-mode': 'auto',
+            'vicecity-start_date': '2026-11-19', 'vicecity-end_date': '2026-12-03',
         })
         self.assertRedirects(response, url, fetch_redirect_response=False)
-        obj = ChristmasSettings.objects.get(pk=1)
-        self.assertEqual((obj.start_day, obj.start_month, obj.end_day, obj.end_month), (5, 12, 6, 1))
+        vice = SeasonalEvent.objects.get(key='vicecity')
+        self.assertEqual((vice.mode, str(vice.start_date), str(vice.end_date), vice.repeat_yearly),
+                         ('auto', '2026-11-19', '2026-12-03', False))
+        # Noël n'a pas bougé
+        self.assertEqual(SeasonalEvent.objects.get(key='christmas').mode, 'auto')
 
-    def test_panel_rejects_invalid_date(self):
-        from home.models import ChristmasSettings
-        from users.models import User
-        staff = User.objects.create_user(username='modo2', email='modo2@test.com', password='pass12345', active=True, is_staff=True)
-        self.client.force_login(staff)
-        response = self.client.post(reverse('panel_christmas'), {
-            'mode': 'auto', 'start_day': 31, 'start_month': 2, 'end_day': 10, 'end_month': 1,
+    def test_panel_rejects_invalid_period(self):
+        from home.models import SeasonalEvent
+        self._staff()
+        response = self.client.post(reverse('panel_seasonal'), {
+            'key': 'vicecity', 'vicecity-mode': 'auto',
+            'vicecity-start_date': '2026-12-03', 'vicecity-end_date': '2026-11-19',
         })
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "n&#x27;existe pas")
-        self.assertFalse(ChristmasSettings.objects.filter(start_month=2).exists())
+        self.assertContains(response, 'La fin doit être après le début.')
+        self.assertEqual(SeasonalEvent.objects.get(key='vicecity').mode, 'off')

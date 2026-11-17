@@ -1,1 +1,0 @@
-<form method="post" action="{% url 'toggle_christmas' %}" class="xmas-toggle-form">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" class="xmas-toggle">❄ Décor de Noël : {% if christmas_enabled %}activé{% else %}désactivé{% endif %}</button></form>

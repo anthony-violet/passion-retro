@@ -1,0 +1,19 @@
+{# Bannière événementielle de l'accueil pendant l'édition spéciale Vice City. #}
+<section class="vc-event" aria-labelledby="vc-event-title">
+    <span class="vc-event__kicker">Édition spéciale</span>
+    <h2 id="vc-event-title" class="vc-event__title">{{ site_name }} fête la sortie de <em>GTA VI</em></h2>
+    <p class="vc-event__text">
+        Soleil couchant, néons et palmiers : pendant quelques jours, {{ site_name }} prend ses quartiers
+        sur la côte de Floride. Souvenirs de Vice City, débats sur le forum, actus de la sortie…
+        Enfile ta chemise à fleurs, la virée commence ici. <span class="vc-wanted" aria-label="5 étoiles">★★★★★</span>
+    </p>
+    <div class="vc-event__actions">
+        <a href="{% url 'news_list' %}" class="btn">Les actus</a>
+        <a href="{% url 'forum_home' %}" class="btn btn-add">En parler sur le forum</a>
+        <a href="{% url 'wall_memories:wall' %}" class="btn">Raconter mes souvenirs</a>
+    </div>
+    <svg class="vc-event__palm" viewBox="0 0 120 160" aria-hidden="true">
+        <path d="M58 160c4-40 6-76 2-112l6-1c5 36 3 74-1 113z"/>
+        <path d="M62 48C46 30 22 26 4 34c18-2 34 4 48 18C36 44 18 48 8 62c16-10 34-12 50-6-12 6-22 18-24 32 8-14 20-24 32-28 2 14-2 28-10 38 12-10 18-26 16-40 10 10 16 24 16 38 4-18-2-34-12-44 16 0 30 8 40 20-6-16-22-28-40-30 14-6 30-6 44 2-12-12-32-14-48-8 8-10 20-16 34-16-18-4-36 4-46 18z"/>
+    </svg>
+</section>

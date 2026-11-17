@@ -1,0 +1,720 @@
+/* =============================================================
+   Édition spéciale « Vice Nights » — NostalGeek
+   Thème temporaire imposé pendant la période réglée dans le panel
+   (Décors & événements). Chargé par-dessus themes/default/theme.css :
+   on redéfinit ses variables, puis on ajoute l'ambiance Miami by night.
+   Inspiration esthétique uniquement : aucun logo ni visuel officiel.
+   Le mot « NostalGeek » est un logo figé (templates/components/vicecity_logo.svg),
+   vectorisé depuis Pricedown (Typodermic) : la licence de bureau autorise ce
+   type d'illustration, mais interdit d'utiliser la police comme webfont.
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Pacifico&family=Montserrat:wght@400;600;700;800&display=swap');
+
+:root {
+    /* Palette Vice Nights */
+    --vc-night: #0b0620;
+    --vc-night-2: #160d33;
+    --vc-purple: #6a2bd8;
+    --vc-pink: #ff2e88;
+    --vc-pink-soft: #ff7ab8;
+    --vc-teal: #21e6c1;
+    --vc-teal-soft: #8af5e2;
+    --vc-orange: #ff8a3d;
+    --vc-gold: #ffd166;
+    --vc-text: #f3eefe;
+    --vc-text-muted: #c7bde6;
+    --vc-glass: rgba(22, 13, 51, 0.86);
+    --vc-glow-pink: 0 0 6px rgba(255, 46, 136, 0.85), 0 0 18px rgba(255, 46, 136, 0.45);
+    --vc-glow-teal: 0 0 6px rgba(33, 230, 193, 0.85), 0 0 18px rgba(33, 230, 193, 0.4);
+
+    /* Variables du thème de base */
+    --bg-body: var(--vc-night);
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --bg-container: var(--vc-glass);
+    --bg-menu: var(--vc-glass);
+    --bg-menu-guestbook: rgba(255, 255, 255, 0.04);
+    --bg-post-card: rgba(255, 255, 255, 0.035);
+    --bg-post-footer: linear-gradient(90deg, #3b1a7a 0%, #7a1f6a 100%);
+    --bg-notification-success: rgba(33, 230, 193, 0.14);
+    --bg-notification-error: rgba(255, 46, 136, 0.16);
+    --bg-forum-row: rgba(255, 255, 255, 0.035);
+    --bg-forum-row-even: rgba(255, 255, 255, 0.06);
+    --bg-stats-forum: rgba(255, 255, 255, 0.04);
+    --bg-contribution: rgba(255, 255, 255, 0.04);
+    --bg-contribution-hover: rgba(255, 46, 136, 0.12);
+    --bg-button: linear-gradient(135deg, #ff2e88 0%, #ff8a3d 100%);
+    --bg-button-hover: linear-gradient(135deg, #ff4f9c 0%, #ffa25e 100%);
+    --bg-button-add: linear-gradient(135deg, #21e6c1 0%, #1aa3d9 100%);
+    --bg-button-add-hover: linear-gradient(135deg, #4ff0d2 0%, #36b8ea 100%);
+    --bg-button-danger: linear-gradient(135deg, #ff3b5c 0%, #b3124a 100%);
+    --bg-button-danger-hover: linear-gradient(135deg, #ff5c78 0%, #cc1f58 100%);
+    --bg-button-warning: linear-gradient(135deg, #ffd166 0%, #ff8a3d 100%);
+    --bg-button-warning-hover: linear-gradient(135deg, #ffdc85 0%, #ffa25e 100%);
+    --bg-input: rgba(11, 6, 32, 0.75);
+    --bg-page-link: rgba(255, 255, 255, 0.05);
+    --bg-page-link-hover: rgba(255, 46, 136, 0.2);
+    --bg-active-page: linear-gradient(135deg, #ff2e88 0%, #6a2bd8 100%);
+    --bg-disabled-page: rgba(255, 255, 255, 0.03);
+    --bg-footer: linear-gradient(90deg, #12082b 0%, #2a0f4a 50%, #12082b 100%);
+
+    --text-primary: var(--vc-text);
+    --text-link: var(--vc-teal);
+    --text-link-hover: var(--vc-pink);
+    --text-link-alternative: var(--vc-gold);
+    --text-danger: #ff6b8a;
+    --text-admin: #ff5c8a;
+    --text-sadmin: var(--vc-gold);
+    --text-menu-header: #ffffff;
+    --text-guestbook-date: var(--vc-text-muted);
+    --text-guestbook-author: var(--vc-pink-soft);
+    --text-badge: #ffffff;
+    --text-notification-success: var(--vc-teal-soft);
+    --text-notification-error: #ffb3cf;
+    --text-forum-header: #ffffff;
+    --text-category-name: var(--vc-teal);
+    --text-forum-header-row: #ffffff;
+    --text-unread-badge: #ffffff;
+    --text-button: #ffffff;
+    --text-button-add: #08122a;
+    --text-button-danger: #ffffff;
+    --text-button-warning: #2a1200;
+    --text-button-warning-hover: #2a1200;
+    --text-page-link: var(--vc-text);
+    --text-page-link-hover: #ffffff;
+    --text-active-page: #ffffff;
+    --text-disabled-page: #6f6690;
+    --text-footer: var(--vc-text-muted);
+    --text-footer-hover: var(--vc-pink);
+
+    --border-container: rgba(255, 46, 136, 0.35);
+    --border-menu-header: var(--vc-pink);
+    --border-menu-guestbook: rgba(33, 230, 193, 0.3);
+    --border-badge: var(--vc-pink);
+    --border-post-card: rgba(33, 230, 193, 0.25);
+    --border-notification-success: var(--vc-teal);
+    --border-notification-error: var(--vc-pink);
+    --border-stats-forum: rgba(255, 255, 255, 0.12);
+    --border-contribution: rgba(255, 255, 255, 0.12);
+    --border-button: transparent;
+    --border-button-add: transparent;
+    --border-button-danger: transparent;
+    --border-button-warning: transparent;
+    --border-input: rgba(33, 230, 193, 0.35);
+    --border-input-focus: var(--vc-pink);
+    --border-page-link: rgba(255, 255, 255, 0.15);
+    --border-active-page: var(--vc-pink);
+
+    --gradient-menu-header: linear-gradient(90deg, #6a2bd8 0%, #ff2e88 55%, #ff8a3d 100%);
+    --gradient-post-card-header: linear-gradient(90deg, rgba(106, 43, 216, 0.85) 0%, rgba(255, 46, 136, 0.85) 100%);
+    --gradient-forum-category: linear-gradient(90deg, #3b1a7a 0%, #ff2e88 100%);
+    --gradient-forum-header: linear-gradient(90deg, #2a0f4a 0%, #6a2bd8 100%);
+
+    --shadow-container: 0 0 0 1px rgba(255, 46, 136, 0.15), 0 10px 30px rgba(0, 0, 0, 0.45);
+    --shadow-button: 0 4px 14px rgba(255, 46, 136, 0.35);
+    --shadow-button-hover: 0 6px 20px rgba(255, 46, 136, 0.55);
+    --shadow-button-add: 0 4px 14px rgba(33, 230, 193, 0.3);
+    --shadow-button-add-hover: 0 6px 20px rgba(33, 230, 193, 0.5);
+    --shadow-button-danger: 0 4px 14px rgba(255, 59, 92, 0.35);
+    --shadow-button-danger-hover: 0 6px 20px rgba(255, 59, 92, 0.55);
+    --shadow-button-warning: 0 4px 14px rgba(255, 138, 61, 0.35);
+    --shadow-button-warning-hover: 0 6px 20px rgba(255, 138, 61, 0.55);
+    --shadow-input: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-input-focus: 0 0 0 3px rgba(255, 46, 136, 0.3);
+    --text-shadow-menu-header: 0 1px 2px rgba(0, 0, 0, 0.45);
+    --text-shadow-button: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --text-shadow-button-warning: none;
+}
+
+/* ---------- Fond : nuit tropicale, halo de coucher de soleil ---------- */
+body.theme-vicecity {
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    color: var(--vc-text);
+    background-color: var(--vc-night);
+    background-image:
+        radial-gradient(ellipse 80% 45% at 50% 0%, rgba(255, 138, 61, 0.22) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 0% 30%, rgba(106, 43, 216, 0.35) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 100% 60%, rgba(255, 46, 136, 0.22) 0%, transparent 70%),
+        linear-gradient(180deg, #120830 0%, #0b0620 45%, #070417 100%);
+    background-attachment: fixed;
+}
+
+/* Grain discret façon affiche imprimée */
+body.theme-vicecity::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1; /* derrière le contenu, sans toucher au positionnement des pages */
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body.theme-vicecity ::selection { background: var(--vc-pink); color: #fff; }
+
+body.theme-vicecity a { color: var(--text-link); transition: color .15s, text-shadow .15s; }
+body.theme-vicecity a:hover { color: var(--text-link-hover); text-shadow: 0 0 8px rgba(255, 46, 136, 0.6); }
+
+/* ---------- Bannière : coucher de soleil sur Miami ---------- */
+.theme-vicecity .vc-banner {
+    height: 190px;
+    border: 0;
+    border-bottom: 2px solid var(--vc-pink);
+    box-shadow: 0 0 24px rgba(255, 46, 136, 0.45);
+    background: linear-gradient(180deg,
+        #1a0b3d 0%,
+        #4a1b7a 28%,
+        #b8297f 52%,
+        #ff6a3d 72%,
+        #ffb15e 82%,
+        #2a0f4a 82.5%,
+        #12082b 100%);
+    justify-content: center;
+}
+.theme-vicecity .vc-banner::before { display: none; }
+.theme-vicecity .vc-banner::after {
+    /* étoiles discrètes dans le haut du ciel */
+    background:
+        radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 51%),
+        radial-gradient(1px 1px at 28% 9%, #fff 50%, transparent 51%),
+        radial-gradient(1.5px 1.5px at 46% 22%, #ffd9f0 50%, transparent 51%),
+        radial-gradient(1px 1px at 63% 12%, #fff 50%, transparent 51%),
+        radial-gradient(1.5px 1.5px at 81% 20%, #d9fff7 50%, transparent 51%),
+        radial-gradient(1px 1px at 93% 8%, #fff 50%, transparent 51%);
+    opacity: .8;
+}
+
+.vc-sun {
+    position: absolute;
+    left: 50%;
+    bottom: 18%;
+    width: 210px;
+    height: 210px;
+    transform: translate(-50%, 50%);
+    border-radius: 50%;
+    background:
+        repeating-linear-gradient(180deg, transparent 0 60%, rgba(26, 11, 61, .55) 60% 64%, transparent 64% 70%),
+        linear-gradient(180deg, #ffe680 0%, #ffae5c 40%, #ff4f8b 80%);
+    -webkit-mask: linear-gradient(180deg, #000 0 50%, transparent 50%);
+            mask: linear-gradient(180deg, #000 0 50%, transparent 50%);
+    box-shadow: 0 0 60px rgba(255, 138, 61, 0.6);
+    opacity: .9;
+}
+
+.vc-skyline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 17.5%;
+    width: 100%;
+    height: 46%;
+    fill: #1a0a33;
+    opacity: .92;
+}
+
+.vc-palm {
+    position: absolute;
+    bottom: 0;
+    height: 92%;
+    width: auto;
+    fill: #0d0520;
+}
+.vc-palm--left { left: 2%; }
+.vc-palm--right { right: 2%; transform: scaleX(-1); }
+
+.vc-sea {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 17.5%;
+    background:
+        repeating-linear-gradient(180deg, rgba(255, 177, 94, .35) 0 2px, transparent 2px 7px),
+        linear-gradient(180deg, #3a1460 0%, #12082b 100%);
+    -webkit-mask: radial-gradient(ellipse 30% 120% at 50% 0%, #000 0%, rgba(0, 0, 0, .35) 70%);
+            mask: radial-gradient(ellipse 30% 120% at 50% 0%, #000 0%, rgba(0, 0, 0, .35) 70%);
+}
+
+.vc-title-wrap {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 22px;
+    text-align: center;
+}
+
+.vc-edition {
+    font-family: 'Pacifico', cursive;
+    font-size: 1.15rem;
+    color: var(--vc-teal-soft);
+    text-shadow: var(--vc-glow-teal);
+    transform: rotate(-4deg) translate(-38%, 0);
+    margin-bottom: 2px;
+}
+
+.theme-vicecity .vc-banner .vc-logo-wrap {
+    font-size: 0; /* le texte du titre est porté par le SVG */
+    line-height: 0;
+    letter-spacing: 0;
+    text-shadow: none;
+}
+.vc-logo {
+    display: block;
+    width: clamp(220px, 42vw, 470px);
+    height: auto;
+    overflow: visible;
+    filter: drop-shadow(4px 5px 0 rgba(0, 0, 0, .85)) drop-shadow(0 0 18px rgba(255, 46, 136, .45));
+}
+.vc-logo__shape {
+    fill: url(#vc-logo-fill);
+    stroke: #050208;
+    stroke-width: 46px;
+    stroke-linejoin: round;
+    paint-order: stroke fill;
+}
+
+.vc-tagline {
+    margin-top: 4px;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+}
+
+
+/* ---------- Navigation : sous-menus (le menu pause est plus bas) ---------- */
+.theme-vicecity .menu-horizontal .dropdown,
+.theme-vicecity .menu-horizontal > ul > li > ul {
+    background: #170c36;
+    border-color: rgba(255, 46, 136, 0.4);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+.theme-vicecity .menu-horizontal .dropdown a { color: var(--vc-text); }
+.theme-vicecity .menu-horizontal .dropdown a:hover { color: var(--vc-teal); }
+.theme-vicecity .new-item-menu { color: var(--vc-gold) !important; }
+
+/* ---------- Conteneurs, cartes et menus latéraux ---------- */
+.theme-vicecity .container,
+.theme-vicecity .menu {
+    border: 1px solid var(--border-container);
+    border-radius: 10px;
+    backdrop-filter: blur(4px);
+}
+
+/* Titres de section façon écran de chargement : Anton, contour noir, ombre décalée,
+   bandeau légèrement penché. */
+.theme-vicecity .container h2,
+.theme-vicecity .menu h2 {
+    font-family: 'Anton', 'Impact', sans-serif;
+    font-weight: 400;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #fff;
+    -webkit-text-stroke: 1px #000;
+    paint-order: stroke fill;
+    text-shadow: 2px 2px 0 #000, 3px 3px 0 rgba(0, 0, 0, .6);
+    background: linear-gradient(90deg, #ff2e88 0%, #ff8a3d 100%);
+    border: 0;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
+    position: relative;
+}
+.theme-vicecity .container h2 { font-size: 1.45rem; padding: 8px 28px 8px 14px; }
+.theme-vicecity .menu h2 { font-size: 1.05rem; padding: 6px 22px 6px 10px; }
+.theme-vicecity .container h2::after,
+.theme-vicecity .menu h2::after {
+    /* bande turquoise en biais, comme un bandeau d'affiche */
+    content: "";
+    position: absolute;
+    right: 34px;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    background: var(--vc-teal);
+    transform: skewX(-20deg);
+    opacity: .9;
+}
+.theme-vicecity .menu h2::after { right: 26px; width: 7px; }
+
+.theme-vicecity .container h3,
+.theme-vicecity .news-header h3,
+.theme-vicecity .post-card-header h3 { color: #fff; }
+
+.theme-vicecity .news,
+.theme-vicecity .post-card {
+    border-radius: 0 0 8px 8px;
+    transition: box-shadow .2s, transform .2s;
+}
+.theme-vicecity .col:hover > .news {
+    box-shadow: 0 0 0 1px rgba(33, 230, 193, .45), 0 0 18px rgba(33, 230, 193, .2);
+}
+.theme-vicecity .news-header,
+.theme-vicecity .post-card-header { border-radius: 8px 8px 0 0; }
+
+.theme-vicecity .date,
+.theme-vicecity small { color: var(--vc-text-muted); }
+
+.theme-vicecity blockquote {
+    border-left: 3px solid var(--vc-pink);
+    background: rgba(255, 46, 136, 0.08);
+    color: var(--vc-text);
+}
+
+.theme-vicecity pre,
+.theme-vicecity code { background: rgba(0, 0, 0, .35); color: var(--vc-teal-soft); }
+
+/* ---------- Boutons et champs ---------- */
+.theme-vicecity .btn,
+.theme-vicecity input[type="submit"],
+.theme-vicecity button:not(.seasonal-toggle):not(.announcement-banner__close):not(.burger-icon) {
+    border-radius: 999px;
+    font-weight: 700;
+    letter-spacing: .4px;
+}
+.theme-vicecity .btn:hover,
+.theme-vicecity input[type="submit"]:hover { transform: translateY(-1px); }
+
+.theme-vicecity input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+.theme-vicecity select,
+.theme-vicecity textarea {
+    color: var(--vc-text);
+    border-radius: 8px;
+}
+.theme-vicecity input::placeholder,
+.theme-vicecity textarea::placeholder { color: #8f84b5; }
+.theme-vicecity select option { background: var(--vc-night-2); color: var(--vc-text); }
+
+/* ---------- Tableaux (forum, panels) ---------- */
+.theme-vicecity table { color: var(--vc-text); }
+.theme-vicecity th { color: #fff; }
+
+/* ---------- Lisibilité : fonds clairs et textes sombres écrits en dur dans le thème de base ----------
+   (profil, boutique, quiz, jeux, BBCode et panel d'administration) */
+.theme-vicecity :is(
+    .profile-main, .profile-header, .profile-bio, .stat-item, .stats-card, .achievements-card,
+    .inventory, .inventory-item, .card-game, .card-game .footer, .card-shop, .quiz-question,
+    .quiz-result-card, .quiz-score, .choice-item, .draggable, .bbcode-bar, fieldset.quote-bbcode,
+    .btn-secondary, .panel-main, .panel-section, .panel-section-header, .panel-stat-card,
+    .panel-empty-state, .panel-checkboxes-list, .panel-quiz-q-header, .panel-table thead tr
+) {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 46, 136, 0.28);
+    color: var(--vc-text);
+}
+.theme-vicecity .panel-main { background: rgba(11, 6, 32, 0.6); }
+.theme-vicecity .panel-stat-card.panel-stat-warning { background: rgba(255, 209, 102, 0.12); }
+.theme-vicecity table.quiz tr:nth-child(even) td { background: rgba(255, 255, 255, 0.04); }
+
+.theme-vicecity :is(
+    .card-shop:hover, .choice-item:hover, .forum .forum-row:hover,
+    .panel-table tbody tr:hover td, .bbcode-bar button:hover
+) {
+    background: rgba(255, 46, 136, 0.14);
+}
+
+.theme-vicecity :is(.bbcode-bar button, fieldset.quote-bbcode legend) {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--vc-teal);
+    border-color: rgba(33, 230, 193, 0.3);
+}
+
+.theme-vicecity :is(.panel-form-group input, .panel-form-group select, .panel-form-group textarea,
+    table.bac td input[type="text"], table.bac td input:focus,
+    .form-row input[type="text"], .form-row input[type="email"], .form-row input[type="password"]) {
+    background: var(--bg-input);
+    color: var(--vc-text);
+    border-color: var(--border-input);
+}
+
+/* Textes sombres → clairs */
+.theme-vicecity :is(
+    label, .bio-content, .profile-bio, .badge-name, .card-game .body, .card-game .footer,
+    .card-shop .card-text, .choice-item label, .draggable .content, .form-row label, .panel-checkbox,
+    .panel-quiz-choices li, .panel-table td, .panel-form-group label, .profile-card h3, .score-message,
+    .stat-label, .panel-stat-label, .table .body, a.shop, a.shop:hover, .menu ul.guestbook li span.date
+) {
+    color: var(--vc-text);
+}
+.theme-vicecity :is(.stat-label, .panel-stat-label, .table .body, .menu ul.guestbook li span.date) {
+    color: var(--vc-text-muted);
+}
+.theme-vicecity :is(
+    .panel-page-header h2, .panel-section-header h3, .panel-stat-value, .panel-table th,
+    .panel-quiz-q-header, .percentage-text, .profile-name, .username, .question-content h3,
+    .quiz-score, .quiz-title, .score-details h3, .stat-value, .item-quantity, .card-shop .card-title,
+    h1.h1-bbcode, h2.h2-bbcode, h3.h3-bbcode, .btn-secondary
+) {
+    color: var(--vc-pink-soft);
+}
+.theme-vicecity .menu ul li a { color: var(--vc-teal); }
+.theme-vicecity .menu ul li a:hover { color: var(--vc-pink); }
+.theme-vicecity :is(.countdown, .panel-text-danger, span.post-offline, .score-number.low) { color: #ff6b8a; }
+.theme-vicecity :is(span.post-online, .score-number.high) { color: var(--vc-teal); }
+
+/* Mur des souvenirs : le liège devient une plage de nuit, les cartes restent des polaroïds */
+.theme-vicecity .wm--default .wm-hero {
+    background:
+        radial-gradient(ellipse 70% 120% at 50% 120%, rgba(255, 138, 61, .45) 0%, transparent 60%),
+        linear-gradient(160deg, #2a0f4a 0%, #4a1b7a 50%, #8a1f6a 100%);
+    border: 1px solid rgba(255, 46, 136, .5);
+}
+.theme-vicecity .wm--default .wm-hero :is(h1, h2) { color: #ffe1f0; text-shadow: var(--vc-glow-pink); }
+.theme-vicecity .wm--default .wm-board {
+    background:
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255, 46, 136, .18) 0%, transparent 70%),
+        linear-gradient(180deg, #160d33 0%, #0b0620 100%);
+    border: 1px solid rgba(33, 230, 193, .25);
+}
+.theme-vicecity .wm--default .wm-board .wm-section-title { background: var(--gradient-menu-header); color: #fff; }
+
+/* ---------- HUD : argent (pièces d'or) et étoiles de recherche ---------- */
+.vc-hud {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    z-index: 3;
+    text-align: right;
+    font-family: 'Anton', 'Impact', sans-serif;
+    line-height: 1;
+    pointer-events: none;
+}
+.vc-hud__cash {
+    font-size: 1.9rem;
+    color: #7ee08a;
+    -webkit-text-stroke: 1.5px #000;
+    paint-order: stroke fill;
+    text-shadow: 2px 2px 0 #000;
+    letter-spacing: 1px;
+}
+.vc-hud__stars { margin-top: 3px; font-size: 1.15rem; letter-spacing: 2px; }
+.vc-hud__star {
+    color: rgba(255, 255, 255, .22);
+    -webkit-text-stroke: 1px #000;
+    paint-order: stroke fill;
+}
+.vc-hud__star.is-on { color: #fff; text-shadow: 0 0 6px rgba(255, 255, 255, .8); }
+
+/* ---------- Menu façon menu pause ---------- */
+.theme-vicecity .menu-horizontal {
+    background: rgba(0, 0, 0, 0.78);
+    border-bottom: 3px solid var(--vc-pink);
+}
+.theme-vicecity .menu-horizontal > ul > li > a {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #fff;
+    border-bottom: 3px solid transparent;
+}
+.theme-vicecity .menu-horizontal > ul > li > a:hover,
+.theme-vicecity .menu-horizontal > ul > li > a:focus-visible {
+    color: #fff;
+    background: rgba(255, 46, 136, .18);
+    border-bottom-color: var(--vc-pink);
+    text-shadow: none;
+}
+
+/* Bouton « Contribuer » du menu : centré dans la rangée, sans la marge des .btn
+   (sinon il dépasse en bas et agrandit sa ligne). */
+@media (min-width: 769px) {
+    .theme-vicecity .menu-horizontal > ul { align-items: center; }
+}
+.theme-vicecity .menu-horizontal > ul > li > a.btn {
+    margin: 0 6px;
+    padding: 6px 16px;
+    line-height: 1.2;
+    border-bottom: 0;
+    box-shadow: 0 0 10px rgba(33, 230, 193, .35);
+}
+.theme-vicecity .menu-horizontal > ul > li > a.btn:hover { background: var(--bg-button-add-hover); }
+@media (max-width: 768px) {
+    .theme-vicecity .menu-horizontal > ul > li > a.btn { margin: 4px 14px; }
+}
+
+/* ---------- Forum : des lignes-cartes plutôt qu'un tableur ---------- */
+.theme-vicecity .forum-body {
+    border: 0;
+    background: transparent;
+    gap: 6px;
+    padding: 4px 0;
+}
+.theme-vicecity .forum-column,
+.theme-vicecity .forum-column-detail {
+    border: 0;
+    font-size: .85rem;
+}
+.theme-vicecity .forum .forum-header {
+    background: transparent;
+    color: var(--vc-text-muted);
+    border-bottom: 1px solid rgba(255, 255, 255, .08);
+    margin: 0 8px;
+    padding: 4px 10px;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+.theme-vicecity .forum .forum-header .forum-column { font-weight: 700; padding: 4px 8px; }
+.theme-vicecity .forum .forum-row,
+.theme-vicecity .forum .forum-row:nth-child(even) {
+    background: rgba(255, 255, 255, 0.04);
+    border: 0;
+    border-left: 3px solid transparent;
+    border-radius: 10px;
+}
+/* Survol doux : léger voile rose et barre néon à gauche, sans changer le texte. */
+.theme-vicecity .forum .forum-row:hover,
+.theme-vicecity .forum .forum-row:nth-child(even):hover {
+    background: rgba(255, 46, 136, 0.07);
+    border-left-color: var(--vc-pink);
+}
+.theme-vicecity .forum .category-name {
+    border: 0;
+    background: transparent;
+    margin: 10px 8px 2px;
+    padding: 0;
+}
+.theme-vicecity .forum .category-name h3 {
+    display: inline-block;
+    font-family: 'Anton', 'Impact', sans-serif;
+    font-weight: 400;
+    font-size: 1.15rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #fff;
+    -webkit-text-stroke: 1px #000;
+    paint-order: stroke fill;
+    text-shadow: 2px 2px 0 #000;
+    padding: 4px 26px 4px 12px;
+    background: linear-gradient(90deg, #6a2bd8 0%, #21a6c9 100%);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+}
+.theme-vicecity .forum-description { color: var(--vc-text-muted); }
+/* Sujet : bloc auteur et message dans une même carte */
+.theme-vicecity .forum-column-detail.details {
+    background: rgba(0, 0, 0, .18);
+    border-radius: 10px 0 0 10px;
+}
+
+/* ---------- Messages du site façon jeu ---------- */
+.theme-vicecity .notification { background: transparent; border: 0; }
+.theme-vicecity ul.messages { list-style: none; padding: 0; margin: 0 0 10px; }
+.theme-vicecity ul.messages li {
+    padding: 12px 16px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.78);
+    border: 0;
+    border-left: 4px solid var(--vc-teal);
+    color: #fff;
+    font-weight: 600;
+}
+.theme-vicecity ul.messages li + li { margin-top: 6px; }
+.theme-vicecity ul.messages li.success {
+    text-align: center;
+    border-left: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .55) 0%, rgba(0, 0, 0, .8) 100%);
+}
+.theme-vicecity ul.messages li.success::before {
+    content: "Mission réussie !";
+    display: block;
+    margin-bottom: 4px;
+    font-family: 'Anton', 'Impact', sans-serif;
+    font-weight: 400;
+    font-size: 1.9rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--vc-gold);
+    -webkit-text-stroke: 1.5px #000;
+    paint-order: stroke fill;
+    text-shadow: 3px 3px 0 #000;
+}
+.theme-vicecity ul.messages li.error { border-left-color: var(--vc-pink); }
+.theme-vicecity ul.messages li.warning { border-left-color: var(--vc-orange); }
+
+/* ---------- Footer ---------- */
+.theme-vicecity .footer {
+    background: var(--bg-footer);
+    border-top: 1px solid rgba(255, 46, 136, 0.5);
+    box-shadow: 0 -6px 24px rgba(255, 46, 136, 0.15);
+}
+.theme-vicecity .footer p,
+.theme-vicecity .footer a { color: var(--text-footer); }
+.theme-vicecity .footer a:hover { color: var(--vc-pink); }
+
+/* Clin d'œil : les étoiles de recherche, en néon */
+.vc-wanted { color: var(--vc-gold); letter-spacing: 2px; text-shadow: 0 0 6px rgba(255, 209, 102, .7); }
+
+/* ---------- Bannière événementielle de l'accueil ---------- */
+.vc-event {
+    position: relative;
+    overflow: hidden;
+    margin: 0 0 10px;
+    padding: 22px 22px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 46, 136, 0.55);
+    background:
+        radial-gradient(ellipse 60% 120% at 100% 100%, rgba(255, 138, 61, .35) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 100% at 0% 0%, rgba(33, 230, 193, .18) 0%, transparent 60%),
+        linear-gradient(120deg, #2a0f4a 0%, #4a1b7a 45%, #8a1f6a 100%);
+    box-shadow: 0 0 26px rgba(255, 46, 136, 0.25);
+    color: #fff;
+}
+.vc-event__kicker {
+    display: inline-block;
+    font-family: 'Pacifico', cursive;
+    font-size: 1rem;
+    color: var(--vc-teal-soft);
+    text-shadow: var(--vc-glow-teal);
+}
+.vc-event__title {
+    margin: 4px 0 8px;
+    font-family: 'Anton', 'Impact', sans-serif;
+    font-weight: 400;
+    font-size: clamp(1.6rem, 4vw, 2.5rem);
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #fff;
+    -webkit-text-stroke: 1.5px #000;
+    paint-order: stroke fill;
+    text-shadow: 3px 3px 0 #000;
+}
+.vc-event__title em { font-style: normal; color: var(--vc-gold); }
+.vc-event__text { max-width: 60ch; margin: 0 0 14px; color: #f6eaff; line-height: 1.5; }
+.vc-event__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.vc-event__actions .btn { margin: 0; }
+.vc-event__palm {
+    position: absolute;
+    right: -10px;
+    bottom: -8px;
+    width: 120px;
+    fill: rgba(11, 6, 32, 0.55);
+    pointer-events: none;
+}
+.vc-event > *:not(.vc-event__palm) { position: relative; z-index: 1; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+    .theme-vicecity .vc-banner { height: 150px; }
+    .vc-sun { width: 150px; height: 150px; }
+    .vc-palm { height: 70%; }
+    .vc-tagline { font-size: .62rem; letter-spacing: 2px; }
+    .vc-event { padding: 18px 16px; }
+    .vc-event__palm { width: 80px; }
+    .vc-edition { transform: rotate(-4deg); font-size: .95rem; }
+    .vc-hud { top: 8px; right: 10px; }
+    .vc-hud__cash { font-size: 1.3rem; }
+    .vc-hud__stars { font-size: .85rem; }
+    .theme-vicecity .container h2 { font-size: 1.2rem; }
+    .theme-vicecity ul.messages li.success::before { font-size: 1.5rem; }
+}
+
+/* ---------- Moins d'animations si demandé ---------- */
+@media (prefers-reduced-motion: reduce) {
+    .theme-vicecity .btn:hover,
+    .theme-vicecity input[type="submit"]:hover { transform: none; }
+}

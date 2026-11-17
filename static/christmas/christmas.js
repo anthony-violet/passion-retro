@@ -121,7 +121,7 @@
     function bindToggle() {
         document.addEventListener('submit', function (event) {
             var form = event.target;
-            if (!form.classList || !form.classList.contains('xmas-toggle-form')) return;
+            if (!form.classList || !form.classList.contains('seasonal-toggle-form') || !/\/christmas\//.test(form.action)) return;
             event.preventDefault();
             fetch(form.action, {
                 method: 'POST', body: new FormData(form), credentials: 'same-origin',

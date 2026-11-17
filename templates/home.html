@@ -4,6 +4,7 @@
 {% load wall_memories_tags %}
 
 {% block content %}
+{% if vice_enabled %}{% include './components/vice_event_banner.html' %}{% endif %}
 <div class="container discover-teaser">
     <h2>Bienvenue sur {{ site_name }} !</h2>
     <div class="discover-teaser-body">

@@ -78,7 +78,7 @@ TEMPLATES = [
                 "passion_retro.context_processors.seo_context",
                 "passion_retro.context_processors.analytics_context",
                 "ephemerides.context_processors.pending_ephemerides_count",
-                "passion_retro.christmas.christmas_context",
+                "passion_retro.seasonal.seasonal_context",
                 "wall_memories.context_processors.pending_memories_count",
                 "wall_memories.context_processors.wall_widget",
                 "users.context_processors.announcement_banner",

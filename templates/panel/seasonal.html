@@ -1,0 +1,45 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>🎉 Décors &amp; événements</h2>
+</div>
+<p>
+    Périodes d'affichage des décors thématiques et éditions spéciales.
+    Les visiteurs peuvent toujours les masquer depuis le footer.
+    Les changements peuvent mettre jusqu'à une minute à apparaître sur le site.
+</p>
+{% for row in rows %}
+<div class="panel-section" id="event-{{ row.event.key }}">
+    <h3>{% if row.event.key == 'christmas' %}🎄{% else %}🌴{% endif %} {{ row.event }}</h3>
+    <p>
+        Aujourd'hui ({{ today|date:"d/m/Y" }}) :
+        {% if row.active_today %}<strong>✔ affiché</strong>{% else %}<strong>✘ masqué</strong>{% endif %}
+    </p>
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <input type="hidden" name="key" value="{{ row.event.key }}">
+        {{ row.form.non_field_errors }}
+        <div class="panel-form-group">
+            <label>{{ row.form.mode.label }}</label>
+            {{ row.form.mode }}
+        </div>
+        <div class="panel-form-group">
+            <label for="{{ row.form.start_date.id_for_label }}">{{ row.form.start_date.label }}</label>
+            {{ row.form.start_date }} {{ row.form.start_date.errors }}
+        </div>
+        <div class="panel-form-group">
+            <label for="{{ row.form.end_date.id_for_label }}">{{ row.form.end_date.label }}</label>
+            {{ row.form.end_date }} {{ row.form.end_date.errors }}
+        </div>
+        <div class="panel-form-checkboxes">
+            <label class="panel-checkbox">{{ row.form.repeat_yearly }} {{ row.form.repeat_yearly.label }}</label>
+            <small>Coché : seuls le jour et le mois comptent, la période revient tous les ans (et peut passer le 31 décembre).</small>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">Enregistrer</button>
+        </div>
+    </form>
+</div>
+{% endfor %}
+{% endblock %}

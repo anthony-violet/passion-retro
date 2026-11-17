@@ -1,0 +1,2 @@
+{% comment %}Bouton discret du footer pour masquer / réafficher un décor.
+Paramètres : key, enabled, label_on (action quand le décor est affiché), label_off (action quand il est masqué).{% endcomment %}<form method="post" action="{% url 'toggle_event' key %}" class="seasonal-toggle-form">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" class="seasonal-toggle">{% if enabled %}{{ label_on }}{% else %}{{ label_off }}{% endif %}</button></form>

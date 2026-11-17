@@ -20,7 +20,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 from . import views
-from .christmas import toggle_christmas
+from .seasonal import toggle_event
 from users import views as users_views
 from .sitemaps import MemorySitemap, PostSitemap, StaticViewSitemap, TopicSitemap
 
@@ -53,7 +53,7 @@ urlpatterns = [
     path("mur-des-souvenirs/", include("wall_memories.urls")),
     path("nouveautes/", users_views.announcement, name="announcement"),
     path("nouveautes/fermer/", users_views.close_announcement_banner, name="close_announcement_banner"),
-    path("noel/basculer/", toggle_christmas, name="toggle_christmas"),
+    path("decors/<str:key>/basculer/", toggle_event, name="toggle_event"),
     path('api/forum/', include('forum_api.urls')),
 
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
