@@ -2,30 +2,51 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from posts.models import Post
+from posts.models import Post, Category, NavSection
 from forum.models import Topic, Forum, Post as ForumPost
 from users.leveling import grant_experience
 from django.contrib import messages
 from users.decorators import groups_required
-from posts.forms import CreatePost, EditPost
+from posts.forms import CreatePost, EditPost, ContributionForm, parse_chapters
+from posts.utils import unique_slug
+from django.db import transaction
+from django.template.loader import render_to_string
+from django.http import Http404
 from django.utils.text import slugify
 from django.contrib.auth.decorators import login_required
 from passion_retro.seo import article_jsonld, media_og_image, plain_text
 import os
 import json
 
+def _can_preview(user, post):
+    if not user.is_authenticated:
+        return False
+    if post.author_id == user.id:
+        return True
+    # Un brouillon reste privé tant que l'auteur ne l'a pas envoyé.
+    return user.is_staff and not post.draft
+
+
 def view_post(request, slug):
-    post = Post.objects.filter(slug=slug, active=True).first()
-    if not post:
-        from django.http import Http404
+    post = Post.objects.select_related('author', 'category', 'post_parent').filter(slug=slug).first()
+    if not post or (not post.active and not _can_preview(request.user, post)):
         raise Http404("Le post n'existe pas ou n'est pas actif.")
 
-    subposts = None
+    is_preview = not post.active
+    can_review = request.user.is_authenticated and request.user.is_staff
 
+    subposts = None
     if post.parent:
         subposts = Post.objects.filter(post_parent=post.id)
     elif post.post_parent:
-        subposts = Post.objects.filter(post_parent=post.post_parent).exclude(pk=post.pk)
+        subposts = Post.objects.filter(post_parent=post.post_parent)
+    dossier = post.post_parent or post
+    if subposts is not None:
+        subposts = subposts.order_by('id')
+        # Les chapitres en attente ne sont visibles que de l'équipe et de l'auteur.
+        if not _can_preview(request.user, dossier):
+            subposts = subposts.filter(active=True)
+        subposts = list(subposts)
 
     breadcrumbs = []
     if post.post_parent:
@@ -35,6 +56,19 @@ def view_post(request, slug):
     context = {
         'post': post,
         'subposts': subposts,
+        'is_preview': is_preview,
+        'show_review_bar': _can_preview(request.user, post) and (
+            is_preview or (subposts is not None and any(not p.active for p in subposts))
+        ),
+        'can_review': can_review,
+        'dossier': dossier,
+        'pending_chapters': [
+            p for p in (subposts or [])
+            if not p.active and not p.draft and p.post_parent_id == dossier.id
+            and (dossier.rejected or not p.rejected)
+        ],
+        'nav_section': dossier.nav_section,
+        'review_categories': Category.objects.order_by('name') if can_review else None,
         'page_title': f"{post.title} - {settings.SITE_NAME}",
         'page_heading': post.title,
         'page_description': plain_text(post.content, 160),
@@ -42,6 +76,8 @@ def view_post(request, slug):
         'seo_og_image': media_og_image(request, post.image),
         'seo_page_jsonld': article_jsonld(request, post, breadcrumbs),
     }
+    if is_preview:
+        context['seo_noindex'] = True
 
     return render(request, "posts/post.html", context)
 
@@ -79,7 +115,8 @@ def create_post(request, type):
             forum_link = f'forum/{topic.forum.id}/{topic.id}/'
 
         post = Post.objects.create(
-            slug=slugify(title),
+            slug=unique_slug(title),
+            category=_news_category() or Category.objects.first(),
             title=title,
             content=content,
             type=type,
@@ -104,25 +141,190 @@ def create_post(request, type):
 
     return render(request, "posts/create_post.html", context)
 
+CONTRIBUTION_TYPES = {
+    'article': 'Écrire un article',
+    'games': 'Écrire un article Jeux vidéo',
+    'movies': 'Écrire un article Films & Séries',
+    'music': 'Écrire un article Musique',
+    'musics': 'Écrire un article Musique',
+    'tech': 'Écrire un article Technologie',
+    'news': 'Proposer une actualité',
+}
+
+
+def _news_category():
+    return Category.objects.filter(name__iexact='Actualités').first()
+
+
+def contribution_form(request, type, post=None):
+    """Création ou modification d'une contribution (article seul ou dossier)."""
+    if type == 'musics':
+        type = 'music'
+    is_news = type == 'news'
+    with_category = not is_news and (post is None or post.parent)
+    existing_children = list(post.child_posts.order_by('id')) if post else []
+
+    # Un brouillon n'est possible que tant que la contribution n'a jamais été envoyée.
+    can_save_draft = post is None or post.draft
+
+    if request.method == 'POST':
+        is_draft = request.POST.get('action') == 'draft' and can_save_draft
+        form = ContributionForm(request.POST, with_category=with_category)
+        if is_draft:
+            # Un brouillon peut être incomplet : seul le titre est obligatoire.
+            form.fields['content'].required = False
+            if 'category' in form.fields:
+                form.fields['category'].required = False
+        is_dossier = bool(existing_children) or (request.POST.get('format') == 'dossier' and not is_news)
+        chapters, chapter_errors = parse_chapters(request.POST) if is_dossier else ([], [])
+        if is_draft:
+            chapter_errors = []
+            for chapter in chapters:
+                chapter.pop('error', None)
+                if not chapter['title']:
+                    chapter['title'] = f"Chapitre {chapter['number']} (sans titre)"
+                chapter['title'] = chapter['title'][:150]
+        elif is_dossier and not chapters:
+            form.add_error(None, "Un dossier doit contenir au moins un chapitre. Ajoute un chapitre ou choisis « Article seul ».")
+
+        if form.is_valid() and not chapter_errors and not form.non_field_errors():
+            data = form.cleaned_data
+            with transaction.atomic():
+                if is_news:
+                    category = _news_category()
+                elif with_category and data.get('category'):
+                    category = Category.objects.get(pk=data['category'])
+                elif post is not None:
+                    category = post.category
+                else:
+                    category = None
+
+                if post is None:
+                    main = Post(
+                        type=type, author=request.user, contribution=True, active=False,
+                        category=category or Category.objects.order_by('pk').first(),
+                    )
+                    created = True
+                else:
+                    main = post
+                    created = False
+                first_submission = not is_draft and (created or main.draft)
+                changed = (
+                    created or first_submission or main.draft != is_draft
+                    or (main.rejected and not is_draft)
+                    or main.title != data['title'] or main.content != data['content']
+                    or (category is not None and with_category and main.category_id != category.id)
+                )
+                if changed:
+                    if main.title != data['title'] or not main.slug or main.slug == 'default-slug':
+                        main.slug = unique_slug(data['title'], exclude_pk=main.pk)
+                    main.title = data['title']
+                    main.content = data['content']
+                    if category is not None and (with_category or created):
+                        main.category = category
+                    main.active = False
+                    main.draft = is_draft
+                    main.rejected = False
+                    main.rejection_reason = ''
+                    main.contribution = True
+                    main.save()
+
+                kept_ids = set()
+                children_by_id = {str(child.id): child for child in existing_children}
+                for chapter in chapters:
+                    child = children_by_id.get(chapter['id'])
+                    if child:
+                        kept_ids.add(child.id)
+                        # Un chapitre refusé repart en relecture avec le dossier, même inchangé.
+                        if (child.title == chapter['title'] and child.content == chapter['content']
+                                and child.draft == is_draft and not child.rejected):
+                            continue
+                        if child.title != chapter['title']:
+                            child.slug = unique_slug(chapter['title'], exclude_pk=child.pk)
+                        child.title = chapter['title']
+                        child.content = chapter['content']
+                        child.active = False
+                        child.draft = is_draft
+                        child.rejected = False
+                        child.rejection_reason = ''
+                        child.contribution = True
+                        child.save()
+                    else:
+                        Post.objects.create(
+                            title=chapter['title'], slug=unique_slug(chapter['title']),
+                            content=chapter['content'], type=type, author=request.user,
+                            contribution=True, active=False, draft=is_draft, post_parent=main,
+                            category=main.category,
+                        )
+                # Les chapitres retirés qui n'étaient pas encore publiés sont supprimés.
+                if post is not None and post.parent:
+                    for child in existing_children:
+                        if child.id not in kept_ids and not child.active:
+                            child.delete()
+
+                # L'expérience n'est gagnée qu'au premier envoi, pas pour un brouillon.
+                if first_submission:
+                    grant_experience(request.user, 10 + 5 * len(chapters))
+
+            if is_draft:
+                messages.success(request, "Brouillon enregistré. Il n'est visible que par toi : reviens le terminer quand tu veux.")
+                return redirect('edit_post', post_id=main.id)
+            if first_submission:
+                messages.success(request, "Merci ! Ta contribution a été envoyée à l'équipe. Voici l'aperçu tel qu'il apparaîtra sur le site.")
+            else:
+                messages.success(request, "Modifications enregistrées. Ta contribution repasse en relecture.")
+            return redirect('view_post', slug=main.slug)
+    else:
+        initial = {}
+        if post is not None:
+            initial = {'title': post.title, 'content': post.content, 'category': post.category_id}
+        elif request.GET.get('rubrique', '').isdigit():
+            initial['category'] = int(request.GET['rubrique'])
+        form = ContributionForm(initial=initial, with_category=with_category)
+        is_dossier = bool(existing_children)
+        chapters = [
+            {'id': str(child.id), 'title': child.title, 'content': child.content,
+             'active': child.active, 'number': index}
+            for index, child in enumerate(existing_children, start=1)
+        ]
+
+    published_ids = {str(child.id) for child in existing_children if child.active}
+    for chapter in chapters:
+        chapter['active'] = chapter.get('id') in published_ids
+
+    context = {
+        'type': type,
+        'heading': ('Modifier ma contribution' if post else CONTRIBUTION_TYPES.get(type, 'Écrire un article')),
+        'form': form,
+        'post': post,
+        'is_news': is_news,
+        'is_dossier': is_dossier,
+        'chapters': chapters,
+        'can_be_dossier': not is_news and (post is None or post.parent),
+        'nav_categories': {cat.id: label for cat, label in form.category_choices},
+        'draft_key': f'contrib-draft-{post.id if post else type}',
+        'can_save_draft': can_save_draft,
+    }
+    return render(request, 'posts/contribution_form.html', context)
+
+
 @login_required()
 def edit_post(request, post_id):
     post = get_object_or_404(Post, id=post_id, author=request.user)
+    # Un chapitre se modifie depuis son dossier.
+    if post.post_parent_id and post.post_parent.author_id == request.user.id:
+        return redirect('edit_post', post_id=post.post_parent_id)
+    return contribution_form(request, post.type, post=post)
 
-    if request.method == 'POST':
-        form = EditPost(request.POST, instance=post)
-        if form.is_valid():
-            post.title = form.cleaned_data['title']
-            post.content = form.cleaned_data['content']
-            post.active = False
-            post.save()
-            return redirect('contributions')
-    else:
-        form = CreatePost(initial={
-            'title': post.title,
-            'content': post.content,
-        })
 
-    return render(request, 'posts/edit_post.html', {'form': form, 'post': post})
+@login_required
+@require_POST
+def preview_content(request):
+    """Rendu serveur du BBCode, identique à celui de la page article."""
+    content = request.POST.get('content', '')
+    html = render_to_string('posts/_post_body.html', {'content': content})
+    return JsonResponse({'html': html})
+
 
 @groups_required('Administrateur', 'Super Admin')
 def prending_posts(request):

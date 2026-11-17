@@ -6,6 +6,7 @@ from . import views
 
 urlpatterns = [
     path("ai-assist/", views.ai_assist, name="ai_assist"),
+    path("preview-content/", views.preview_content, name="preview_content"),
     path("<slug:slug>/", views.view_post, name="view_post"),
 
     path("create/<str:type>/", views.create_post, name="create_news"),

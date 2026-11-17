@@ -1,0 +1,151 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}
+    <link rel="stylesheet" href="{% static 'css/contribute.css' %}">
+    {% if request.user.is_staff %}<link rel="stylesheet" href="{% static 'css/ai_assistant.css' %}">{% endif %}
+{% endblock %}
+
+{% block extrajs %}
+    <script src="{% static 'js/utils/contribute_editor.js' %}" defer></script>
+    {% if request.user.is_staff %}<script src="{% static 'js/utils/ai_assistant.js' %}" defer></script>{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container contrib-page">
+    <p class="contrib-back"><a href="{% if post %}{% url 'contributions' %}{% else %}{% url 'contribute' %}{% endif %}">← {% if post %}Mes contributions{% else %}Choisir un autre type de contribution{% endif %}</a></p>
+    <h2>{{ heading }}</h2>
+
+    {% if post %}
+        {% if post.draft %}
+            <div class="contrib-notice">
+                📝 <strong>Brouillon</strong> — visible uniquement par toi. Termine-le puis clique sur « Envoyer pour relecture » quand il est prêt.
+            </div>
+        {% elif post.rejected %}
+            <div class="contrib-notice contrib-notice-danger">
+                <strong>Cette contribution a été refusée.</strong>
+                {% if post.rejection_reason %}<p>Motif :</p><div class="contrib-reason">{% include 'posts/_post_body.html' with content=post.rejection_reason %}</div>{% endif %}
+                <p>Corrige-la puis enregistre : elle repartira en relecture.</p>
+            </div>
+        {% elif post.active %}
+            <div class="contrib-notice contrib-notice-warning">
+                Cet article est en ligne. Les parties que tu modifies seront retirées du site le temps qu'un membre de l'équipe relise tes changements.
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="contrib-intro">Pas le temps de tout écrire d'un coup ? Enregistre un brouillon et reviens le terminer plus tard. Une fois envoyé, ton texte est relu par l'équipe avant publication ; tu le verras exactement comme il apparaîtra sur le site et pourras encore le modifier.</p>
+    {% endif %}
+
+    {% if request.user.is_staff %}
+        <input type="hidden" id="ai-assist-url" value="{% url 'ai_assist' %}">
+        <input type="hidden" id="ai-post-type" value="{{ type }}">
+        <div class="ai-toolbar">
+            <button type="button" class="btn btn-secondary" id="btn-generate-ai">✨ Générer avec l'IA</button>
+            <button type="button" class="btn btn-secondary" id="btn-open-chat">💬 Assistant IA</button>
+        </div>
+    {% endif %}
+
+    <form method="post" class="contrib-form" id="contrib-form" novalidate
+          {% if not post %}data-draft-key="{{ draft_key }}"{% endif %}>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="contrib-notice contrib-notice-danger">{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+        {% endif %}
+
+        <div class="contrib-draft-notice" id="contrib-draft-notice" hidden>
+            📝 Ton brouillon non envoyé a été restauré.
+            <button type="button" class="contrib-link-btn" id="contrib-draft-clear">Repartir de zéro</button>
+        </div>
+
+        <section class="contrib-card">
+            <div class="contrib-grid">
+                {% if form.category %}
+                <div class="contrib-field">
+                    <label for="id_category">Rubrique <span class="contrib-required">*</span></label>
+                    <select name="category" id="id_category" required>
+                        {% for value, label in form.category.field.choices %}
+                            <option value="{{ value }}" {% if form.category.value|stringformat:'s' == value|stringformat:'s' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="contrib-help">C'est dans cette rubrique du menu « Magazine » que ton article sera rangé.</small>
+                    {% for error in form.category.errors %}<p class="contrib-error">{{ error }}</p>{% endfor %}
+                </div>
+                {% endif %}
+
+                {% if can_be_dossier %}
+                <fieldset class="contrib-field contrib-format">
+                    <legend>Format</legend>
+                    <div class="contrib-format-options">
+                        <label class="contrib-format-option">
+                            <input type="radio" name="format" value="solo" {% if not is_dossier %}checked{% endif %} {% if chapters and post %}disabled{% endif %}>
+                            <span><strong>Article seul</strong><small>Un texte unique</small></span>
+                        </label>
+                        <label class="contrib-format-option">
+                            <input type="radio" name="format" value="dossier" {% if is_dossier %}checked{% endif %}>
+                            <span><strong>Dossier</strong><small>Une introduction et plusieurs chapitres</small></span>
+                        </label>
+                    </div>
+                    {% if chapters and post %}<input type="hidden" name="format" value="dossier">{% endif %}
+                </fieldset>
+                {% endif %}
+            </div>
+
+            <div class="contrib-field">
+                <label for="id_title"><span data-label-solo>Titre de l'article</span><span data-label-dossier hidden>Titre du dossier</span> <span class="contrib-required">*</span></label>
+                <input type="text" name="title" id="id_title" maxlength="150" required value="{{ form.title.value|default:'' }}" placeholder="{{ form.title.field.widget.attrs.placeholder }}">
+                {% for error in form.title.errors %}<p class="contrib-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="contrib-field">
+                <label for="id_content"><span data-label-solo>Contenu</span><span data-label-dossier hidden>Introduction du dossier</span> <span class="contrib-required">*</span></label>
+                {% include 'posts/_editor.html' with name='content' id='id_content' value=form.content.value rows=16 placeholder="Raconte-nous tout… Utilise la barre d'outils pour la mise en forme." required=True %}
+                {% for error in form.content.errors %}<p class="contrib-error">{{ error }}</p>{% endfor %}
+            </div>
+        </section>
+
+        {% if can_be_dossier %}
+        <section class="contrib-chapters" id="contrib-chapters" {% if not is_dossier %}hidden{% endif %}>
+            <div class="contrib-chapters-head">
+                <h3>Chapitres du dossier</h3>
+                <p class="contrib-help">Chaque chapitre devient une page du dossier, listée dans son sommaire.</p>
+            </div>
+            <div id="contrib-chapter-list">
+                {% for chapter in chapters %}
+                    {% include 'posts/_chapter.html' %}
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-add contrib-add-chapter" id="contrib-add-chapter">+ Ajouter un chapitre</button>
+        </section>
+        <template id="contrib-chapter-template">
+            {% include 'posts/_chapter.html' with chapter=None %}
+        </template>
+        {% endif %}
+
+        <div class="contrib-actions">
+            <p class="contrib-help">En envoyant, tu cèdes les droits de ton texte à {{ site_name }}.</p>
+            <div class="contrib-actions-buttons">
+                {% if post %}<a href="{% url 'view_post' post.slug %}" class="btn">👁 Aperçu</a>{% endif %}
+                {% if can_save_draft %}
+                    <button type="submit" name="action" value="draft" class="btn contrib-save-draft" formnovalidate>💾 Enregistrer le brouillon</button>
+                {% endif %}
+                <button type="submit" name="action" value="submit" class="btn btn-add contrib-submit">{% if post and not post.draft %}Enregistrer et renvoyer en relecture{% else %}Envoyer pour relecture{% endif %}</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if request.user.is_staff %}
+    <div class="ai-panel" id="ai-panel">
+        <div class="ai-panel-header">
+            <span>✨ Assistant IA</span>
+            <button type="button" class="ai-panel-close" id="btn-close-ai" title="Fermer">✕</button>
+        </div>
+        <div class="ai-chat-messages" id="ai-chat-messages"></div>
+        <div class="ai-chat-input-area">
+            <textarea id="ai-chat-input" data-no-bbcode-bar placeholder="Demandez à reformuler, changer le ton, ajouter des exemples… (Entrée pour envoyer)"></textarea>
+            <button type="button" class="btn btn-primary" id="btn-send-chat">Envoyer</button>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

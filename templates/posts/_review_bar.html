@@ -1,0 +1,80 @@
+{# Bandeau affiché à l'auteur et à l'équipe sur un article non publié (aperçu en conditions réelles). #}
+<div class="review-bar{% if post.rejected %} is-rejected{% endif %}" role="region" aria-label="Relecture de la contribution">
+    <div class="review-bar-status">
+        {% if post.draft %}
+            <span class="contrib-badge contrib-badge-draft">Brouillon</span>
+            <strong>Brouillon non envoyé</strong>
+            <span class="contrib-help">— visible uniquement par toi. L'équipe ne le verra qu'après l'envoi.</span>
+        {% elif post.rejected %}
+            <span class="contrib-badge contrib-badge-rejected">Refusé</span>
+            <strong>Cette contribution a été refusée.</strong>
+        {% elif is_preview %}
+            <span class="contrib-badge contrib-badge-pending">Aperçu</span>
+            <strong>En attente de validation</strong>
+            <span class="contrib-help">— visible uniquement par {% if post.author_id == request.user.id %}toi{% else %}son auteur{% endif %} et l'équipe. Voici exactement à quoi ressemblera la page.</span>
+        {% else %}
+            <span class="contrib-badge contrib-badge-pending">À relire</span>
+            <strong>{{ pending_chapters|length }} chapitre{{ pending_chapters|length|pluralize }} de ce dossier {{ pending_chapters|length|pluralize:"est,sont" }} en attente de validation.</strong>
+        {% endif %}
+    </div>
+
+    {% if post.rejected and post.rejection_reason %}
+        <div>Motif :<div class="contrib-reason">{% include 'posts/_post_body.html' with content=post.rejection_reason %}</div></div>
+    {% endif %}
+
+    <ul>
+        {% if post.post_parent %}
+            <li>Ce chapitre apparaîtra dans le sommaire du dossier « {{ post.post_parent.title }} »{% if not post.post_parent.active %} (lui aussi en attente){% endif %}.</li>
+        {% elif nav_section %}
+            <li>Une fois publié, {% if subposts %}ce dossier{% else %}cet article{% endif %} sera listé dans le menu <strong>Magazine › {% if nav_section.icon %}{{ nav_section.icon }} {% endif %}{{ nav_section.label }}</strong>.</li>
+        {% else %}
+            <li class="contrib-error">La catégorie « {{ post.category.name }} » n'est liée à aucune section visible du menu : {% if subposts %}ce dossier{% else %}cet article{% endif %} n'y apparaîtra pas.{% if can_review %} Choisis une autre catégorie ci-dessous.{% endif %}</li>
+        {% endif %}
+        {% if pending_chapters and is_preview and post.parent %}
+            <li>{{ pending_chapters|length }} chapitre{{ pending_chapters|length|pluralize }} en attente {{ pending_chapters|length|pluralize:"sera,seront" }} publié{{ pending_chapters|length|pluralize }} en même temps. Parcours-les depuis le sommaire.</li>
+        {% endif %}
+    </ul>
+
+    <div class="review-bar-actions">
+        {% if post.draft %}
+            <a href="{% url 'edit_post' dossier.id %}" class="btn btn-warning">✏️ Continuer la rédaction</a>
+            <a href="{% url 'contributions' %}" class="btn">Mes contributions</a>
+        {% elif can_review %}
+            <form method="post" action="{% if is_preview %}{% url 'panel_post_approve' post.id %}{% else %}{% url 'panel_post_approve' dossier.id %}{% endif %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                {% if post.parent and review_categories %}
+                    <label>Catégorie
+                        <select name="category">
+                            {% for cat in review_categories %}
+                                <option value="{{ cat.id }}" {% if cat.id == post.category_id %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </label>
+                {% endif %}
+                <button type="submit" class="btn btn-add">
+                    ✔ {% if is_preview %}Publier{% if post.parent and pending_chapters %} le dossier et ses {{ pending_chapters|length }} chapitre{{ pending_chapters|length|pluralize }}{% endif %}{% else %}Publier les chapitres en attente{% endif %}
+                </button>
+            </form>
+            <a href="{% url 'panel_post_edit' post.id %}" class="btn">Éditer</a>
+            <a href="{% url 'panel_posts' %}" class="btn">← File de relecture</a>
+            {% if is_preview and not post.rejected %}
+                <details>
+                    <summary>✘ Refuser cette contribution…</summary>
+                    <form method="post" action="{% url 'panel_post_reject' post.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <div class="review-reason-field">
+                            <span class="review-reason-label">Motif (visible par l'auteur, BBCode accepté)</span>
+                            {% include 'posts/_editor.html' with name='reason' id='' value='' rows=4 compact=True placeholder="Ex. : texte trop court, merci de développer la partie sur…" required=False %}
+                        </div>
+                        <button type="submit" class="btn btn-danger">Refuser</button>
+                    </form>
+                </details>
+            {% endif %}
+        {% elif post.author_id == request.user.id %}
+            <a href="{% url 'edit_post' post.id %}" class="btn btn-warning">✏️ Modifier</a>
+            <a href="{% url 'contributions' %}" class="btn">Mes contributions</a>
+        {% endif %}
+    </div>
+</div>

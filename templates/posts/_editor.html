@@ -1,0 +1,28 @@
+{# Éditeur BBCode : barre d'outils + onglets Écrire / Aperçu. #}
+<div class="contrib-editor{% if compact %} contrib-editor-compact{% endif %}" data-editor data-preview-url="{% url 'preview_content' %}">
+    <div class="contrib-editor-head">
+        <div class="contrib-editor-tabs" role="tablist">
+            <button type="button" class="contrib-tab is-active" data-tab="write" role="tab" aria-selected="true">✏️ Écrire</button>
+            <button type="button" class="contrib-tab" data-tab="preview" role="tab" aria-selected="false">👁 Aperçu</button>
+        </div>
+        <div class="contrib-toolbar" aria-label="Mise en forme">
+            <button type="button" data-open="[b]" data-close="[/b]" title="Gras"><strong>G</strong></button>
+            <button type="button" data-open="[i]" data-close="[/i]" title="Italique"><em>I</em></button>
+            <button type="button" data-open="[u]" data-close="[/u]" title="Souligné"><u>S</u></button>
+            <span class="contrib-toolbar-sep"></span>
+            <button type="button" data-open="[t2]" data-close="[/t2]" title="Sous-titre">Titre</button>
+            <button type="button" data-open="[t3]" data-close="[/t3]" title="Section">Section</button>
+            <span class="contrib-toolbar-sep"></span>
+            <button type="button" data-insert="image" title="Insérer une image (adresse web)">🖼 Image</button>
+            <button type="button" data-insert="link" title="Insérer un lien">🔗 Lien</button>
+            <button type="button" data-open="[citation]" data-close="[/citation]" title="Citation">❝ Citation</button>
+            <button type="button" data-open="[list][*]" data-close="[/list]" title="Liste à puces">• Liste</button>
+            <button type="button" data-open="[center]" data-close="[/center]" title="Centrer">Centrer</button>
+        </div>
+    </div>
+    <textarea name="{{ name }}"{% if id %} id="{{ id }}"{% endif %} rows="{{ rows|default:12 }}" placeholder="{{ placeholder }}" data-no-bbcode-bar data-editor-input{% if required %} required{% endif %}>{{ value|default:'' }}</textarea>
+    <div class="contrib-preview post-layout" data-editor-preview hidden aria-live="polite"></div>
+    <div class="contrib-editor-foot">
+        <span data-editor-count>0 mot</span>
+    </div>
+</div>

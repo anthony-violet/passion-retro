@@ -1,9 +1,4 @@
-{% extends "layout.html" %}
-{% load static %}
-
-{% block extrajs %}
-{% if request.user.is_staff %}
-<style>
+/* Assistant IA (rédaction des contributions, réservé à l'équipe) */
 .ai-toolbar {
     display: flex;
     gap: 8px;
@@ -133,51 +128,4 @@
     outline: none;
     border-color: #e94560;
 }
-</style>
-<script src="{% static 'js/utils/ai_assistant.js' %}" defer></script>
-{% endif %}
-<link rel="stylesheet" href="{% static 'css/textarea_preview.css' %}">
-<script src="{% static 'js/utils/textarea_preview.js' %}" defer></script>
-{% endblock %}
 
-{% block content %}
-    <div class="container">
-        <h2>Modifier le post : {{ post.title }}</h2>
-
-        {% if request.user.is_staff %}
-        <input type="hidden" id="ai-assist-url" value="{% url 'ai_assist' %}">
-        <input type="hidden" id="ai-post-type" value="{{ post.type }}">
-        <div class="ai-toolbar">
-            <button type="button" class="btn btn-secondary" id="btn-generate-ai">✨ Générer avec l'IA</button>
-            <button type="button" class="btn btn-secondary" id="btn-open-chat">💬 Assistant IA</button>
-        </div>
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <div class="form-inline">
-                <button type="submit" class="btn btn-primary">Enregistrer</button>
-                <a href="{% url 'contributions' %}" class="btn btn-danger">Annuler</a>
-            </div>
-        </form>
-
-    </div>
-
-{% if request.user.is_staff %}
-<div class="ai-panel" id="ai-panel">
-    <div class="ai-panel-header">
-        <span>✨ Assistant IA</span>
-        <button type="button" class="ai-panel-close" id="btn-close-ai" title="Fermer">✕</button>
-    </div>
-    <div class="ai-chat-messages" id="ai-chat-messages"></div>
-    <div class="ai-chat-input-area">
-        <textarea id="ai-chat-input" placeholder="Demandez à reformuler, changer le ton, ajouter des exemples… (Entrée pour envoyer)"></textarea>
-        <button type="button" class="btn btn-primary" id="btn-send-chat">Envoyer</button>
-    </div>
-</div>
-{% endif %}
-
-<link rel="stylesheet" href="{% static 'css/textarea_preview.css' %}">
-<script src="{% static 'js/utils/textarea_preview.js' %}" defer></script>
-{% endblock %}

@@ -229,74 +229,35 @@ def profile_update(request):
 
 @login_required
 def contribute(request):
-    return render(request, "users/contribute.html")
+    from posts.utils import contribution_categories
+    from posts.models import NavSection
+
+    icons = {
+        section.category_id: section.icon
+        for section in NavSection.objects.filter(visible=True)
+    }
+    rubriques = [
+        {'category': cat, 'label': label, 'icon': icons.get(cat.id, '')}
+        for cat, label in contribution_categories()
+    ]
+    return render(request, "users/contribute.html", {'rubriques': rubriques})
+
 
 @login_required(login_url='register')
 def form_contribute(request, type):
-    if request.method == 'POST':
-        # Initialisation des articles
-        form = PostForm(request.POST)
-        posts = []
+    from posts.views import contribution_form
 
-        # Traite l'article principal (parent)
-        main_title = request.POST.get('title')  # Titre principal du formulaire Django
-        main_content = request.POST.get('content')  # Contenu principal
-        parent_post = None
+    return contribution_form(request, type)
 
-        if main_title and main_content:
-            # Crée le parent
-            parent_post = Post.objects.create(
-                title=main_title,
-                slug=slugify(main_title),
-                content=main_content,
-                type=type,
-                author=request.user,
-                contribution=True,
-                parent=True
-            )
-            posts.append(parent_post)
-            grant_experience(request.user, 10)
-
-        # Vérifie si des articles dynamiques existent (type_form = multiple)
-        type_form = request.POST.get('type_form')
-
-        if type_form == 'multiple':
-            # Parcourt les champs dynamiques ajoutés en JS
-            for key in request.POST:
-                if key.startswith('title-post-'):
-                    # Récupère le numéro de l'article
-                    article_number = key.split('-')[-1]
-
-                    # Récupère les données de l'article enfant
-                    title = request.POST.get(f'title-post-{article_number}')
-                    content = request.POST.get(f'content-post-{article_number}')
-
-                    if title and content:
-                        # Crée l'article enfant
-                        child_post = Post.objects.create(
-                            title=title,
-                            slug=slugify(title),
-                            content=content,
-                            type=type,
-                            author=request.user,
-                            contribution=True,
-                            parent=False,
-                            post_parent=parent_post
-                        )
-                        posts.append(child_post)
-                        grant_experience(request.user, 5)
-
-        messages.success(request, "Vos articles ont été soumis avec succès !")
-
-    context = {
-        'type': type,
-        'form': PostForm(),
-    }
-    return render(request, "users/form_contribute.html", context)
 
 @login_required()
 def contributions(request):
-    posts = Post.objects.filter(author=request.user)
+    posts = (
+        Post.objects.filter(author=request.user, parent=True)
+        .select_related('category')
+        .prefetch_related('child_posts')
+        .order_by('-created')
+    )
 
     return render(request, "users/contributions.html", {'posts':posts})
 

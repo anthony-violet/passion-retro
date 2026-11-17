@@ -1,35 +1,49 @@
 {% extends 'layout.html' %}
-{% load bbcode_tags %}
+{% load static bbcode_tags %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/contribute.css' %}">{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h2>Mes contributions</h2>
-        <div>
-            <p>Tu as accès ici à l'ensemble de tes contributions pour le site. Il t'est possible de modifier chaques articles. Lorsque tu souhaites supprimer un article ou un dossier entier, la demande est enregistrée et en attente d'approbation.</p>
-            <p class="text-warning"><u>Précision : </u>pour tous les articles, dossiers, et autres forme d'éditions que tu propposes à la contribution, tu t'engage à la cession intelectuel de tes oeuvres.</p>
+    <div class="container contrib-page">
+        <div class="contrib-item-head">
+            <h2>Mes contributions</h2>
+            <a href="{% url 'contribute' %}" class="btn btn-add">+ Nouvelle contribution</a>
         </div>
-        <h3>Mes dossiers & articles</h2>
-            <div class="grid">
-                {% for post in posts %}
-                    <div class="col col-5">
-                        <div class="post-card-header" style="display:flex;flex-direction:row;justify-content: space-between;">
-                            <h3>{{ post.title }} </h3>
-                            {% if post.post_parent_id == None %}
-                                <span class="text-warning" style="font-weight:bold;margin:5px;">Dossier</span>
-                            {% endif %}
-                            {% if post.active == False %}
-                                <span class="post-offline"></span>
-                            {% else %}
-                                <span class="post-online"></span>
-                            {% endif %}
-                        </div>
-                        <div class="post-card">
-                            <p>{{ post.content|bbcode|safe|linebreaksbr|truncatewords_html:25 }} » <a href="{% url 'view_post' post.slug %}">Lire</a></p><br>
-                            <p class="date"><em>Publié le {{ post.created|date:" d F Y à H:i" }}</em> Par <a href="{% url 'profile' post.author.id %}" class="{{ post.author.username_decoration }}">{{ post.author.username }}</a></p>
-                            <p><a href="{% url 'edit_post' post.id %}" class="btn btn-warning">Modifier</a></p>
-                        </div>
-                    </div>    
-                {% endfor %}
-            </div>
+        <p>Retrouve ici tous tes articles et dossiers. Tes brouillons ne sont visibles que par toi. Clique sur « Aperçu » pour voir une contribution telle qu'elle apparaîtra sur le site. Toute modification d'une contribution envoyée la renvoie en relecture.</p>
+
+        <div class="contrib-list">
+            {% for post in posts %}
+                <article class="contrib-card contrib-item">
+                    <div class="contrib-item-head">
+                        <h4>{{ post.title }}</h4>
+                        {% if post.active %}
+                            <span class="contrib-badge contrib-badge-online">En ligne</span>
+                        {% elif post.draft %}
+                            <span class="contrib-badge contrib-badge-draft">Brouillon</span>
+                        {% elif post.rejected %}
+                            <span class="contrib-badge contrib-badge-rejected">Refusé</span>
+                        {% else %}
+                            <span class="contrib-badge contrib-badge-pending">En attente de relecture</span>
+                        {% endif %}
+                    </div>
+                    <p class="contrib-item-meta">
+                        {% with chapters=post.child_posts.all %}
+                            {% if chapters %}Dossier · {{ chapters|length }} chapitre{{ chapters|length|pluralize }}{% else %}Article{% endif %}
+                            · {{ post.category.name }} · créé le {{ post.created|date:"d F Y" }}
+                        {% endwith %}
+                    </p>
+                    {% if post.rejected and post.rejection_reason %}
+                        <div><strong class="contrib-error">Motif du refus :</strong><div class="contrib-reason">{% include 'posts/_post_body.html' with content=post.rejection_reason %}</div></div>
+                    {% endif %}
+                    <p>{{ post.content|bbcode|striptags|truncatewords:30 }}</p>
+                    <div class="contrib-item-actions">
+                        <a href="{% url 'view_post' post.slug %}" class="btn">{% if post.active %}Voir{% else %}👁 Aperçu{% endif %}</a>
+                        <a href="{% url 'edit_post' post.id %}" class="btn btn-warning">✏️ {% if post.draft %}Continuer{% else %}Modifier{% endif %}</a>
+                    </div>
+                </article>
+            {% empty %}
+                <p>Tu n'as encore rien proposé. <a href="{% url 'contribute' %}">Lance-toi !</a></p>
+            {% endfor %}
+        </div>
     </div>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'panel/layout.html' %}
+{% load bbcode_tags %}
 
 {% block panel_content %}
 <div class="panel-page-header">
@@ -6,6 +7,7 @@
     <div>
         <a href="?status=pending" class="btn btn-small {% if status == 'pending' %}btn-add{% endif %}">En attente</a>
         <a href="?status=active" class="btn btn-small {% if status == 'active' %}btn-add{% endif %}">Publiés</a>
+        <a href="?status=rejected" class="btn btn-small {% if status == 'rejected' %}btn-add{% endif %}">Refusés</a>
         <a href="?status=all" class="btn btn-small {% if status == 'all' %}btn-add{% endif %}">Tous</a>
         <a href="{% url 'panel_post_categories' %}" class="btn btn-small">Catégories</a>
     </div>
@@ -18,7 +20,10 @@
         <tbody>
             {% for post in posts %}
             <tr>
-                <td>{{ post.title|truncatechars:45 }}</td>
+                <td>
+                    {% if post.draft %}{{ post.title|truncatechars:45 }}{% else %}<a href="{% url 'view_post' post.slug %}">{{ post.title|truncatechars:45 }}</a>{% endif %}
+                    {% if post.post_parent %}<br><small>Chapitre de « {{ post.post_parent.title|truncatechars:35 }} »</small>{% endif %}
+                </td>
                 <td>{{ post.category }}</td>
                 <td>{{ post.author }}</td>
                 <td>{{ post.type }}</td>
@@ -26,16 +31,23 @@
                 <td>
                     {% if post.active %}
                         <span class="panel-badge panel-badge-success">Publié</span>
+                    {% elif post.draft %}
+                        <span class="panel-badge">Brouillon</span>
+                    {% elif post.rejected %}
+                        <span class="panel-badge panel-badge-danger" title="{{ post.rejection_reason|bbcode|striptags }}">Refusé</span>
                     {% else %}
                         <span class="panel-badge panel-badge-warning">En attente</span>
                     {% endif %}
                 </td>
                 <td class="panel-actions">
-                    {% if not post.active %}
-                        <a href="{% url 'panel_post_approve' post.id %}" class="btn btn-small btn-add">✔ Approuver</a>
-                        <a href="{% url 'panel_post_reject' post.id %}" class="btn btn-small btn-warning">✘ Rejeter</a>
+                    {% if post.draft %}
+                    {% elif not post.active %}
+                        <a href="{% url 'view_post' post.slug %}" class="btn btn-small btn-add">👁 Relire</a>
                     {% else %}
-                        <a href="{% url 'panel_post_reject' post.id %}" class="btn btn-small btn-warning">Dépublier</a>
+                        <form method="post" action="{% url 'panel_post_unpublish' post.id %}" style="display:inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-small btn-warning">Dépublier</button>
+                        </form>
                     {% endif %}
                     <a href="{% url 'panel_post_edit' post.id %}" class="btn btn-small">Éditer</a>
                     <form method="post" action="{% url 'panel_post_delete' post.id %}" style="display:inline" onsubmit="return confirm('Supprimer cet article ?')">

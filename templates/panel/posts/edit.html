@@ -3,7 +3,10 @@
 {% block panel_content %}
 <div class="panel-page-header">
     <h2>Éditer l'article</h2>
-    <a href="{% url 'panel_posts' %}" class="btn btn-small">← Retour</a>
+    <div>
+        <a href="{% url 'view_post' post.slug %}" class="btn btn-small">👁 Voir la page</a>
+        <a href="{% url 'panel_posts' %}" class="btn btn-small">← Retour</a>
+    </div>
 </div>
 <div class="panel-section">
     <form method="post" class="panel-form">
@@ -14,11 +17,15 @@
         </div>
         <div class="panel-form-group">
             <label>Catégorie</label>
+            {% if post.post_parent %}
+            <p>Hérite du dossier « {{ post.post_parent.title }} » : {{ post.post_parent.category }}</p>
+            {% else %}
             <select name="category">
                 {% for cat in categories %}
                 <option value="{{ cat.id }}" {% if post.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
                 {% endfor %}
             </select>
+            {% endif %}
         </div>
         <div class="panel-form-group panel-form-full">
             <label>Contenu</label>

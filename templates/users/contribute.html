@@ -1,34 +1,30 @@
 {% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/contribute.css' %}">{% endblock %}
 
 {% block content %}
-    <div class="container">
+    <div class="container contrib-page">
         <h2>Contribuer à la communauté</h2>
         <div class="news">
-            <p>{{ site_name }} est avant tout un site communautaire, façonné par ses membres. Ici, tu as la possibilité de participer activement en ajoutant des articles, des dossiers ou même des catégories !</p>
-            <p>Cependant, pour préserver la qualité et l’esprit nostalgique du site, toutes les contributions sont soumises à une approbation manuelle. Cela permet de garder un contenu authentique et en accord avec notre vision d’un web rétro, loin des excès modernes.</p>
-            <p>Chaque membre a ainsi la chance d’apporter sa pierre à l’édifice, et ensemble, nous pouvons forger la plus grande communauté francophone dédiée au rétro.</p>
-            <p>Rejoins-nous dans cette aventure et aide-nous à faire vivre l’héritage d’un internet révolu !</p>
-            <p class="text-warning"><u>Précision : </u>pour tous les articles, dossiers, et autres forme d'éditions que tu propposes à la contribution, tu t'engage à la cession intelectuel de tes oeuvres.</p>
+            <p>{{ site_name }} est avant tout un site communautaire, façonné par ses membres. Écris un article, ou un dossier complet en plusieurs chapitres, sur ce qui a marqué ton enfance.</p>
+            <p>Chaque contribution est relue par l'équipe avant publication. En attendant, tu peux la prévisualiser telle qu'elle apparaîtra sur le site et la modifier depuis <a href="{% url 'contributions' %}">Mes contributions</a>.</p>
         </div>
-        <div class="row">
-            <div class="col col-3 contrib games">
-                <a href="{% url 'form_contribute' 'games' %}">Article Jeu Vidéo</a>
-            </div>
-            <div class="col col-3 contrib movies">
-                <a href="{% url 'form_contribute' 'movies' %}">Article Film & Series</a>
-            </div>
-            <div class="col col-3 contrib musics">
-                <a href="{% url 'form_contribute' 'music' %}">Article Musique</a>
-            </div>
-            <div class="col col-3 contrib tech">
-                <a href="{% url 'form_contribute' 'tech' %}">Article Technologie</a>
-            </div>
-            <div class="col col-3 contrib news_contrib">
-                <a href="{% url 'form_contribute' 'news' %}">Actus</a>
-            </div>
-            <div class="col col-3 contrib category">
-                <a href="{% url 'form_contribute' 'category' %}">Nouvelle catégorie</a>
-            </div>
+
+        <h3>Dans quelle rubrique veux-tu écrire ?</h3>
+        <div class="contrib-choices">
+            {% for rubrique in rubriques %}
+                <a class="contrib-choice" href="{% url 'form_contribute' 'article' %}?rubrique={{ rubrique.category.id }}">
+                    <strong>{{ rubrique.label }}</strong>
+                    <small>Article ou dossier</small>
+                </a>
+            {% endfor %}
+            <a class="contrib-choice" href="{% url 'form_contribute' 'news' %}">
+                <strong>📰 Actus</strong>
+                <small>Une nouvelle du monde rétro</small>
+            </a>
         </div>
+
+        <p class="text-warning"><u>Précision :</u> pour tous les articles, dossiers et autres formes d'éditions que tu proposes, tu t'engages à céder les droits intellectuels de tes œuvres.</p>
     </div>
 {% endblock %}

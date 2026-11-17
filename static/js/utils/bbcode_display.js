@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     let textarea = document.querySelector('textarea');
-    if (!textarea) {
+    // Les éditeurs de contribution ont leur propre barre d'outils.
+    if (!textarea || textarea.hasAttribute('data-no-bbcode-bar')) {
         return;
     }
     const quoteButtons = document.querySelectorAll('#quote');

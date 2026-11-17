@@ -29,6 +29,7 @@ urlpatterns = [
     path('posts/', posts.post_list, name='panel_posts'),
     path('posts/<int:post_id>/approve/', posts.post_approve, name='panel_post_approve'),
     path('posts/<int:post_id>/reject/', posts.post_reject, name='panel_post_reject'),
+    path('posts/<int:post_id>/unpublish/', posts.post_unpublish, name='panel_post_unpublish'),
     path('posts/<int:post_id>/edit/', posts.post_edit, name='panel_post_edit'),
     path('posts/<int:post_id>/delete/', posts.post_delete, name='panel_post_delete'),
     path('posts/categories/', posts.category_list, name='panel_post_categories'),

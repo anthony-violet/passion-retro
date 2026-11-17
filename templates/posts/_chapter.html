@@ -1,0 +1,20 @@
+<article class="contrib-card contrib-chapter{% if chapter.error %} has-error{% endif %}" data-chapter>
+    <input type="hidden" name="chapter_id" value="{{ chapter.id|default:'' }}">
+    <div class="contrib-chapter-head">
+        <h4>Chapitre <span data-chapter-number>{{ chapter.number|default:'' }}</span>
+            {% if chapter.active %}<span class="contrib-badge contrib-badge-online">En ligne</span>{% endif %}
+        </h4>
+        {% if not chapter.active %}
+            <button type="button" class="contrib-link-btn contrib-remove" data-chapter-remove>✕ Retirer</button>
+        {% endif %}
+    </div>
+    {% if chapter.error %}<p class="contrib-error">{{ chapter.error }}</p>{% endif %}
+    <div class="contrib-field">
+        <label>Titre du chapitre</label>
+        <input type="text" name="chapter_title" maxlength="150" value="{{ chapter.title|default:'' }}" placeholder="Ex. : Les débuts">
+    </div>
+    <div class="contrib-field">
+        <label>Contenu du chapitre</label>
+        {% include 'posts/_editor.html' with name='chapter_content' id='' value=chapter.content rows=10 placeholder='Contenu du chapitre…' required=False %}
+    </div>
+</article>

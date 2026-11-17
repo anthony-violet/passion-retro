@@ -19,7 +19,7 @@ def dashboard(request):
         'new_users': User.objects.order_by('-date_joined')[:5],
 
         'total_posts': Post.objects.count(),
-        'pending_posts': Post.objects.filter(active=False, contribution=True).count(),
+        'pending_posts': Post.objects.filter(active=False, rejected=False, draft=False, contribution=True).count(),
 
         'total_forum_topics': Topic.objects.count(),
         'total_forum_posts': ForumPost.objects.count(),

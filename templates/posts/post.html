@@ -1,8 +1,19 @@
 {% extends 'layout.html' %}
-{% load bbcode_tags %}
+{% load static %}
+
+{% block extracss %}
+    {% if show_review_bar %}<link rel="stylesheet" href="{% static 'css/contribute.css' %}">{% endif %}
+{% endblock %}
+
+{% block extrajs %}
+    {% if show_review_bar and can_review %}<script src="{% static 'js/utils/contribute_editor.js' %}" defer></script>{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="container">
+    {% if show_review_bar %}
+        {% include 'posts/_review_bar.html' %}
+    {% endif %}
     <h2>{{ post.title }}</h2>
     {% if post.post_parent %}
         <ul class="breadcrumbs">
@@ -17,20 +28,23 @@
                 <div class="body">
                     <ul>
                         {% for subpost in subposts %}
-                            <li><a href="{% url 'view_post' subpost.slug %}">{{ subpost.title }}</a></li>
+                            <li>
+                                {% if subpost.pk == post.pk %}<strong>{{ subpost.title }}</strong>{% else %}<a href="{% url 'view_post' subpost.slug %}">{{ subpost.title }}</a>{% endif %}
+                                {% if not subpost.active %}<span class="contrib-badge {% if subpost.draft %}contrib-badge-draft{% elif subpost.rejected %}contrib-badge-rejected{% else %}contrib-badge-pending{% endif %}">{% if subpost.draft %}Brouillon{% elif subpost.rejected %}Refusé{% else %}En attente{% endif %}</span>{% endif %}
+                            </li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
         {% endif %}
-        {% if post.type == 'news' %}
+        {% if post.type == 'news' and post.image %}
             <div style="float:left;margin:5px"><img src="/media/{{ post.image }}" style="max-width: 200px;" alt="{{ post.title }}"></div>
         {% endif %}
-        <div>{{ post.content|bbcode|safe|linebreaksbr }}</div>
-        {% if post.type == 'news' %}
+        <div>{% include 'posts/_post_body.html' with content=post.content %}</div>
+        {% if post.type == 'news' and post.forum_link %}
             <p style="text-align: center;"><a href="/{{ post.forum_link }}" class="btn btn-default">Participer au sujet sur le forum</a></p>
         {% endif %}
-        <div class="post-footer">Article créer le {{ post.created }} par <a href="{% url 'profile' post.author.id %}" class="{{ request.user.username_decoration }}">{{ post.author.username }}</a></div>
+        <div class="post-footer">Article créé le {{ post.created }} par <a href="{% url 'profile' post.author.id %}" class="{{ post.author.username_decoration|default:'' }}">{{ post.author.username }}</a></div>
     </div>
 </div>
 {% endblock %}
