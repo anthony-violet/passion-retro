@@ -1,0 +1,99 @@
+/* Décor de Noël (1er décembre → 10 janvier), commun à tous les thèmes. */
+
+/* Neige : couche plein écran qui ne capte jamais les clics. */
+.xmas-snow {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+}
+
+/* Guirlande lumineuse, posée en haut de la bannière (ou de la page). */
+.xmas-garland {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 34px;
+    margin: 0;
+    padding: 0 8px;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 20;
+}
+.xmas-garland--page { position: fixed; z-index: 9997; }
+.xmas-garland::before {
+    content: "";
+    position: absolute;
+    top: -14px;
+    left: 0;
+    right: 0;
+    height: 26px;
+    border-bottom: 2px solid #2f4f2f;
+    border-radius: 50%;
+}
+.xmas-garland li {
+    position: relative;
+    top: 9px;
+    width: 10px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ff3b3b;
+    box-shadow: 0 2px 12px 2px #ff3b3b;
+    animation: xmasBlink 1.6s ease-in-out infinite;
+}
+.xmas-garland li::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 2px;
+    background: #3a3a3a;
+}
+.xmas-garland li:nth-child(4n+2) { background: #ffd23f; box-shadow: 0 2px 12px 2px #ffd23f; animation-delay: .4s; }
+.xmas-garland li:nth-child(4n+3) { background: #3bd16f; box-shadow: 0 2px 12px 2px #3bd16f; animation-delay: .8s; }
+.xmas-garland li:nth-child(4n+4) { background: #4fb3ff; box-shadow: 0 2px 12px 2px #4fb3ff; animation-delay: 1.2s; }
+
+@keyframes xmasBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; box-shadow: none; }
+}
+
+/* Bonnet de Père Noël posé sur le titre du site. */
+.xmas-hat {
+    position: absolute;
+    width: 46px;
+    height: 40px;
+    pointer-events: none;
+    z-index: 21;
+    transform: rotate(-18deg);
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .35));
+}
+
+/* Frise de sapins au-dessus du footer. */
+.xmas-trees {
+    margin: 10px 0 0;
+    text-align: center;
+    font-size: 1.4rem;
+    letter-spacing: .4rem;
+    line-height: 1.2;
+    overflow: hidden;
+    white-space: nowrap;
+    user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .xmas-garland li { animation: none; }
+}
+
+@media (max-width: 600px) {
+    .xmas-hat { width: 32px; height: 28px; }
+    .xmas-trees { font-size: 1.1rem; letter-spacing: .2rem; }
+}

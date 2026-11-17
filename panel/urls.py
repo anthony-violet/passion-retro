@@ -1,5 +1,5 @@
 from django.urls import path
-from panel.views import dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation, wall_memories
+from panel.views import dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation, wall_memories, christmas
 
 urlpatterns = [
     # Dashboard
@@ -63,6 +63,7 @@ urlpatterns = [
 
     # Maintenance
     path('maintenance/', maintenance.maintenance_view, name='panel_maintenance'),
+    path('noel/', christmas.christmas_view, name='panel_christmas'),
 
     # Versions
     path('versions/', version.version_list, name='panel_version'),

@@ -77,10 +77,14 @@
     {% if request.theme_active == 'vhs' %}
     <script src="{% static 'js/themes/vhs/vhs.js' %}" defer></script>
     {% endif %}
+    {% if christmas_enabled %}
+    <link rel="stylesheet" href="{% static 'christmas/christmas.css' %}">
+    <script src="{% static 'christmas/christmas.js' %}" defer></script>
+    {% endif %}
     {% block extracss %}{% endblock %}
     {% block extrajs %}{% endblock %}
 </head>
-<body class="theme-{{ request.theme_active }}">
+<body class="theme-{{ request.theme_active }}{% if christmas_enabled %} xmas{% endif %}">
     {% if theme_layout.navbar != 'none' %}{% include './components/banner.html' %}{% endif %}
     <div class="row">
         {% if theme_layout.left_menu %}
@@ -123,8 +127,9 @@
             </div>
         {% endif %}
     </div>
+    {% if christmas_enabled %}<div class="xmas-trees" aria-hidden="true">🎄 ⭐ 🎄 🎁 🎄 ❄️ 🎄 🎁 🎄 ⭐ 🎄</div>{% endif %}
     <div class="footer">
-        <p>{{ site_name }} &copy;2024 - 2026. Version 1.2 <a href="/version/history">Historique</a>{% if analytics_tracking %} · <a href="#" id="manage-cookies-link">Gérer mes cookies</a>{% endif %}</p>
+        <p>{{ site_name }} &copy;2024 - 2026. Version 1.2 <a href="/version/history">Historique</a>{% if christmas_active %} · {% include './components/christmas_toggle.html' %}{% endif %}{% if analytics_tracking %} · <a href="#" id="manage-cookies-link">Gérer mes cookies</a>{% endif %}</p>
     </div>
     {% if analytics_tracking %}{% include './components/consent_banner.html' %}{% endif %}
 </body>
