@@ -557,3 +557,45 @@ class DossierRejectionTest(TestCase):
         self.assertFalse(User.objects.filter(username='RetroBot').exists())
         self._reject()
         self.assertEqual(PrivateMessageSubject.objects.get(receiver=self.author).sender, self.staff)
+
+
+class DossierNavigationTest(TestCase):
+    def setUp(self):
+        self.author = User.objects.create_user(username='auteur', email='a@test.com', password='testpass123')
+        self.cat = Category.objects.create(name='Jeux')
+        self.dossier = Post.objects.create(title='Dossier', slug='dossier', content='Intro',
+                                           author=self.author, category=self.cat, active=True)
+        self.ch1 = self._chapter('Chapitre un', 'chapitre-un')
+        self.ch2 = self._chapter('Chapitre deux', 'chapitre-deux')
+        self.ch3 = self._chapter('Chapitre trois', 'chapitre-trois')
+
+    def _chapter(self, title, slug, active=True):
+        return Post.objects.create(title=title, slug=slug, content='Texte', author=self.author,
+                                   category=self.cat, active=active, post_parent=self.dossier)
+
+    def _nav(self, post):
+        response = self.client.get(reverse('view_post', args=[post.slug]))
+        return response.context['previous_post'], response.context['next_post']
+
+    def test_dossier_intro_has_only_next(self):
+        self.assertEqual(self._nav(self.dossier), (None, self.ch1))
+
+    def test_middle_chapter_has_both(self):
+        self.assertEqual(self._nav(self.ch2), (self.ch1, self.ch3))
+        response = self.client.get(reverse('view_post', args=[self.ch2.slug]))
+        self.assertContains(response, '← Précédent')
+        self.assertContains(response, 'Suivant →')
+
+    def test_first_chapter_goes_back_to_intro_and_last_has_no_next(self):
+        self.assertEqual(self._nav(self.ch1), (self.dossier, self.ch2))
+        self.assertEqual(self._nav(self.ch3), (self.ch2, None))
+
+    def test_pending_chapter_is_skipped_for_visitors(self):
+        Post.objects.filter(pk=self.ch2.pk).update(active=False)
+        self.assertEqual(self._nav(self.ch1), (self.dossier, self.ch3))
+
+    def test_standalone_article_has_no_navigation(self):
+        solo = Post.objects.create(title='Seul', slug='seul', content='Texte', author=self.author,
+                                   category=self.cat, active=True)
+        response = self.client.get(reverse('view_post', args=[solo.slug]))
+        self.assertNotContains(response, 'post-nav')

@@ -48,6 +48,18 @@ def view_post(request, slug):
             subposts = subposts.filter(active=True)
         subposts = list(subposts)
 
+    # Navigation précédent / suivant dans le dossier : introduction puis chapitres.
+    previous_post = next_post = None
+    if subposts:
+        sequence = list(subposts)
+        if dossier.active or _can_preview(request.user, dossier):
+            sequence.insert(0, dossier)
+        ids = [p.pk for p in sequence]
+        if post.pk in ids:
+            index = ids.index(post.pk)
+            previous_post = sequence[index - 1] if index > 0 else None
+            next_post = sequence[index + 1] if index + 1 < len(sequence) else None
+
     breadcrumbs = []
     if post.post_parent:
         breadcrumbs.append((post.post_parent.title, f"/posts/{post.post_parent.slug}/"))
@@ -57,6 +69,8 @@ def view_post(request, slug):
         'post': post,
         'subposts': subposts,
         'is_preview': is_preview,
+        'previous_post': previous_post,
+        'next_post': next_post,
         'show_review_bar': _can_preview(request.user, post) and (
             is_preview or (subposts is not None and any(not p.active for p in subposts))
         ),

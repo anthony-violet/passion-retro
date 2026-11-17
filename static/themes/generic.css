@@ -144,6 +144,50 @@ img {
     }
 }
 
+/* Boutons précédent / suivant d'un dossier */
+.post-nav {
+    clear: both;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 16px 0 8px;
+}
+
+.post-nav .post-nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: calc(50% - 5px);
+    margin: 0;
+    text-align: left;
+    white-space: normal;
+}
+
+.post-nav .post-nav-next {
+    margin-left: auto;
+    text-align: right;
+    align-items: flex-end;
+}
+
+.post-nav-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+}
+
+.post-nav-title {
+    font-size: 0.9rem;
+}
+
+@container (max-width: 599px) {
+    .post-nav .post-nav-link {
+        max-width: 100%;
+        flex: 1 1 100%;
+    }
+}
+
 @container (max-width: 599px) {
     .post-layout .postmenu {
         float: none;
