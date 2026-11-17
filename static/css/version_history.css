@@ -1,0 +1,81 @@
+/* Historique des versions : entrées alternées image / texte.
+   Couleurs héritées du thème actif. */
+
+.version-list {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 12px;
+}
+
+.version-entry {
+    border-top: 1px solid rgba(127, 127, 127, 0.35);
+    padding-top: 14px;
+}
+
+.version-header h3 {
+    margin: 0;
+}
+
+.version-meta {
+    margin: 2px 0 10px;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+.version-number {
+    font-weight: bold;
+}
+
+.version-body {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.version-entry.image-right .version-body {
+    flex-direction: row-reverse;
+}
+
+.version-image {
+    flex: 0 0 42%;
+    max-width: 42%;
+    display: block;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid rgba(127, 127, 127, 0.35);
+    line-height: 0;
+}
+
+.version-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    transition: transform 0.2s ease;
+}
+
+.version-image:hover img,
+.version-image:focus-visible img {
+    transform: scale(1.02);
+}
+
+.version-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* Écran étroit : la capture passe au-dessus du texte. */
+@media (max-width: 760px) {
+    .version-body,
+    .version-entry.image-right .version-body {
+        flex-direction: column;
+    }
+
+    .version-image {
+        flex: none;
+        max-width: 100%;
+        width: 100%;
+    }
+}

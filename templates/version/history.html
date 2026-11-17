@@ -1,20 +1,34 @@
 {% extends 'layout.html' %}
-{% load bbcode_tags %}
+{% load static bbcode_tags %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/version_history.css' %}">{% endblock %}
 
 {% block content %}
 <div class="container">
     <h2>Historique des versions du site</h2>
     <p>Cette page retrace l'évolution du site à travers ses différentes versions. Vous y trouverez le détail des nouveautés, corrections et améliorations apportées au fil du temps.</p>
 
-    {% if versions %}
+    <div class="version-list">
         {% for v in versions %}
-            <h3>{{ v.name }}</h3>
-            <hr />
-            <strong>en {{ v.created_at|date:"F Y" }}</strong>
-            {% comment %}Un div et pas un p : un p ne peut pas contenir de liste, le navigateur le fermait avant chaque liste et le texte suivant sortait du paragraphe.{% endcomment %}
-            <div class="version-content">{{ v.content|bbcode|safe|linebreaksbr }}</div>
+            {% comment %}Entrée paire : image à gauche, texte à droite. Entrée impaire : l'inverse.{% endcomment %}
+            <article class="version-entry {% if v.image %}has-image {% if forloop.counter|divisibleby:2 %}image-left{% else %}image-right{% endif %}{% endif %}" id="version-{{ v.num_version|slugify }}">
+                <header class="version-header">
+                    <h3>{{ v.name }}</h3>
+                    <p class="version-meta"><span class="version-number">Version {{ v.num_version }}</span> · {{ v.created_at|date:"F Y" }}</p>
+                </header>
+                <div class="version-body">
+                    {% if v.image %}
+                        <a class="version-image" href="{{ v.image.url }}" target="_blank" rel="noopener" title="Voir la capture en grand">
+                            <img src="{{ v.image.url }}" alt="Capture d'écran de la version {{ v.num_version }} – {{ v.name }}" loading="lazy">
+                        </a>
+                    {% endif %}
+                    {% comment %}Un div et pas un p : un p ne peut pas contenir de liste.{% endcomment %}
+                    <div class="version-content">{{ v.content|bbcode|safe|linebreaksbr }}</div>
+                </div>
+            </article>
+        {% empty %}
+            <p>Aucune version publiée pour l'instant.</p>
         {% endfor %}
-    {% endif %}
-
+    </div>
 </div>
 {% endblock %}

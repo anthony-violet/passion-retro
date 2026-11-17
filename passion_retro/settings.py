@@ -153,6 +153,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "posts.context_processors.pending_posts_count",
+                "version.context_processors.latest_version",
                 "quiz.context_processors.pending_quizes_count",
                 "messagerie.context_processors.pending_pm_count",
                 "passion_retro.context_processors.theme_context",

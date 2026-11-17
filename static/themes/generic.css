@@ -144,13 +144,6 @@ img {
     }
 }
 
-/* Historique des versions */
-.version-content {
-    margin: 8px 0 24px;
-    line-height: 1.6;
-    overflow-wrap: anywhere;
-}
-
 /* Boutons précédent / suivant d'un dossier */
 .post-nav {
     clear: both;

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from panel.decorators import staff_required
+from version.forms import HistoryVersionForm
 from version.models import HistoryVersion
 
 
@@ -12,28 +13,23 @@ def version_list(request):
 
 @staff_required
 def version_create(request):
-    if request.method == 'POST':
-        num_version = request.POST.get('num_version', '').strip()
-        name = request.POST.get('name', '').strip()
-        content = request.POST.get('content', '').strip()
-        if num_version and name:
-            HistoryVersion.objects.create(num_version=num_version, name=name, content=content)
-            messages.success(request, f"Version « {num_version} – {name} » créée.")
-            return redirect('panel_version')
-    return render(request, 'panel/version/form.html', {'action': 'Créer'})
+    form = HistoryVersionForm(request.POST or None, request.FILES or None)
+    if request.method == 'POST' and form.is_valid():
+        version = form.save()
+        messages.success(request, f"Version « {version.num_version} – {version.name} » créée.")
+        return redirect('panel_version')
+    return render(request, 'panel/version/form.html', {'action': 'Créer', 'form': form})
 
 
 @staff_required
 def version_edit(request, version_id):
     version = get_object_or_404(HistoryVersion, pk=version_id)
-    if request.method == 'POST':
-        version.num_version = request.POST.get('num_version', version.num_version).strip()
-        version.name = request.POST.get('name', version.name).strip()
-        version.content = request.POST.get('content', version.content).strip()
-        version.save()
+    form = HistoryVersionForm(request.POST or None, request.FILES or None, instance=version)
+    if request.method == 'POST' and form.is_valid():
+        version = form.save()
         messages.success(request, f"Version « {version.num_version} » mise à jour.")
         return redirect('panel_version')
-    return render(request, 'panel/version/form.html', {'action': 'Modifier', 'version': version})
+    return render(request, 'panel/version/form.html', {'action': 'Modifier', 'version': version, 'form': form})
 
 
 @staff_required

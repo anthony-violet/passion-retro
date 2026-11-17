@@ -21,7 +21,7 @@
             <tr>
                 <td>{{ v.id }}</td>
                 <td><strong>{{ v.num_version }}</strong></td>
-                <td>{{ v.name }}</td>
+                <td>{{ v.name }}{% if v.image %} <span title="Avec capture d’écran">📷</span>{% endif %}</td>
                 <td>{{ v.created_at|date:"d/m/Y H:i" }}</td>
                 <td class="panel-actions">
                     <a href="{% url 'panel_version_edit' v.id %}" class="btn btn-small btn-warning">Modifier</a>

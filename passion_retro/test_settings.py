@@ -74,6 +74,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "version.context_processors.latest_version",
                 "passion_retro.context_processors.theme_context",
                 "passion_retro.context_processors.seo_context",
                 "passion_retro.context_processors.analytics_context",

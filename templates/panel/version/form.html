@@ -6,20 +6,37 @@
     <a href="{% url 'panel_version' %}" class="btn btn-small">← Retour</a>
 </div>
 <div class="panel-section">
-    <form method="post" class="panel-form">
+    <form method="post" class="panel-form" enctype="multipart/form-data">
         {% csrf_token %}
+        {% if form.non_field_errors %}<p class="text-danger">{{ form.non_field_errors|join:" " }}</p>{% endif %}
         <div class="panel-form-grid">
             <div class="panel-form-group">
-                <label>Numéro de version</label>
-                <input type="text" name="num_version" value="{{ version.num_version|default:'' }}" placeholder="ex: 1.2.0" maxlength="5" required>
+                <label for="id_num_version">Numéro de version</label>
+                <input type="text" id="id_num_version" name="num_version" value="{{ form.num_version.value|default:'' }}" placeholder="ex: 1.3" maxlength="5" required>
+                {% for error in form.num_version.errors %}<small class="text-danger">{{ error }}</small>{% endfor %}
             </div>
             <div class="panel-form-group">
-                <label>Nom</label>
-                <input type="text" name="name" value="{{ version.name|default:'' }}" placeholder="ex: Refonte de la galerie" required>
+                <label for="id_name">Nom</label>
+                <input type="text" id="id_name" name="name" value="{{ form.name.value|default:'' }}" placeholder="ex: Refonte de la galerie" required>
+                {% for error in form.name.errors %}<small class="text-danger">{{ error }}</small>{% endfor %}
             </div>
             <div class="panel-form-group panel-form-full">
-                <label>Contenu (description des changements)</label>
-                <textarea name="content" rows="8" placeholder="Décrivez les nouveautés, corrections et améliorations...">{{ version.content|default:'' }}</textarea>
+                <label for="id_content">Contenu (description des changements, BBCode accepté)</label>
+                <textarea id="id_content" name="content" rows="10" placeholder="Décrivez les nouveautés, corrections et améliorations...">{{ form.content.value|default:'' }}</textarea>
+            </div>
+            <div class="panel-form-group panel-form-full">
+                <label for="id_image">Capture d'écran <small>(facultative · PNG, JPG, GIF ou WebP · 5 Mo max)</small></label>
+                {% if version.image %}
+                    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:6px;">
+                        <a href="{{ version.image.url }}" target="_blank" rel="noopener"><img src="{{ version.image.url }}" alt="Capture actuelle" style="max-height:90px;max-width:200px;border-radius:4px;"></a>
+                        <label style="font-weight:normal;display:flex;gap:6px;align-items:center;">
+                            <input type="checkbox" name="remove_image" style="width:auto;"> Retirer la capture actuelle
+                        </label>
+                    </div>
+                    <small>Choisis un fichier pour la remplacer.</small>
+                {% endif %}
+                <input type="file" id="id_image" name="image" accept="image/png,image/jpeg,image/gif,image/webp">
+                {% for error in form.image.errors %}<small class="text-danger">{{ error }}</small>{% endfor %}
             </div>
         </div>
         <div class="panel-form-actions">
