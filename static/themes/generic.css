@@ -129,6 +129,29 @@ img {
     height: auto;
 }
 
+/* Article de dossier : le texte forme une colonne à côté du sommaire flottant,
+   pour que les images s'adaptent à la place restante au lieu d'être repoussées
+   sous le sommaire. Quand l'article est trop étroit pour deux colonnes, le
+   sommaire passe au-dessus du texte, sur toute la largeur. */
+.post-layout {
+    container-type: inline-size;
+}
+
+@container (min-width: 600px) {
+    .postmenu ~ .post-body {
+        display: flow-root;
+        min-width: 0;
+    }
+}
+
+@container (max-width: 599px) {
+    .post-layout .postmenu {
+        float: none;
+        width: auto;
+        margin: 8px 0;
+    }
+}
+
 .post-card p, .news p, .forum-body p {
     padding: 10px;
 }
