@@ -122,6 +122,47 @@ class GalleryViewsTest(TestCase):
         self.assertRegex(files[0].stem, rf"^[0-9a-f]{{{len(uuid.uuid4().hex)}}}$")
         self.assertEqual(files[0].suffix, ".png")
 
+    def test_import_multiple_images(self):
+        images = [
+            SimpleUploadedFile(f"photo{i}.png", b"fake-image-content", content_type="image/png")
+            for i in range(3)
+        ]
+
+        response = self.client.post(reverse("import"), {"image": images})
+
+        self.assertRedirects(response, reverse("home_gallery"))
+        files = [path for path in self.user_dir.iterdir() if path.is_file() and path.name != "index.html"]
+        self.assertEqual(len(files), 3)
+
+    def test_import_multiple_images_popup_shows_count(self):
+        images = [
+            SimpleUploadedFile(f"photo{i}.jpg", b"fake-image-content", content_type="image/jpeg")
+            for i in range(2)
+        ]
+
+        response = self.client.post(reverse("import") + "?popup=1", {"image": images})
+
+        self.assertContains(response, "Vos 2 images ont été ajoutées")
+
+    def test_import_multiple_rejects_all_if_one_is_invalid(self):
+        images = [
+            SimpleUploadedFile("ok.png", b"fake-image-content", content_type="image/png"),
+            SimpleUploadedFile("bad.txt", b"text", content_type="text/plain"),
+        ]
+
+        response = self.client.post(reverse("import"), {"image": images})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "bad.txt")
+        self.assertFalse(self.user_dir.exists() and any(
+            path.is_file() and path.name != "index.html" for path in self.user_dir.iterdir()
+        ))
+
+    def test_import_form_allows_multiple_selection(self):
+        response = self.client.get(reverse("import"))
+
+        self.assertContains(response, "multiple")
+
     def test_import_into_folder(self):
         folder = self.user_dir / "Mes images"
         folder.mkdir(parents=True)

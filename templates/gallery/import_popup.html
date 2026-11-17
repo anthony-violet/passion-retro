@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Importer une image - NostalGeek</title>
+    <title>Importer des images - NostalGeek</title>
     <style>
         body { font-family: sans-serif; padding: 20px; }
         .error { color: #b00020; margin: 10px 0; }
@@ -12,7 +12,7 @@
 </head>
 <body>
     {% if success %}
-        <p class="success">Votre image a été ajoutée à la galerie.</p>
+        <p class="success">{% if imported_count > 1 %}Vos {{ imported_count }} images ont été ajoutées à la galerie.{% else %}Votre image a été ajoutée à la galerie.{% endif %}</p>
         <script>
             if (window.opener) {
                 window.opener.postMessage({type: 'gallery-imported'}, window.location.origin);

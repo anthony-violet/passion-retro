@@ -7,7 +7,7 @@
 
 {% block content %}
     <div class="container">
-        <h2>Importer une image</h2>
+        <h2>Importer des images</h2>
         {% if folder %}
             <p>Dossier de destination : <strong>{{ folder }}</strong></p>
         {% endif %}
@@ -15,7 +15,7 @@
             {% csrf_token %}
             <input type="hidden" name="folder" value="{{ folder }}">
             {{ form.as_p }}
-            <button type="submit" class="btn btn-add">Importer l'image</button>
+            <button type="submit" class="btn btn-add">Importer les images</button>
             <a href="{% url 'home_gallery' %}{% if folder %}?folder={{ folder|urlencode }}{% endif %}"
                class="btn btn-default">Retour à la galerie</a>
         </form>

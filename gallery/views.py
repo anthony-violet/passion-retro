@@ -151,7 +151,9 @@ def import_img(request):
                     target_dir = _user_gallery_dir(request.user) / folder_name
                     if not target_dir.is_dir():
                         raise ValueError("Dossier introuvable.")
-                save_image_to_gallery(form.cleaned_data["image"], request.user.id, folder_name)
+                images = form.cleaned_data["image"]
+                for image in images:
+                    save_image_to_gallery(image, request.user.id, folder_name)
             except ValueError as error:
                 messages.error(request, str(error))
                 if is_popup:
@@ -161,12 +163,20 @@ def import_img(request):
                         {"form": form, "folder": folder_name, "error": str(error)},
                     )
             else:
-                messages.success(request, "Votre image a bien été ajoutée à la galerie.")
+                if len(images) > 1:
+                    messages.success(request, f"Vos {len(images)} images ont bien été ajoutées à la galerie.")
+                else:
+                    messages.success(request, "Votre image a bien été ajoutée à la galerie.")
                 if is_popup:
                     return render(
                         request,
                         template_name,
-                        {"form": AddImgGallery(), "folder": folder_name, "success": True},
+                        {
+                            "form": AddImgGallery(),
+                            "folder": folder_name,
+                            "success": True,
+                            "imported_count": len(images),
+                        },
                     )
                 return _gallery_redirect(folder_name)
         elif is_popup:
