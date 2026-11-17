@@ -67,15 +67,6 @@
         </nav>
     </aside>
     <main class="panel-main">
-        {% if messages %}
-            <div class="notification">
-                <ul class="messages">
-                    {% for message in messages %}
-                        <li class="{{ message.tags }}">{{ message }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        {% endif %}
         {% block panel_content %}{% endblock %}
     </main>
 </div>
