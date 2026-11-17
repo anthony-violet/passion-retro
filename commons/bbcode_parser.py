@@ -14,8 +14,8 @@ class BBCodeParser:
             r'\[url\](?:\s+class=(.*?))?\](.*?)\[/url\]': lambda m: f'<a href="{m.group(2)}"{f" class={m.group(1)}" if m.group(1) else ""}>{{m.group(2)}}</a>',
             r'\[img alt=(.*?)\](.*?)\[/img\]': r'<img src="\2" alt="\1">',
             r'\[img\](.*?)\[/img\]': r'<img src="\1" alt="Image insérer par un utilisateur">',
-            r'\[list\](.*?)\[/list\]': r'<ul class="bbcode-list">\1</ul>',
-            r'\[\*\](.*?)': r'<li class="bbcode-list">\1</li>',
+            # [*] isolé hors d'une liste (les listes sont traitées avant, dans parse()).
+            r'\[\*\]([^\n]*)': r'<li class="bbcode-list">\1</li>',
             r'\[t1\](.*?)\[/t1\]': r'<h2 style="font-size:2rem;font-weight:800;">\1</h2>',
             r'\[t2\](.*?)\[/t2\]': r'<h3 style="font-size:1.6rem;font-weight:600;">\1</h3>',
             r'\[t3\](.*?)\[/t3\]': r'<h4 style="font-size:1.4rem;font-weight:400;">\1</h4>',
@@ -38,6 +38,24 @@ class BBCodeParser:
             r'\[code=(.*?)\](.*?)\[/code\]': lambda m: self._handle_code(m.group(2), m.group(1)),
         }
     
+    # Liste la plus interne d'abord, pour gérer les listes imbriquées.
+    _innermost_list = re.compile(r'\[list\]((?:(?!\[list\]).)*?)\[/list\]\n?', re.DOTALL)
+
+    def _handle_list(self, match):
+        """[list][*]a[*]b[/list] -> <ul><li>a</li><li>b</li></ul>.
+
+        Chaque [*] englobe le texte jusqu'au [*] suivant. Le HTML est produit
+        sans retour à la ligne entre les éléments, pour que le filtre
+        linebreaksbr n'insère pas de <br> parasites dans la liste.
+        """
+        inner = match.group(1)
+        parts = re.split(r'\[\*\]', inner)
+        if len(parts) > 1 and not parts[0].strip():
+            parts = parts[1:]
+        items = [part.strip() for part in parts if part.strip()]
+        lis = ''.join(f'<li class="bbcode-list">{item}</li>' for item in items)
+        return f'<ul class="bbcode-list">{lis}</ul>'
+
     def _handle_code(self, content, language='none'):
         # Convertit les retours à la ligne en \n littéraux
         escaped_content = (
@@ -62,6 +80,12 @@ class BBCodeParser:
             
         text = re.sub(r'\[code(?:=.*?)?\].*?\[/code\]', save_code, text, flags=re.DOTALL)
         
+        # Les listes d'abord : chaque [*] doit englober son texte.
+        previous = None
+        while previous != text:
+            previous = text
+            text = self._innermost_list.sub(self._handle_list, text)
+
         # Parse les autres BBCodes
         for bbcode, html in self.bbcode_patterns.items():
             if callable(html):

@@ -47,6 +47,27 @@ class BBCodeParserTest(TestCase):
         self.assertIn('<ul class="bbcode-list">', result)
         self.assertIn("item", result)
 
+    def test_list_items_wrap_their_text(self):
+        result = self.parser.parse("[list]\n[*][b]GTA IV[/b] : 500 M$\n[*][b]GTA V[/b] : 1 Md$\n[/list]")
+        self.assertEqual(
+            result,
+            '<ul class="bbcode-list">'
+            '<li class="bbcode-list"><strong>GTA IV</strong> : 500 M$</li>'
+            '<li class="bbcode-list"><strong>GTA V</strong> : 1 Md$</li>'
+            '</ul>',
+        )
+
+    def test_nested_lists(self):
+        result = self.parser.parse("[list][*]Sega[list][*]Game Gear[*]Nomad[/list][*]Nintendo[/list]")
+        self.assertEqual(
+            result,
+            '<ul class="bbcode-list">'
+            '<li class="bbcode-list">Sega<ul class="bbcode-list">'
+            '<li class="bbcode-list">Game Gear</li><li class="bbcode-list">Nomad</li></ul></li>'
+            '<li class="bbcode-list">Nintendo</li>'
+            '</ul>',
+        )
+
     def test_list_item(self):
         result = self.parser.parse("[*]item")
         self.assertIn('<li class="bbcode-list">', result)
