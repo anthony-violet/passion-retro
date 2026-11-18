@@ -6,6 +6,8 @@ from . import views
 
 urlpatterns = [
     path("", views.forum_home, name="forum_home"),
+    path("non-lus/", views.unread_topic_list, name="unread_topic_list"),
+    path("tout-marquer-lu/", views.mark_all_read, name="forum_mark_all_read"),
     path("<int:forum_id>/", views.topic_list, name="topic_list"),
     path("<int:forum_id>/create_topic/", views.create_topic, name="create_topic"),
     path("<int:forum_id>/<int:topic_id>/", views.topic_detail, name="post_list"),

@@ -10,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 from .models import Category, Forum, Topic, Post, TopicRead, TopicSubscription
 from .forms import CreateTopic, CreatePost, EditPost
 from .notifications import notify_topic_subscribers, update_subscription
-from django.db.models import Max, F
+from django.db.models import F, Max, OuterRef, Q, Subquery
 from users.decorators import groups_required
 from users.leveling import GOLD_BIG_ACTION, GOLD_SMALL_ACTION, grant_experience
 from passion_retro.seo import absolute_url, breadcrumb_jsonld, discussion_jsonld, plain_text
@@ -25,13 +25,24 @@ def _is_moderator(user):
         and user.groups.filter(name__in=MODERATOR_GROUPS).exists()
     )
 
+def _unread_topics_qs(user):
+    """Sujets actifs contenant au moins un message que l'utilisateur n'a pas lu."""
+    reads = TopicRead.objects.filter(user=user, topic=OuterRef('pk'))
+    return Topic.objects.filter(active=True).annotate(
+        last_post_date=Max('posts__created'),
+        last_read=Subquery(reads.values('last_read')[:1]),
+    ).filter(
+        last_post_date__isnull=False,
+    ).filter(
+        Q(last_read__isnull=True) | Q(last_post_date__gt=F('last_read'))
+    )
+
 def forum_home(request):
     categories = Category.objects.all()
     forums = Forum.objects.all()
 
     last_posts = {}
     count_topics = {}
-    unread_topics = {}
 
     for forum in forums:
         # Dernier post du forum avec une seule requête
@@ -49,45 +60,13 @@ def forum_home(request):
         count_topic = Topic.objects.filter(forum=forum).count()
         count_topics[forum.id] = count_topic
 
-        # Vérification des topics non lus
-        if request.user.is_authenticated:
-            # Récupérer le dernier post de chaque topic du forum en une seule requête
-            latest_posts_per_topic = list(
-                Post.objects.filter(
-                    topic__forum=forum
-                ).values('topic_id').annotate(
-                    last_post_date=Max('created')
-                )
-            )
+    unread_topics = {forum.id: False for forum in forums}
+    if request.user.is_authenticated:
+        for forum_id in _unread_topics_qs(request.user).values_list(
+            'forum_id', flat=True
+        ):
+            unread_topics[forum_id] = True
 
-            # Récupérer les dernières lectures de l'utilisateur pour tous les topics du forum
-            topic_reads = TopicRead.objects.filter(
-                user=request.user,
-                topic__forum=forum
-            ).values_list('topic_id', 'last_read')
-
-            # Dernière lecture de l'utilisateur dans ce forum
-            forum_last_read = max(
-                (last_read for _, last_read in topic_reads),
-                default=None
-            )
-
-            if not latest_posts_per_topic:
-                unread_topics[forum.id] = False
-            elif forum_last_read is None:
-                # Aucune lecture dans ce forum : tout est non lu
-                unread_topics[forum.id] = True
-            else:
-                # Un forum est non lu si un post est plus récent que la dernière
-                # lecture de l'utilisateur dans ce forum. On n'exige pas d'avoir
-                # ouvert tous les anciens topics.
-                unread_topics[forum.id] = any(
-                    post_info['last_post_date'] > forum_last_read
-                    for post_info in latest_posts_per_topic
-                )
-        else:
-            unread_topics[forum.id] = False
-    
     context = {
         'categories': categories,
         'forums': forums,
@@ -123,6 +102,13 @@ def topic_list(request, forum_id):
     last_posts = {}
     page_numbers = {}
     unread_topics = {}
+    unread_ids = set()
+    if request.user.is_authenticated:
+        unread_ids = set(
+            _unread_topics_qs(request.user).filter(
+                id__in=[topic.id for topic in topics]
+            ).values_list('id', flat=True)
+        )
 
     for topic in topics:
         count_post = Post.objects.filter(topic=topic).count()
@@ -133,20 +119,7 @@ def topic_list(request, forum_id):
         ).filter(topic=topic).order_by('-created').first()
         last_posts[topic.id] = last_post
 
-        if request.user.is_authenticated:
-            # Récupérer le dernier post du topic
-            latest_post = Post.objects.filter(topic=topic).aggregate(last_post_date=Max('created'))['last_post_date']
-            
-            # Récupérer la dernière lecture de l'utilisateur pour ce topic
-            topic_read = TopicRead.objects.filter(user=request.user, topic=topic).first()
-            
-            # Un topic est non lu si le dernier post est plus récent que la dernière lecture
-            if topic_read:
-                unread_topics[topic.id] = latest_post > topic_read.last_read
-            else:
-                unread_topics[topic.id] = True
-        else:
-            unread_topics[topic.id] = False
+        unread_topics[topic.id] = topic.id in unread_ids
 
         if last_post:
             # Position du dernier message (nombre de messages jusqu'à ce message)
@@ -182,6 +155,55 @@ def topic_list(request, forum_id):
     }
 
     return render(request, "forum/topic_list.html", context)
+
+@login_required
+def unread_topic_list(request):
+    topics = _unread_topics_qs(request.user).select_related(
+        'forum', 'author'
+    ).order_by('-last_post_date')
+    paginator = Paginator(topics, 20)
+    topics = paginator.get_page(request.GET.get('page'))
+
+    last_posts = {}
+    for topic in topics:
+        last_posts[topic.id] = Post.objects.select_related('author').filter(
+            topic=topic
+        ).order_by('-created').first()
+
+    context = {
+        'topics': topics,
+        'last_posts': last_posts,
+        'is_paginated': topics.has_other_pages(),
+        'page_obj': topics,
+        'paginator': paginator,
+        'page_title': f"Sujets non lus - Forum - {settings.SITE_NAME}",
+        'page_heading': "Sujets non lus",
+        'seo_noindex': True,
+    }
+    return render(request, "forum/unread_topics.html", context)
+
+@login_required
+@require_http_methods(['POST'])
+def mark_all_read(request):
+    now = timezone.now()
+    topic_ids = set(
+        Topic.objects.filter(posts__isnull=False).values_list('id', flat=True)
+    )
+    TopicRead.objects.filter(user=request.user).update(last_read=now)
+    already_read = set(
+        TopicRead.objects.filter(user=request.user).values_list(
+            'topic_id', flat=True
+        )
+    )
+    TopicRead.objects.bulk_create(
+        [
+            TopicRead(user=request.user, topic_id=topic_id, last_read=now)
+            for topic_id in topic_ids - already_read
+        ],
+        ignore_conflicts=True,
+    )
+    messages.success(request, 'Tous les sujets ont été marqués comme lus.')
+    return redirect('forum_home')
 
 @login_required
 def create_topic(request, forum_id):

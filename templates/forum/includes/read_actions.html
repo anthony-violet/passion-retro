@@ -1,0 +1,11 @@
+{% if user.is_authenticated %}
+<div class="forum-read-actions" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin:0 0 12px;">
+    {% if not hide_unread_link %}
+        <a href="{% url 'unread_topic_list' %}" class="btn">Voir les sujets non lus</a>
+    {% endif %}
+    <form method="post" action="{% url 'forum_mark_all_read' %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="btn">Marquer tout comme lu</button>
+    </form>
+</div>
+{% endif %}

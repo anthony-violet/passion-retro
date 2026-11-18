@@ -194,10 +194,55 @@ class ForumUnreadTest(TestCase):
 
         self.assertTrue(self._forum_unread())
 
-    def test_forum_read_when_recent_topic_read_even_if_old_topic_unread(self):
+    def test_forum_stays_unread_while_a_topic_is_unread(self):
         TopicRead.objects.create(user=self.user, topic=self.recent_topic)
 
+        self.assertTrue(self._forum_unread())
+
+    def test_forum_read_when_all_topics_read(self):
+        TopicRead.objects.create(user=self.user, topic=self.recent_topic)
+        TopicRead.objects.create(user=self.user, topic=self.old_topic)
+
         self.assertFalse(self._forum_unread())
+
+    def test_mark_all_read(self):
+        TopicRead.objects.create(user=self.user, topic=self.old_topic)
+        TopicRead.objects.filter(user=self.user).update(
+            last_read=timezone.now() - timedelta(days=3)
+        )
+
+        response = self.client.post(reverse('forum_mark_all_read'))
+
+        self.assertRedirects(response, reverse('forum_home'))
+        self.assertEqual(TopicRead.objects.filter(user=self.user).count(), 2)
+        self.assertFalse(self._forum_unread())
+
+    def test_mark_all_read_requires_post(self):
+        response = self.client.get(reverse('forum_mark_all_read'))
+
+        self.assertEqual(response.status_code, 405)
+        self.assertFalse(TopicRead.objects.exists())
+
+    def test_unread_topic_list(self):
+        TopicRead.objects.create(user=self.user, topic=self.recent_topic)
+
+        response = self.client.get(reverse('unread_topic_list'))
+
+        self.assertEqual(list(response.context['topics']), [self.old_topic])
+        self.assertContains(response, 'Ancien sujet')
+
+    def test_unread_topic_list_requires_login(self):
+        self.client.logout()
+
+        response = self.client.get(reverse('unread_topic_list'))
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_forum_home_shows_read_buttons(self):
+        response = self.client.get(reverse('forum_home'))
+
+        self.assertContains(response, 'Marquer tout comme lu')
+        self.assertContains(response, 'Voir les sujets non lus')
 
     def test_forum_unread_when_user_has_no_reads(self):
         self.assertTrue(self._forum_unread())

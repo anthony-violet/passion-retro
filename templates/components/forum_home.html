@@ -2,6 +2,7 @@
 {% load forum_extras %}
 
 {% block forum_content %}
+    {% include 'forum/includes/read_actions.html' %}
     {% if request.theme_active == 'rpg' %}
 
     <div class="rpg-board">

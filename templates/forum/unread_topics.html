@@ -1,0 +1,52 @@
+{% extends 'forum_layout.html' %}
+{% load forum_extras %}
+{% load paginator_tag %}
+
+{% block forum_content %}
+    <h2>Sujets non lus</h2>
+    <ul class="breadcrumbs">
+        <li><a href="{% url 'forum_home' %}">Forum</a> »</li>
+        <li>Sujets non lus</li>
+    </ul>
+    {% if topics %}
+        {% include 'forum/includes/read_actions.html' with hide_unread_link=True %}
+    {% endif %}
+    <div class="forum">
+        <div class="forum-header">
+            <div class="forum-column">Sujet</div>
+            <div class="forum-column">Forum</div>
+            <div class="forum-column">Auteur</div>
+            <div class="forum-column">Dernier Message</div>
+        </div>
+        <div class="forum-body">
+            {% for topic in topics %}
+                <div class="forum-row">
+                    <div class="forum-column">
+                        <span class="unread-badge">•</span>
+                        <strong><a href="{% url 'post_list' topic.forum.id topic.id %}">{{ topic.title }}</a></strong>
+                    </div>
+                    <div class="forum-column">
+                        <a href="{% url 'topic_list' topic.forum.id %}">{{ topic.forum.name }}</a>
+                    </div>
+                    <div class="forum-column">
+                        <span class="{{ topic.author.username_decoration }}">{{ topic.author.username }}</span>
+                    </div>
+                    <div class="forum-column">
+                        {% with last_post=last_posts|get_item:topic.id %}
+                            {% if last_post %}
+                                <strong><span class="{{ last_post.author.username_decoration }}">{{ last_post.author.username }}</span></strong>
+                                <br>
+                                <small>{{ last_post.created }}</small>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+            {% empty %}
+                <div class="forum-row">
+                    <div class="forum-column">Aucun sujet non lu, vous êtes à jour !</div>
+                </div>
+            {% endfor %}
+            {% paginate %}
+        </div>
+    </div>
+{% endblock %}
