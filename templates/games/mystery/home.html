@@ -1,0 +1,132 @@
+{% extends 'layout.html' %}
+{% load static users_custom_tags %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/mystery.css' %}">{% endblock %}
+
+{% block content %}
+<div class="container mystery">
+    <h2>Le jeu mystère</h2>
+    <ul class="breadcrumbs">
+        <li><a href="{% url 'portal_games' %}">Portail de jeux</a> »</li>
+        <li>Le jeu mystère</li>
+    </ul>
+
+    <p class="mystery-intro">
+        Chaque jour, un jeu rétro est caché derrière une série d'indices. Une mauvaise réponse dévoile
+        l'indice suivant. Moins tu as besoin d'indices, plus tu gagnes d'XP et d'or !
+        <a href="{% url 'mystery_archives' %}">Voir les jeux des jours précédents</a>.
+    </p>
+    <p class="mystery-propose-cta">
+        💡 Toi aussi, fais deviner ton jeu culte à la communauté :
+        <a href="{% url 'mystery_propose' %}">proposer un jeu mystère</a>
+        {% if user.is_authenticated %}· <a href="{% url 'mystery_my_proposals' %}">mes propositions</a>{% endif %}
+    </p>
+
+    {% if not game or not clues_total %}
+        <div class="mystery-box">
+            <p>Pas de jeu mystère aujourd'hui… Reviens demain !</p>
+            {% if yesterday %}<p>Le dernier jeu mystère était <strong>{{ yesterday.title }}</strong>.</p>{% endif %}
+        </div>
+    {% else %}
+        {% if user.is_authenticated %}
+        <p class="mystery-stats">
+            <span>📅 {{ game.publish_date|date:"l j F Y" }}</span>
+            {% if game.author and not game.author.is_staff %}<span class="mystery-credit">✍️ Proposé par {{ game.author }}</span>{% endif %}
+            <span>🔥 Série en cours : <strong>{{ streak }}</strong> jour{{ streak|pluralize }}</span>
+        </p>
+        {% endif %}
+
+        <div class="mystery-box" id="partie">
+            <ol class="mystery-clues">
+                {% for clue in clues %}
+                <li class="mystery-clue">
+                    <span class="mystery-clue-number">Indice {{ forloop.counter }}</span>
+                    {% if clue.text %}<span class="mystery-clue-text">{{ clue.text }}</span>{% endif %}
+                    {% if clue.image %}<img src="{{ clue.image.url }}" alt="Indice {{ forloop.counter }}" class="mystery-clue-image" loading="lazy">{% endif %}
+                </li>
+                {% endfor %}
+                {% for number in locked_numbers %}
+                <li class="mystery-clue mystery-clue-locked"><span class="mystery-clue-number">Indice {{ number }}</span> 🔒</li>
+                {% endfor %}
+            </ol>
+
+            {% if attempt.guesses %}
+            <div class="mystery-guesses">
+                <strong>Tes propositions :</strong>
+                {% for g in attempt.guesses %}
+                    <span class="mystery-guess {% if forloop.last and attempt.status == 'won' %}is-right{% else %}is-wrong{% endif %}">{{ g }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if is_author %}
+                <div class="mystery-result">
+                    <p>✍️ C'est <strong>ton</strong> jeu mystère qui est à l'affiche aujourd'hui ! Tu connais la réponse
+                        (<strong>{{ game.title }}</strong>), alors pas de partie pour toi : regarde plutôt qui le trouve le plus vite 😉</p>
+                </div>
+            {% elif not user.is_authenticated %}
+                <p><a href="{% url 'login' %}?next={{ request.path }}" class="btn default">Connecte-toi pour jouer</a></p>
+            {% elif attempt.is_over %}
+                <div class="mystery-result {% if attempt.status == 'won' %}is-won{% else %}is-lost{% endif %}">
+                    {% if attempt.status == 'won' %}
+                        <p>🏆 Trouvé en <strong>{{ attempt.clues_revealed }}</strong> indice{{ attempt.clues_revealed|pluralize }} :
+                            <strong>{{ game.title }}</strong> ! Tu as gagné {{ attempt.xp_earned }} XP et {{ attempt.gold_earned }} pièces d'or.</p>
+                    {% else %}
+                        <p>💀 Raté ! Il fallait trouver <strong>{{ game.title }}</strong>.</p>
+                    {% endif %}
+                    {% if game.anecdote %}<p class="mystery-anecdote">{{ game.anecdote|linebreaksbr }}</p>{% endif %}
+                    <p>Prochain jeu mystère demain. Pas de spoiler sur le forum ni sur le tchat 😉</p>
+                </div>
+            {% else %}
+                <form method="post" action="{% url 'mystery_guess' %}" class="mystery-form">
+                    {% csrf_token %}
+                    <label for="mystery-guess">Quel est ce jeu ?</label>
+                    <div class="mystery-form-row">
+                        <input type="text" id="mystery-guess" name="guess" maxlength="155" required autocomplete="off" autofocus placeholder="Nom du jeu">
+                        <button type="submit" class="btn default">Proposer</button>
+                    </div>
+                    <small>Si tu trouves maintenant : <strong>{{ next_xp }} XP</strong> et <strong>{{ next_gold }} or</strong>.</small>
+                </form>
+                <div class="mystery-actions">
+                    {% if clues_left %}
+                    <form method="post" action="{% url 'mystery_reveal' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small">Indice suivant</button>
+                    </form>
+                    {% endif %}
+                    <form method="post" action="{% url 'mystery_give_up' %}" onsubmit="return confirm('Abandonner et voir la réponse ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Abandonner</button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+
+        <h3>Les plus rapides du jour</h3>
+        {% if leaderboard %}
+        <ol class="mystery-leaderboard">
+            {% for row in leaderboard %}
+            <li>
+                {% user_level_badge row.user variant='inline' compact=True %}
+                <span class="{{ row.user.username_decoration }}">{{ row.user }}</span>
+                — {{ row.clues_revealed }} indice{{ row.clues_revealed|pluralize }}
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+            <p>Personne n'a encore trouvé. Sois le premier !</p>
+        {% endif %}
+    {% endif %}
+</div>
+<script>
+    // Les navigateurs ignorent « autofocus » quand l'URL vise une ancre (#partie),
+    // et le saut vers l'ancre retire le focus posé trop tôt : on le remet une fois
+    // la page chargée, sans perturber le défilement.
+    window.addEventListener('load', function () {
+        var input = document.getElementById('mystery-guess');
+        if (input) {
+            requestAnimationFrame(function () { input.focus({ preventScroll: true }); });
+        }
+    });
+</script>
+{% endblock %}

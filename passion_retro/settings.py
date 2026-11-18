@@ -164,6 +164,8 @@ TEMPLATES = [
                 "passion_retro.seasonal.seasonal_context",
                 "wall_memories.context_processors.pending_memories_count",
                 "wall_memories.context_processors.wall_widget",
+                "games.context_processors.mystery_widget",
+                "games.context_processors.pending_mystery_count",
                 "users.context_processors.announcement_banner",
             ],
         },

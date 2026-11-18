@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from .models import *
+from .models import MysteryAttempt
 from users.leveling import grant_experience
 from django.utils.timezone import now
 from django.contrib import messages
@@ -10,22 +11,39 @@ from django.db.models import Count, Sum
 from django.db.models.functions import Lower
 
 def portal(request):
-    last_party = LittleBacGames.objects.filter().last()
-    nb_parties = LittleBacGames.objects.filter(status="finished").count()
+    from quiz.models import Quiz
+
+    from . import mystery
+
     meta = {
         'page_title': f"Portail des Jeux - {settings.SITE_NAME}",
         'page_heading': "Portail des Jeux",
         'page_description': (
-            "Jouez en ligne aux jeux rétro de la communauté : Petit Bac, quiz "
-            "et défis entre membres."
+            "Jouez en ligne aux jeux rétro de la communauté : jeu mystère du jour, "
+            "Petit Bac, quiz et défis entre membres."
         ),
     }
+    today_mystery = mystery.today_game()
+    mystery_attempt = None
+    if today_mystery and request.user.is_authenticated:
+        mystery_attempt = MysteryAttempt.objects.filter(user=request.user, game=today_mystery).first()
 
-    if not request.user.is_authenticated:
-        return render(request, 'games/portal.html', {'last_party': last_party, 'nb_parties': nb_parties, **meta})
-    games = LittleBacGames.objects.filter(author=request.user, status='waiting')
+    context = {
+        **meta,
+        'today_mystery': today_mystery,
+        'mystery_attempt': mystery_attempt,
+        'mystery_is_author': bool(today_mystery and mystery.is_author(request.user, today_mystery)),
+        'mystery_winners': (today_mystery.attempts.filter(status=MysteryAttempt.STATUS_WON).count()
+                            if today_mystery else 0),
+        'mystery_streak': mystery.streak(request.user) if request.user.is_authenticated else 0,
+        'nb_parties': LittleBacGames.objects.filter(status="finished").count(),
+        'nb_quizzes': Quiz.objects.filter(is_active=True).count(),
+        'games': [],
+    }
+    if request.user.is_authenticated:
+        context['games'] = LittleBacGames.objects.filter(author=request.user, status='waiting')
+    return render(request, 'games/portal.html', context)
 
-    return render(request, 'games/portal.html', {'games': games, 'last_party': last_party, 'nb_parties': nb_parties, **meta})
 
 def little_bac_home(request):
     return render(request, 'games/littlebac/home.html', {
@@ -492,3 +510,185 @@ def game_liitle_bac_end_game(request, game_id):
         return JsonResponse({"success": True, "message": "Game ended successfully."})
     except LittleBacGames.DoesNotExist:
         return JsonResponse({"error": "Game not found"}, status=404)
+
+# --- Jeu mystère -----------------------------------------------------------
+
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
+from . import mystery
+from .models import MysteryAttempt, MysteryGame
+
+
+def mystery_home(request):
+    game = mystery.today_game()
+    clues = list(game.clues.all()) if game else []
+    attempt = None
+    if game and request.user.is_authenticated:
+        attempt = MysteryAttempt.objects.filter(user=request.user, game=game).first()
+
+    is_author = bool(game and mystery.is_author(request.user, game))
+    revealed = attempt.clues_revealed if attempt else 1
+    show_all = bool(attempt and attempt.is_over) or is_author
+    visible_clues = clues if show_all else clues[:revealed]
+    max_xp, max_gold = mystery.rewards_for(1, len(clues))
+    next_xp, next_gold = mystery.rewards_for(revealed, len(clues))
+
+    return render(request, 'games/mystery/home.html', {
+        'game': game,
+        'attempt': attempt,
+        'is_author': is_author,
+        'clues': visible_clues,
+        'clues_total': len(clues),
+        'clues_left': max(0, len(clues) - revealed),
+        'locked_numbers': [] if show_all else list(range(revealed + 1, len(clues) + 1)),
+        'max_xp': max_xp,
+        'max_gold': max_gold,
+        'next_xp': next_xp,
+        'next_gold': next_gold,
+        'streak': mystery.streak(request.user) if request.user.is_authenticated else 0,
+        'leaderboard': mystery.leaderboard(game) if game else [],
+        'yesterday': mystery.past_games().first(),
+        'page_title': f"Le jeu mystère - {settings.SITE_NAME}",
+        'page_heading': "Le jeu mystère",
+        'page_description': (
+            "Chaque jour, un jeu rétro à deviner à partir d'indices progressifs. "
+            "Moins d'indices, plus de récompenses !"
+        ),
+    })
+
+
+def _back_to_game():
+    """Retour à la partie, directement sur le bloc de jeu plutôt qu'en haut de page."""
+    return redirect(reverse('mystery_home') + '#partie')
+
+
+def _playable_game_or_redirect(request):
+    game = mystery.today_game()
+    if game is None or not game.clues.exists():
+        messages.error(request, "Aucun jeu mystère n'est proposé aujourd'hui.")
+        return None
+    if mystery.is_author(request.user, game):
+        messages.info(request, "C'est toi qui as proposé ce jeu mystère : tu ne peux pas y jouer.")
+        return None
+    return game
+
+
+@login_required()
+@require_POST
+def mystery_guess(request):
+    game = _playable_game_or_redirect(request)
+    if game:
+        attempt, correct = mystery.guess(request.user, game, request.POST.get('guess', ''))
+        if correct:
+            messages.success(
+                request,
+                f"Bravo ! C'était bien {game.title}. "
+                f"+{attempt.xp_earned} XP et +{attempt.gold_earned} pièces d'or."
+            )
+        elif attempt.status == MysteryAttempt.STATUS_LOST:
+            messages.error(request, f"Perdu… Il fallait trouver {game.title}.")
+    return _back_to_game()
+
+
+@login_required()
+@require_POST
+def mystery_reveal(request):
+    game = _playable_game_or_redirect(request)
+    if game:
+        mystery.reveal_next_clue(request.user, game)
+    return _back_to_game()
+
+
+@login_required()
+@require_POST
+def mystery_give_up(request):
+    game = _playable_game_or_redirect(request)
+    if game:
+        mystery.give_up(request.user, game)
+        messages.info(request, f"La réponse était {game.title}.")
+    return _back_to_game()
+
+
+def mystery_archives(request):
+    return render(request, 'games/mystery/archives.html', {
+        'games': mystery.past_games().prefetch_related('clues')[:60],
+        'page_title': f"Archives du jeu mystère - {settings.SITE_NAME}",
+        'page_heading': "Archives du jeu mystère",
+        'page_description': "Les jeux mystères des jours précédents et leurs indices.",
+    })
+
+
+def _proposal_form(request, game, action):
+    if request.method == 'POST':
+        errors, clues = mystery.apply_form(game, request.POST, request.FILES)
+        if not errors:
+            game.status = MysteryGame.STATUS_PENDING
+            game.rejection_reason = ''
+            game.publish_date = None
+            game.author = request.user
+            game.save()
+            mystery.save_clues(game, clues)
+            messages.success(
+                request,
+                f"Merci ! Ton jeu mystère « {game.title} » est envoyé à l'équipe. "
+                "Tu recevras un message de RetroBot dès qu'il sera relu."
+            )
+            return redirect('mystery_my_proposals')
+        for error in errors:
+            messages.error(request, error)
+    return render(request, 'games/mystery/propose.html', {
+        'game': game,
+        'action': action,
+        'slots': _mystery_slots(game, request.POST if request.method == 'POST' else None),
+        'min_clues': mystery.MIN_CLUES,
+        'page_title': f"Proposer un jeu mystère - {settings.SITE_NAME}",
+        'page_heading': "Proposer un jeu mystère",
+        'page_description': "Propose un jeu rétro à faire deviner à la communauté.",
+    })
+
+
+def _mystery_slots(game, posted=None):
+    """Lignes d'indices du formulaire, préremplies avec la saisie ou l'existant."""
+    clues = {c.order: c for c in game.clues.all()} if game.pk else {}
+    slots = []
+    for slot in range(1, mystery.CLUE_SLOTS + 1):
+        clue = clues.get(slot)
+        text = posted.get(f'clue_{slot}_text', '') if posted is not None else (clue.text if clue else '')
+        slots.append({'number': slot, 'text': text, 'image': clue.image if clue and clue.image else None})
+    return slots
+
+
+@login_required()
+def mystery_propose(request):
+    if not mystery.can_propose(request.user):
+        messages.error(
+            request,
+            f"Tu as déjà {mystery.MAX_PENDING_PROPOSALS} propositions en attente. "
+            "Attends que l'équipe les relise avant d'en envoyer d'autres."
+        )
+        return redirect('mystery_my_proposals')
+    return _proposal_form(request, MysteryGame(), 'Proposer')
+
+
+@login_required()
+def mystery_proposal_edit(request, game_id):
+    game = get_object_or_404(MysteryGame, pk=game_id, author=request.user)
+    if game.status == MysteryGame.STATUS_APPROVED:
+        messages.info(request, "Ce jeu mystère est déjà validé : seule l'équipe peut encore le modifier.")
+        return redirect('mystery_my_proposals')
+    return _proposal_form(request, game, 'Renvoyer' if game.status == MysteryGame.STATUS_REJECTED else 'Enregistrer')
+
+
+@login_required()
+def mystery_my_proposals(request):
+    return render(request, 'games/mystery/my_proposals.html', {
+        'proposals': MysteryGame.objects.filter(author=request.user).prefetch_related('clues')
+                     .order_by('-created'),
+        'today': timezone.localdate(),
+        'reward_xp': mystery.XP_PROPOSAL_APPROVED,
+        'page_title': f"Mes jeux mystères - {settings.SITE_NAME}",
+        'page_heading': "Mes jeux mystères",
+        'page_description': "Les jeux mystères que tu as proposés et leur statut.",
+    })

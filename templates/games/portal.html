@@ -1,70 +1,120 @@
 {% extends 'layout.html' %}
-{% load users_custom_tags %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/games.css' %}">{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h2>Portail des Jeux</h2>
-        <ul class="breadcrumbs">
-            <li><a href="{% url 'portal_games' %}">Portail de jeux</a></li>
-        </ul>
-        <p>
-            Afin que les membres qui parcourent ce site web aient aussi de quoi se divertir, vous avez la possibilité sur cette page de jouer à différents jeux en ligne. Ces jeux ont été entièrement réalisés par le fondateur de {{ site_name }}. Vous pouvez remarquer que les jeux rapportent des points, ce qui veut dire qu'un classement existe ! Soyez le meilleur et restez-le !
-        </p>
-        <div class="row">
-            <div class="col-3">
-                <div class="card-game">
-                    <div class="header"><a href="{% url 'bac_games' %}">Le petit bac</a></div>
-                    <div class="body">Le célèbre jeu du petit bac ! Le Petit Bac est un jeu où les joueurs trouvent des mots correspondant à des catégories spécifiques, en commençant par une lettre donnée, pour marquer des points.</div>
-                    <div class="footer">
-			<marquee>Jouer {{ nb_parties }} fois | Meilleur joueur : Toine
-			    {% if user.is_authenticated %}             
-				{% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
-			    	    | Dernière partie : {{ last_party.created }}
-				{% endif %}
-			    {% endif %}
-			</marquee>
-		    </div>
-                </div>
+<div class="container games-hub">
+    <h2>Portail des Jeux</h2>
+    <ul class="breadcrumbs">
+        <li>Portail de jeux</li>
+    </ul>
+    <p>
+        Des jeux faits maison pour les passionnés de rétro. Chaque partie rapporte de l'XP (et parfois de l'or) :
+        de quoi grimper dans les niveaux de {{ site_name }} !
+    </p>
+
+    {% if user.is_staff and pending_quizes_count or user.is_staff and pending_mystery_count %}
+    <div class="games-staff">
+        {% if pending_mystery_count %}<a href="{% url 'panel_games_mystery' %}" class="btn btn-warning">{{ pending_mystery_count }} jeu{{ pending_mystery_count|pluralize:"x" }} mystère{{ pending_mystery_count|pluralize }} à relire</a>{% endif %}
+        {% if pending_quizes_count %}<a href="{% url 'panel_quiz' %}" class="btn btn-warning">{{ pending_quizes_count }} quiz à valider</a>{% endif %}
+    </div>
+    {% endif %}
+
+    <section>
+        <div class="games-hero">
+            <div>
+                <h3>🕵️ Le jeu mystère du jour</h3>
+                {% if today_mystery %}
+                    {% if mystery_attempt.status == 'won' %}
+                        <p>✅ Trouvé en {{ mystery_attempt.clues_revealed }} indice{{ mystery_attempt.clues_revealed|pluralize }}, bravo ! Un nouveau jeu t'attend demain.</p>
+                    {% elif mystery_attempt.status == 'lost' %}
+                        <p>💀 Raté pour aujourd'hui… Revanche demain !</p>
+                    {% elif mystery_is_author %}
+                        <p>✍️ C'est ton jeu qui est à l'affiche aujourd'hui !</p>
+                    {% elif mystery_attempt %}
+                        <p>Partie en cours : {{ mystery_attempt.clues_revealed }} indice{{ mystery_attempt.clues_revealed|pluralize }} dévoilé{{ mystery_attempt.clues_revealed|pluralize }}. Tu vas trouver !</p>
+                    {% else %}
+                        <p>Un jeu rétro se cache derrière une série d'indices. Trouve-le avec le moins d'indices possible !</p>
+                    {% endif %}
+                    <p class="game-tile__meta">
+                        {{ mystery_winners }} membre{{ mystery_winners|pluralize }} l'{{ mystery_winners|pluralize:"a,ont" }} trouvé aujourd'hui
+                        {% if mystery_streak %} · 🔥 ta série : {{ mystery_streak }} jour{{ mystery_streak|pluralize }}{% endif %}
+                    </p>
+                {% else %}
+                    <p>Pas de jeu mystère aujourd'hui… Reviens demain, ou fais deviner le tien à la communauté !</p>
+                {% endif %}
             </div>
-            <div class="col-3">
-                <div class="card-game">
-                    <div class="header">
-                        <a href="{% url 'quiz_home' %}">Quiz</a>
-                        {% if pending_quizes_count > 0 %}
-                            <span class="badge badge-warning">{{ pending_quizes_count }}</span>
-                        {% endif %}
-                    </div>
-                    <div class="body">Teste tes connaissances avec des quiz variés créés par nos utilisateurs. Que tu sois passionné par la culture générale, le sport, le cinéma, ou tout autre sujet, il y a forcément un quiz fait pour toi.</div>
-                    <div class="footer"><marquee></marquee></div>
-                </div>
+            <div class="games-hero__cta">
+                {% if today_mystery %}
+                <a href="{% url 'mystery_home' %}#partie" class="btn btn-add btn-large">
+                    {% if mystery_attempt.is_over or mystery_is_author %}Voir la partie{% elif mystery_attempt %}Continuer{% else %}Jouer{% endif %}
+                </a>
+                {% endif %}
+                <a href="{% url 'mystery_archives' %}" class="btn btn-small">Jeux des jours précédents</a>
             </div>
         </div>
-        {% if user.is_authenticated %}
-        <h3>Mes parties en cours</h3>
-        {% if games %}
-            <table class="bac">
-                <thead>
-                    <tr>
-                        <th>Nom</th>
-                        <th>Statut</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for game in games %}
-                    <tr>
-                        <td>{{ game.name }}</td>
-                        <td>{{ game.status }}</td>
-                        <td>
-                            <a href="{% url 'bac_party_games' game.id %}">Rejoindre</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p>Vous n'avez aucune partie en cours.</p>
-            {% endif %}
-        {% endif %}
-    </div>
+    </section>
+
+    <section>
+        <h3>Tous les jeux</h3>
+        <div class="games-grid">
+            <div class="game-tile">
+                <h4>🕵️ Le jeu mystère</h4>
+                <p>Un jeu rétro à deviner chaque jour à partir d'indices progressifs. Moins d'indices, plus de récompenses.</p>
+                <span class="game-tile__meta">Solo · 1 partie par jour</span>
+                <div class="game-tile__actions"><a href="{% url 'mystery_home' %}" class="btn btn-small">Jouer</a></div>
+            </div>
+            <div class="game-tile">
+                <h4>📝 Le Petit Bac</h4>
+                <p>Trouve un mot par catégorie commençant par la lettre tirée au sort. Les réponses originales rapportent plus !</p>
+                <span class="game-tile__meta">Multijoueur · {{ nb_parties }} partie{{ nb_parties|pluralize }} jouée{{ nb_parties|pluralize }}</span>
+                <div class="game-tile__actions"><a href="{% url 'bac_games' %}" class="btn btn-small">Jouer</a></div>
+            </div>
+            <div class="game-tile">
+                <h4>❓ Les quiz</h4>
+                <p>Des quiz créés par les membres sur le jeu vidéo, le cinéma, la culture pop… Teste tes connaissances.</p>
+                <span class="game-tile__meta">Solo · {{ nb_quizzes }} quiz disponible{{ nb_quizzes|pluralize }}</span>
+                <div class="game-tile__actions"><a href="{% url 'quiz_home' %}" class="btn btn-small">Voir les quiz</a></div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <h3>Crée ton propre jeu</h3>
+        <div class="games-grid">
+            <div class="game-tile">
+                <h4>✍️ Proposer un jeu mystère</h4>
+                <p>Fais deviner ton jeu culte à toute la communauté. Validé par l'équipe, il devient le jeu du jour.</p>
+                <div class="game-tile__actions">
+                    <a href="{% url 'mystery_propose' %}" class="btn btn-small btn-add">Proposer</a>
+                    {% if user.is_authenticated %}<a href="{% url 'mystery_my_proposals' %}" class="btn btn-small">Mes propositions</a>{% endif %}
+                </div>
+            </div>
+            <div class="game-tile">
+                <h4>🧩 Créer un quiz</h4>
+                <p>Écris tes questions et tes réponses : ton quiz sera publié après validation.</p>
+                <div class="game-tile__actions"><a href="{% url 'create_quiz' %}" class="btn btn-small btn-add">Créer un quiz</a></div>
+            </div>
+        </div>
+    </section>
+
+    {% if games %}
+    <section>
+        <h3>Mes parties de Petit Bac en attente</h3>
+        <table class="games-table">
+            <thead><tr><th>Nom</th><th>Créée le</th><th></th></tr></thead>
+            <tbody>
+                {% for game in games %}
+                <tr>
+                    <td>{{ game.name }}</td>
+                    <td>{{ game.created|date:"j F Y H:i" }}</td>
+                    <td><a href="{% url 'bac_party_games' game.id %}" class="btn btn-small">Reprendre</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+</div>
 {% endblock %}

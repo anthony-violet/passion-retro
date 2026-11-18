@@ -1,0 +1,18 @@
+{% load users_custom_tags %}
+<div class="game-tile{% if not quiz.is_active %} game-tile--muted{% endif %}">
+    <h4><a href="{% url 'quiz' quiz.id %}">{{ quiz.name }}</a></h4>
+    {% if not quiz.is_active %}<span class="text-danger">Non publié</span>{% endif %}
+    <p>{{ quiz.description|truncatechars:160 }}</p>
+    <span class="game-tile__meta">
+        {{ quiz.nb_questions }} question{{ quiz.nb_questions|pluralize }} · {{ quiz.nb_players }} joueur{{ quiz.nb_players|pluralize }}
+    </span>
+    <span class="game-tile__meta">Par {% user_level_badge quiz.author variant='inline' compact=True %} <span class="{{ quiz.author.username_decoration }}">{{ quiz.author }}</span></span>
+    <div class="game-tile__actions">
+        {% if quiz.my_score is not None %}
+            <span class="quiz-score">Mon score : {{ quiz.my_score }}/{{ quiz.nb_questions }}</span>
+            <a href="{% url 'quiz' quiz.id %}" class="btn btn-small">Rejouer</a>
+        {% else %}
+            <a href="{% url 'quiz' quiz.id %}" class="btn btn-small btn-add">Jouer</a>
+        {% endif %}
+    </div>
+</div>

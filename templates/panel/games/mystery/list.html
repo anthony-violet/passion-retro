@@ -1,0 +1,92 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Jeux — Jeu mystère</h2>
+    <div>
+        <a href="{% url 'panel_games' %}" class="btn btn-small">← Jeux</a>
+        <a href="{% url 'panel_games_mystery_create' %}" class="btn btn-add">+ Jeu mystère</a>
+    </div>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header"><h3>Propositions des membres à relire {% if pending %}<span class="panel-badge panel-badge-warning">{{ pending|length }}</span>{% endif %}</h3></div>
+    <table class="panel-table">
+        <thead><tr><th>Envoyé le</th><th>Auteur</th><th>Réponse</th><th>Indices</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for game in pending %}
+            <tr>
+                <td>{{ game.created|date:"d/m/Y H:i" }}</td>
+                <td>{{ game.author|default:"—" }}</td>
+                <td><strong>{{ game.title }}</strong></td>
+                <td>{{ game.nb_clues }}</td>
+                <td class="panel-actions"><a href="{% url 'panel_games_mystery_edit' game.id %}" class="btn btn-small btn-add">Relire</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="panel-empty">Aucune proposition en attente.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header"><h3>Jeux validés</h3></div>
+    <p class="panel-hint">Un jeu par jour. Les indices sont dévoilés dans l'ordre, du plus vague au plus précis. Pense aux variantes de réponse (abréviations, titres alternatifs) : les fautes de frappe légères sont déjà tolérées.</p>
+    {% if missing_days %}
+    <p class="panel-hint">
+        ⚠️ Jours sans jeu mystère cette semaine :
+        {% for day in missing_days %}
+            <a href="{% url 'panel_games_mystery_create' %}?date={{ day|date:'Y-m-d' }}">{{ day|date:"D j/m" }}</a>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </p>
+    {% endif %}
+    <table class="panel-table">
+        <thead><tr><th>Jour</th><th>Réponse</th><th>Indices</th><th>Joueurs</th><th>Trouvé</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for game in games %}
+            <tr>
+                <td>
+                    {% if game.publish_date %}
+                        {{ game.publish_date|date:"d/m/Y" }}
+                        {% if game.publish_date == today %}<span class="panel-badge panel-badge-success">Aujourd'hui</span>
+                        {% elif game.publish_date > today %}<span class="panel-badge panel-badge-info">Programmé</span>{% endif %}
+                    {% else %}<span class="panel-badge panel-badge-warning">Non programmé</span>{% endif %}
+                </td>
+                <td><strong>{{ game.title }}</strong>{% if game.author and not game.author.is_staff %}<br><small>par {{ game.author }}</small>{% endif %}</td>
+                <td>{{ game.nb_clues }}{% if game.nb_clues < 3 %} <span class="panel-badge panel-badge-danger">trop peu</span>{% endif %}</td>
+                <td>{{ game.nb_players }}</td>
+                <td>{{ game.nb_winners }}</td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_games_mystery_edit' game.id %}" class="btn btn-small">Éditer</a>
+                    <form method="post" action="{% url 'panel_games_mystery_delete' game.id %}" style="display:inline" onsubmit="return confirm('Supprimer ce jeu mystère et les parties associées ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="panel-empty">Aucun jeu mystère.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if rejected %}
+<div class="panel-section">
+    <div class="panel-section-header"><h3>Propositions refusées récemment</h3></div>
+    <table class="panel-table">
+        <thead><tr><th>Auteur</th><th>Réponse</th><th>Raison</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for game in rejected %}
+            <tr>
+                <td>{{ game.author|default:"—" }}</td>
+                <td>{{ game.title }}</td>
+                <td>{{ game.rejection_reason|default:"—"|truncatechars:80 }}</td>
+                <td class="panel-actions"><a href="{% url 'panel_games_mystery_edit' game.id %}" class="btn btn-small">Voir</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

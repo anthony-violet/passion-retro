@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/mystery.css' %}">{% endblock %}
+
+{% block content %}
+<div class="container mystery">
+    <h2>Mes jeux mystères</h2>
+    <ul class="breadcrumbs">
+        <li><a href="{% url 'portal_games' %}">Portail de jeux</a> »</li>
+        <li><a href="{% url 'mystery_home' %}">Le jeu mystère</a> »</li>
+        <li>Mes propositions</li>
+    </ul>
+    <p>
+        Propose un jeu à faire deviner à toute la communauté. Chaque proposition validée par l'équipe
+        te rapporte {{ reward_xp }} XP et de l'or.
+    </p>
+    <p><a href="{% url 'mystery_propose' %}" class="btn default">+ Proposer un jeu mystère</a></p>
+
+    {% for game in proposals %}
+    <div class="mystery-box mystery-proposal">
+        <div class="mystery-proposal-head">
+            <strong>{{ game.title }}</strong>
+            <span class="mystery-status mystery-status-{{ game.status }}">
+                {% if game.status == 'pending' %}⏳ En attente de relecture
+                {% elif game.status == 'rejected' %}❌ Refusé
+                {% elif game.publish_date and game.publish_date < today %}✅ Publié le {{ game.publish_date|date:"j F Y" }}
+                {% elif game.publish_date == today %}🎉 C'est le jeu du jour !
+                {% elif game.publish_date %}📅 Programmé (date gardée secrète)
+                {% else %}✅ Validé, bientôt programmé{% endif %}
+            </span>
+        </div>
+        <p>{{ game.clues.all|length }} indice{{ game.clues.all|length|pluralize }} — envoyé le {{ game.created|date:"j F Y" }}</p>
+        {% if game.status == 'rejected' and game.rejection_reason %}
+            <p class="mystery-rejected"><strong>Raison :</strong> {{ game.rejection_reason|linebreaksbr }}</p>
+        {% endif %}
+        {% if game.status != 'approved' %}
+            <a href="{% url 'mystery_proposal_edit' game.id %}" class="btn btn-small">{% if game.status == 'rejected' %}Corriger et renvoyer{% else %}Modifier{% endif %}</a>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p>Tu n'as encore proposé aucun jeu mystère.</p>
+    {% endfor %}
+</div>
+{% endblock %}

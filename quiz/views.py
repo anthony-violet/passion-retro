@@ -1,37 +1,39 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.db.models import Max
+from django.conf import settings
+from django.db.models import Count, Max
 from .models import *
 from users.leveling import grant_experience
 from .forms import *
 
 @login_required
 def home(request):
-    quizes = Quiz.objects.filter(is_active=True).select_related(
-        'author'
-    ).prefetch_related('author__levels')
-    my_quizes = Quiz.objects.filter(author=request.user)
+    quizes = Quiz.objects.select_related('author').prefetch_related('author__levels').annotate(
+        nb_questions=Count('questions', distinct=True),
+        nb_players=Count('user_quizzes__user', distinct=True),
+    ).order_by('-created')
+    if not request.user.is_superuser:
+        quizes = quizes.filter(is_active=True)
 
-    if request.user.is_superuser:
-        quizes = Quiz.objects.all().select_related(
-            'author'
-        ).prefetch_related('author__levels')
-    
-    
-    # Récupérer les meilleurs scores de l'utilisateur pour chaque quiz
-    user_scores = {}
-    if request.user.is_authenticated:
-        user_quiz_scores = UserQuiz.objects.filter(
-            user=request.user
-        ).values('quiz_id').annotate(
-            best_score=Max('score')
-        )
-        user_scores = {score['quiz_id']: score['best_score'] for score in user_quiz_scores}
-    
+    # Meilleur score de l'utilisateur pour chaque quiz déjà joué
+    user_scores = {
+        row['quiz_id']: row['best_score']
+        for row in UserQuiz.objects.filter(user=request.user)
+        .values('quiz_id').annotate(best_score=Max('score'))
+    }
+    to_play, played = [], []
+    for quiz in quizes:
+        quiz.my_score = user_scores.get(quiz.id)
+        (played if quiz.my_score is not None else to_play).append(quiz)
+
     return render(request, "games/quiz/home.html", {
-        "quizes": quizes, 
-        "my_quizes": my_quizes,
-        "user_scores": user_scores
+        "to_play": to_play,
+        "played": played,
+        "my_quizes": Quiz.objects.filter(author=request.user).annotate(
+            nb_questions=Count('questions', distinct=True)
+        ).order_by('-created'),
+        "page_title": f"Quiz - {settings.SITE_NAME}",
+        "page_heading": "Quiz",
     })
 
 @login_required

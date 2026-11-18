@@ -10,10 +10,10 @@ from django.contrib.auth import get_user_model
 from users.leveling import grant_experience
 
 CURRENT = {
-    'key': '2026-11-profil-et-mur-des-souvenirs',
-    'title': 'Profil enrichi et Mur des souvenirs',
-    'banner': 'Nouveauté : le Mur des souvenirs est ouvert, et ton profil s\'enrichit !',
-    'template': 'features/new_feature_user_profile_and_wall_of_memories.html',
+    'key': '2026-11-jeu-mystere',
+    'title': 'Le jeu mystère',
+    'banner': 'Nouveauté : chaque jour, un jeu rétro à deviner avec le jeu mystère !',
+    'template': 'features/new_feature_mystery_game.html',
     'xp': 50,
 }
 

@@ -44,6 +44,12 @@
                         <span class="badge badge-warning">{{ pending_posts_count }}</span>
                     {% endif %}
                 </li>
+                {% if pending_mystery_count > 0 %}
+                <li>
+                    <a href="{% url 'panel_games_mystery' %}">Jeux mystères à relire</a>
+                    <span class="badge badge-warning">{{ pending_mystery_count }}</span>
+                </li>
+                {% endif %}
                 <li><a href="/panel" class="danger">Administration</a></li>
             {% endif %}
         <!-- Si le membre n'est pas connecté -->
@@ -60,6 +66,25 @@
         {% endif %}
     </ul>
 </div>
+{% with mystery=mystery_widget %}{% if mystery %}
+<div class="menu mystery-widget">
+    <h2>🕵️ Jeu mystère du jour</h2>
+    <ul>
+        <li><strong>Indice 1 :</strong> {% if mystery.first_clue.text %}{{ mystery.first_clue.text }}{% else %}une image…{% endif %}</li>
+        {% if mystery.attempt.status == 'won' %}
+            <li>✅ Trouvé en {{ mystery.attempt.clues_revealed }} indice{{ mystery.attempt.clues_revealed|pluralize }} ! Reviens demain.</li>
+        {% elif mystery.attempt.status == 'lost' %}
+            <li>💀 Raté aujourd'hui… Revanche demain !</li>
+        {% elif mystery.is_author %}
+            <li>✍️ C'est ton jeu qui est à l'affiche !</li>
+        {% else %}
+            <li>Trouve-le avec le moins d'indices possible : jusqu'à <strong>{{ mystery.max_xp }} XP</strong> et de l'or !</li>
+        {% endif %}
+        <li>{{ mystery.winners }} membre{{ mystery.winners|pluralize }} l'{{ mystery.winners|pluralize:"a,ont" }} trouvé.</li>
+    </ul>
+    <center><a href="{% url 'mystery_home' %}#partie" class="btn btn-add">{% if mystery.attempt.is_over or mystery.is_author %}Voir la partie{% elif mystery.attempt %}Continuer{% else %}Jouer{% endif %}</a></center>
+</div>
+{% endif %}{% endwith %}
 <div class="menu">
     <h2>Livre d'Or</h2>
     <ul class="guestbook">

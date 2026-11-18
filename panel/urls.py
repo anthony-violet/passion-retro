@@ -78,6 +78,11 @@ urlpatterns = [
     path('games/category/create/', games.category_create, name='panel_games_category_create'),
     path('games/category/<int:category_id>/edit/', games.category_edit, name='panel_games_category_edit'),
     path('games/category/<int:category_id>/delete/', games.category_delete, name='panel_games_category_delete'),
+    path('games/mystere/', games.mystery_list, name='panel_games_mystery'),
+    path('games/mystere/create/', games.mystery_create, name='panel_games_mystery_create'),
+    path('games/mystere/<int:game_id>/edit/', games.mystery_edit, name='panel_games_mystery_edit'),
+    path('games/mystere/<int:game_id>/review/', games.mystery_review, name='panel_games_mystery_review'),
+    path('games/mystere/<int:game_id>/delete/', games.mystery_delete, name='panel_games_mystery_delete'),
 
     # Ephemerides
     path('ephemerides/', ephemerides.ephemeride_list, name='panel_ephemerides'),

@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/mystery.css' %}">{% endblock %}
+
+{% block content %}
+<div class="container mystery">
+    <h2>Archives du jeu mystère</h2>
+    <ul class="breadcrumbs">
+        <li><a href="{% url 'portal_games' %}">Portail de jeux</a> »</li>
+        <li><a href="{% url 'mystery_home' %}">Le jeu mystère</a> »</li>
+        <li>Archives</li>
+    </ul>
+    {% for game in games %}
+    <details class="mystery-box mystery-archive">
+        <summary><strong>{{ game.publish_date|date:"j F Y" }}</strong> — cliquer pour voir la réponse</summary>
+        <p class="mystery-archive-answer">{{ game.title }}</p>
+        {% if game.author and not game.author.is_staff %}<p class="mystery-credit">Proposé par {{ game.author }}</p>{% endif %}
+        <ol class="mystery-clues">
+            {% for clue in game.clues.all %}
+            <li class="mystery-clue">
+                <span class="mystery-clue-number">Indice {{ forloop.counter }}</span>
+                {% if clue.text %}<span class="mystery-clue-text">{{ clue.text }}</span>{% endif %}
+                {% if clue.image %}<img src="{{ clue.image.url }}" alt="Indice {{ forloop.counter }}" class="mystery-clue-image" loading="lazy">{% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+        {% if game.anecdote %}<p class="mystery-anecdote">{{ game.anecdote|linebreaksbr }}</p>{% endif %}
+    </details>
+    {% empty %}
+    <p>Aucun jeu mystère passé pour le moment.</p>
+    {% endfor %}
+</div>
+{% endblock %}

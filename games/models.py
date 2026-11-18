@@ -48,3 +48,91 @@ class LittleBacAnswers(models.Model):
     answer = models.CharField(max_length=100)
     is_valid = models.BooleanField(default=False)
     point = models.IntegerField(default=0)
+
+class MysteryGame(models.Model):
+    """Jeu mystère du jour : un jeu rétro à deviner grâce à des indices progressifs.
+
+    Un membre peut en proposer un : il reste « en attente » jusqu'à ce que
+    l'équipe le valide, puis le programme à une date.
+    """
+
+    STATUS_PENDING = 'pending'
+    STATUS_APPROVED = 'approved'
+    STATUS_REJECTED = 'rejected'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'En attente'),
+        (STATUS_APPROVED, 'Validé'),
+        (STATUS_REJECTED, 'Refusé'),
+    ]
+
+    title = models.CharField("Réponse (nom du jeu)", max_length=155)
+    aliases = models.TextField(
+        "Réponses acceptées", blank=True, default="",
+        help_text="Une variante par ligne (abréviations, titre japonais, sans sous-titre…).",
+    )
+    publish_date = models.DateField("Jour de publication", unique=True, null=True, blank=True)
+    anecdote = models.TextField("Anecdote affichée à la fin", blank=True, default="")
+    author = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name='mystery_games'
+    )
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_APPROVED)
+    rejection_reason = models.TextField(blank=True, default="")
+    reward_granted = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-publish_date', '-id']
+
+    @property
+    def is_pending(self):
+        return self.status == self.STATUS_PENDING
+
+    def __str__(self):
+        return self.title
+
+    def accepted_answers(self):
+        return [self.title] + [line.strip() for line in self.aliases.splitlines() if line.strip()]
+
+
+class MysteryClue(models.Model):
+    game = models.ForeignKey(MysteryGame, on_delete=models.CASCADE, related_name='clues')
+    order = models.PositiveSmallIntegerField(default=1)
+    text = models.CharField(max_length=255, blank=True, default="")
+    image = models.ImageField(upload_to='mystery_games/', null=True, blank=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"Indice {self.order} — {self.game}"
+
+
+class MysteryAttempt(models.Model):
+    STATUS_PLAYING = 'playing'
+    STATUS_WON = 'won'
+    STATUS_LOST = 'lost'
+    STATUS_CHOICES = [
+        (STATUS_PLAYING, 'En cours'),
+        (STATUS_WON, 'Trouvé'),
+        (STATUS_LOST, 'Perdu'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mystery_attempts')
+    game = models.ForeignKey(MysteryGame, on_delete=models.CASCADE, related_name='attempts')
+    clues_revealed = models.PositiveSmallIntegerField(default=1)
+    guesses = models.JSONField(default=list, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PLAYING)
+    xp_earned = models.PositiveIntegerField(default=0)
+    gold_earned = models.PositiveIntegerField(default=0)
+    started = models.DateTimeField(auto_now_add=True)
+    finished = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'game'], name='unique_mystery_attempt'),
+        ]
+
+    @property
+    def is_over(self):
+        return self.status != self.STATUS_PLAYING

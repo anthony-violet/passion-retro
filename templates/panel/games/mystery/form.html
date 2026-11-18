@@ -1,0 +1,85 @@
+{% extends 'panel/layout.html' %}
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>{{ action }} un jeu mystère</h2>
+    <a href="{% url 'panel_games_mystery' %}" class="btn btn-small">← Retour</a>
+</div>
+{% if game.pk and game.status != 'approved' %}
+<div class="panel-section">
+    <div class="panel-section-header"><h3>Relecture {% if game.author %}— proposé par {{ game.author }}{% endif %}</h3></div>
+    {% if game.status == 'rejected' %}<p class="panel-hint">Proposition refusée{% if game.rejection_reason %} : {{ game.rejection_reason }}{% endif %}. L'auteur peut la corriger et la renvoyer.</p>
+    {% else %}<p class="panel-hint">Corrige si besoin les indices ci-dessous (bouton « Modifier »), puis valide ou refuse. L'auteur est prévenu par RetroBot ; une validation lui rapporte de l'XP et de l'or, une seule fois.</p>{% endif %}
+    <form method="post" action="{% url 'panel_games_mystery_review' game.id %}" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-actions">
+            <button type="submit" name="action" value="approve" class="btn btn-add">✅ Valider</button>
+        </div>
+    </form>
+    {% if game.status == 'pending' %}
+    <form method="post" action="{% url 'panel_games_mystery_review' game.id %}" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-group">
+            <label>Raison du refus (envoyée à l'auteur)</label>
+            <textarea name="rejection_reason" rows="2" placeholder="Ex. : le premier indice donne directement la réponse."></textarea>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" name="action" value="reject" class="btn btn-danger">❌ Refuser</button>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endif %}
+<div class="panel-section">
+    <form method="post" enctype="multipart/form-data" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label>Réponse (nom du jeu)</label>
+                <input type="text" name="title" value="{{ game.title|default:'' }}" placeholder="The Legend of Zelda" maxlength="155" required>
+            </div>
+            <div class="panel-form-group">
+                <label>Jour de publication</label>
+                {% if game.pk and game.status != 'approved' %}
+                <input type="date" name="publish_date" disabled>
+                <small>Valide d'abord la proposition pour pouvoir la programmer.</small>
+                {% else %}
+                <input type="date" name="publish_date" value="{% if game.publish_date %}{{ game.publish_date|date:'Y-m-d' }}{% else %}{{ initial_date }}{% endif %}">
+                <small>Laisse vide pour garder le jeu en réserve.</small>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel-form-group">
+            <label>Autres réponses acceptées (une par ligne)</label>
+            <textarea name="aliases" rows="3" placeholder="Zelda&#10;Zelda 1&#10;TLOZ">{{ game.aliases|default:'' }}</textarea>
+        </div>
+
+        <h3>Indices (du plus vague au plus précis)</h3>
+        {% for slot, clue in slots %}
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label>Indice {{ slot }}</label>
+                <input type="text" name="clue_{{ slot }}_text" value="{{ clue.text|default:'' }}" maxlength="255"
+                       placeholder="{% cycle 'Sorti en 1986' 'Action-aventure' 'Sur NES' 'Édité par Nintendo' 'Le héros porte une tunique verte' 'Capture d’écran zoomée' %}">
+            </div>
+            <div class="panel-form-group">
+                <label>Image (optionnelle)</label>
+                <input type="file" name="clue_{{ slot }}_image" accept="image/*">
+                {% if clue.image %}
+                    <small><a href="{{ clue.image.url }}" target="_blank">Image actuelle</a>
+                    — <label style="display:inline"><input type="checkbox" name="clue_{{ slot }}_remove_image"> retirer</label></small>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="panel-form-group">
+            <label>Anecdote affichée une fois la partie finie (optionnel)</label>
+            <textarea name="anecdote" rows="3">{{ game.anecdote|default:'' }}</textarea>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">{{ action }}</button>
+            <a href="{% url 'panel_games_mystery' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

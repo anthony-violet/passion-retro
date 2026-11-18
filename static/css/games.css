@@ -1,0 +1,20 @@
+/* Portail des jeux et quiz — neutre pour s'adapter à tous les thèmes. */
+.games-hub section { margin: 24px 0; }
+.games-hub h3 { margin-bottom: 10px; }
+.games-hero { border: 2px solid currentColor; border-radius: 8px; padding: 16px 18px; display: grid;
+    grid-template-columns: 1fr auto; gap: 12px 20px; align-items: center; }
+.games-hero h3 { margin: 0 0 6px; }
+.games-hero p { margin: 4px 0; }
+.games-hero__cta { display: flex; flex-direction: column; gap: 6px; align-items: stretch; text-align: center; }
+@media (max-width: 640px) { .games-hero { grid-template-columns: 1fr; } }
+.games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.game-tile { border: 1px solid currentColor; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.game-tile h4 { margin: 0; font-size: 1.1em; }
+.game-tile p { margin: 0; flex: 1; }
+.game-tile__meta { font-size: .9em; opacity: .8; }
+.game-tile__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.game-tile--muted { opacity: .65; }
+.games-staff { display: flex; flex-wrap: wrap; gap: 8px; }
+.games-table { width: 100%; border-collapse: collapse; }
+.games-table th, .games-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid currentColor; }
+.quiz-score { font-weight: bold; }

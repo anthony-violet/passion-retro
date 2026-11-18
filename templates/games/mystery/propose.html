@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/mystery.css' %}">{% endblock %}
+
+{% block content %}
+<div class="container mystery">
+    <h2>{% if game.pk %}Modifier mon jeu mystère{% else %}Proposer un jeu mystère{% endif %}</h2>
+    <ul class="breadcrumbs">
+        <li><a href="{% url 'portal_games' %}">Portail de jeux</a> »</li>
+        <li><a href="{% url 'mystery_home' %}">Le jeu mystère</a> »</li>
+        <li><a href="{% url 'mystery_my_proposals' %}">Mes propositions</a> »</li>
+        <li>{% if game.pk %}Modifier{% else %}Proposer{% endif %}</li>
+    </ul>
+
+    {% if game.status == 'rejected' and game.rejection_reason %}
+    <div class="mystery-box mystery-rejected">
+        <strong>Raison du refus :</strong> {{ game.rejection_reason|linebreaksbr }}
+    </div>
+    {% endif %}
+
+    <div class="mystery-box mystery-help">
+        <strong>Comment faire un bon jeu mystère ?</strong>
+        <ul>
+            <li>Classe les indices <strong>du plus vague au plus précis</strong> : le premier ne doit presque rien révéler, le dernier doit rendre la réponse évidente.</li>
+            <li>Au moins {{ min_clues }} indices, idéalement 6 : année, genre, plateforme, éditeur, un détail marquant, une capture d'écran…</li>
+            <li>Ne mets jamais le nom du jeu dans un indice ni dans une image.</li>
+            <li>Ajoute les autres noms acceptés (abréviation, titre japonais ou américain…).</li>
+        </ul>
+        <p>Une fois validé par l'équipe, ton jeu sera programmé comme jeu du jour et tu gagneras de l'XP et de l'or. Ce jour-là, ton nom sera affiché comme auteur… mais tu ne pourras pas y jouer 😉</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="mystery-box mystery-propose-form">
+        {% csrf_token %}
+        <div class="mystery-field">
+            <label for="mp-title">Nom du jeu (la réponse)</label>
+            <input type="text" id="mp-title" name="title" maxlength="155" required value="{{ request.POST.title|default:game.title }}" placeholder="The Legend of Zelda">
+        </div>
+        <div class="mystery-field">
+            <label for="mp-aliases">Autres réponses acceptées <small>(une par ligne, facultatif)</small></label>
+            <textarea id="mp-aliases" name="aliases" rows="3" placeholder="Zelda&#10;TLOZ">{{ request.POST.aliases|default:game.aliases }}</textarea>
+        </div>
+
+        <h3>Indices</h3>
+        {% for slot in slots %}
+        <div class="mystery-field mystery-clue-field">
+            <label for="mp-clue-{{ slot.number }}">Indice {{ slot.number }}{% if slot.number <= min_clues %} *{% endif %}</label>
+            <input type="text" id="mp-clue-{{ slot.number }}" name="clue_{{ slot.number }}_text" maxlength="255" value="{{ slot.text }}"
+                   placeholder="{% cycle 'Sorti en 1986' 'Action-aventure' 'Sur NES' 'Édité par Nintendo' 'Le héros porte une tunique verte' 'Une capture d’écran' %}">
+            <div class="mystery-clue-upload">
+                <input type="file" name="clue_{{ slot.number }}_image" accept="image/*" aria-label="Image de l'indice {{ slot.number }}">
+                {% if slot.image %}
+                    <a href="{{ slot.image.url }}" target="_blank">Image actuelle</a>
+                    <label><input type="checkbox" name="clue_{{ slot.number }}_remove_image"> retirer</label>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="mystery-field">
+            <label for="mp-anecdote">Anecdote affichée à la fin <small>(facultatif)</small></label>
+            <textarea id="mp-anecdote" name="anecdote" rows="3" placeholder="Le saviez-vous ?">{{ request.POST.anecdote|default:game.anecdote }}</textarea>
+        </div>
+        <button type="submit" class="btn default">{% if game.pk %}{{ action }}{% else %}Envoyer à l'équipe{% endif %}</button>
+    </form>
+</div>
+{% endblock %}

@@ -14,6 +14,14 @@ urlpatterns = [
 
 
     path("", views.portal, name="portal_games"),
+    path("mystere", views.mystery_home, name="mystery_home"),
+    path("mystere/proposer", views.mystery_guess, name="mystery_guess"),
+    path("mystere/indice", views.mystery_reveal, name="mystery_reveal"),
+    path("mystere/abandonner", views.mystery_give_up, name="mystery_give_up"),
+    path("mystere/archives", views.mystery_archives, name="mystery_archives"),
+    path("mystere/soumettre", views.mystery_propose, name="mystery_propose"),
+    path("mystere/mes-propositions", views.mystery_my_proposals, name="mystery_my_proposals"),
+    path("mystere/mes-propositions/<int:game_id>/modifier", views.mystery_proposal_edit, name="mystery_proposal_edit"),
     path("bac", views.little_bac_home, name="bac_games"),
     path("bac/party", views.little_bac_start, name="bac_start_games"),
     path("bac/party/<str:party_id>", views.little_bac_party, name="bac_party_games"),
