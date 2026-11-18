@@ -132,7 +132,6 @@ def little_bac_party_play(request, party_id):
     player = players.get(user=request.user)
 
     if request.method == "POST":
-        print("POST")
         # On vérifie que les réponses commencent par la lettre du round
         round_letter = current_round.letter.upper()
         all_valid = True
@@ -367,9 +366,7 @@ def toggle_ready_status_little_bac(request, game_id, player_id):
 
         # Vérifie si tous les joueurs de la partie sont prêts
         game = player.game
-        print("Joueurs de la partie",game)
         all_ready = LittleBacPlayers.objects.filter(game=game, is_ready=True).count()
-        print(all_ready)
 
         return JsonResponse({"is_ready": player.is_ready, "all_ready": all_ready})
     except LittleBacPlayers.DoesNotExist:
@@ -414,7 +411,6 @@ def party_infos_little_bac(request, game_id):
             elapsed_time = (now() - game.countdown_start_time).total_seconds()
             countdown_remaining = max(0, game.countdown_time - int(elapsed_time))
 
-        print(game.status)
 
         return JsonResponse({
             "game_status": game.status,
@@ -432,14 +428,12 @@ def game_start_countdown(request, game_id):
 
     # Récupère le type de décompte (ready_game ou finish_game)
     countdown_type = request.GET.get("type", "ready_game")
-    print(f"Type de décompte reçu: {countdown_type}")  # Ajout de cette ligne pour vérifier le type de décompte
 
     if countdown_type not in ["ready_game", "finish_game"]:
         return JsonResponse({"success": False, "error": "Type de décompte invalide."}, status=400)
 
     try:
         game = LittleBacGames.objects.get(id=game_id)
-        print(f"Statut du jeu: {game.status}")  # Ajout de cette ligne pour vérifier le statut du jeu
 
         # Vérification des conditions pour chaque décompte
         if countdown_type == "ready_game" and not game.countdown_started and game.status == "waiting":
@@ -449,11 +443,9 @@ def game_start_countdown(request, game_id):
             game.save()
 
         elif countdown_type == "finish_game" and game.status == "in_progress":
-            print("Finish game")
             # Vérifie si un décompte précédent n'est pas actif
             elapsed_time = (now() - game.countdown_start_time).total_seconds()
             if not game.countdown_started or elapsed_time >= game.countdown_time:
-                print("Start countdown")
                 game.countdown_started = True
                 game.countdown_start_time = now()
                 game.countdown_time = 60
@@ -482,9 +474,7 @@ def game_countdown_status(request, game_id):
         # Temps écoulé en secondes
         elapsed_time = (now() - game.countdown_start_time).total_seconds()
         remaining_time = max(0, game.countdown_time - int(elapsed_time))
-        print(f"Elapsed time: {elapsed_time}, Remaining time: {remaining_time}")  # Vérification
     else:
-        print("Ouuups")
         remaining_time = game.countdown_time
 
     return JsonResponse({
