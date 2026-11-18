@@ -2979,3 +2979,20 @@ fieldset.quote-bbcode legend {
 
 /* Grand écrans : les paliers de taille sont gérés par generic.css
    (--font-base-size), chargé après ce fichier. */
+
+/* ===================================================================
+   Actus (accueil, page d'une actu, liste) : variante default
+   Structure de base : static/css/news.css
+   =================================================================== */
+.theme-default {
+    --news-head-font: 'Oswald', 'Trebuchet MS', Arial, sans-serif;
+    --news-label-font: 'Oswald', Arial, sans-serif;
+    --news-radius: 4px;
+    --news-card-shadow: 0 1px 3px rgba(15, 38, 90, .08);
+    --news-card-hover: 0 6px 16px rgba(15, 38, 90, .16);
+    --news-cat-bg: #e3ebf7;
+    --news-cat-text: #0f265a;
+    --news-question-bg: #0f265a;
+    --news-question-text: #fff;
+}
+.theme-default .news-une__title, .theme-default .news-article__head h1 { font-weight: 600; letter-spacing: .01em; }

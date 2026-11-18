@@ -31,7 +31,23 @@
             <label>Contenu</label>
             <textarea name="content" rows="12">{{ post.content }}</textarea>
         </div>
+        {% if news_form %}
+        {% for field in news_form %}{% if field.name != 'featured' %}
+        <div class="panel-form-group{% if field.name == 'excerpt' %} panel-form-full{% endif %}">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            {% for error in field.errors %}<p class="contrib-error">{{ error }}</p>{% endfor %}
+        </div>
+        {% endif %}{% endfor %}
+        {% if post.topic %}
+        <p class="panel-form-full">Sujet du forum lié : <a href="{% url 'post_list' post.topic.forum_id post.topic_id %}">{{ post.topic.title }}</a></p>
+        {% endif %}
+        {% endif %}
         <div class="panel-form-checkboxes">
+            {% if news_form %}
+            <label class="panel-checkbox">{{ news_form.featured }} À la une</label>
+            {% endif %}
             <label class="panel-checkbox">
                 <input type="checkbox" name="active" {% if post.active %}checked{% endif %}> Publié
             </label>

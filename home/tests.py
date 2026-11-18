@@ -67,7 +67,7 @@ class HomeViewTest(TestCase):
         self.assertContains(response, 'News 1')
         self.assertNotContains(response, 'News 2')  # News inactive ne doit pas apparaître
     
-    def test_home_page_shows_max_6_news(self):
+    def test_home_page_shows_featured_and_4_cards(self):
         # Créer 5 news supplémentaires
         import uuid
         for i in range(5):
@@ -82,9 +82,9 @@ class HomeViewTest(TestCase):
             )
         
         response = self.client.get(reverse('home'))
-        # Compter le nombre de news affichées
-        news_count = response.context['news'].count()
-        self.assertEqual(news_count, 6)  # Doit être limité à 6
+        # Une actu à la une + 4 cartes
+        self.assertIsNotNone(response.context['featured_news'])
+        self.assertEqual(len(response.context['news_cards']), 4)
 
 class Custom404Test(TestCase):
     def test_custom_404_page(self):
@@ -293,7 +293,9 @@ class NewsListViewTest(TestCase):
     def test_home_links_to_news_list(self):
         response = self.client.get(reverse('home'))
         self.assertContains(
-            response, f'<a href="{reverse("news_list")}">Toutes les actus »</a>', html=True
+            response,
+            f'<a class="news-section__more" href="{reverse("news_list")}">Toutes les actus »</a>',
+            html=True,
         )
 
     def test_menus_link_to_news_list(self):

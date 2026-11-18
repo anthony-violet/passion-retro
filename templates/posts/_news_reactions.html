@@ -1,0 +1,5 @@
+{% load news_tags %}{# Compteur de réactions forum d'une actu. #}
+<a class="news-react{% if post.reactions >= hot_threshold|default:10 %} news-react--hot{% endif %}" href="{% url 'view_post' post.slug %}#discussion"{% if post.last_activity %} title="Dernière activité {{ post.last_activity|ago }}"{% endif %}>
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6l-3.5 3v-3H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/></svg>
+    <span>{{ post.reactions|default:0 }}{% if long %} réaction{{ post.reactions|pluralize }}{% endif %}</span>
+</a>

@@ -1,28 +1,52 @@
 {% extends 'layout.html' %}
-{% load bbcode_tags %}
-{% load paginator_tag %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/news.css' %}">{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Toutes les actus</h2>
-    <div class="row">
-        {% for actus in news %}
-        <div class="col col-5">
-            <div class="news-header">
-                <h3>{{ actus.title }}</h3>
-            </div>
-            <div class="news">
-                {% if actus.image %}
-                <div style="float:left;margin:5px"><img src="/media/{{ actus.image }}" style="max-width: 100px;" alt="{{ actus.title }}"></div>
-                {% endif %}
-                <p>{{ actus.content|bbcode|safe|linebreaksbr|truncatewords_html:50 }} » <a href="{% url 'view_post' actus.slug %}">Lire l'actu</a></p><br>
-                <p class="date"><em>Publié le {{ actus.created|date:" d F Y à H:i" }}</em> Par <a href="{% url 'profile' actus.author.id %}" class="{{ request.user.username_decoration }}" data-text="{{ actus.author.username }}">{{ actus.author.username }}</a></p>
-            </div>
-        </div>
-        {% empty %}
-        <p>Aucune actu pour le moment.</p>
-        {% endfor %}
+<div class="container news-section">
+    <div class="news-section__head">
+        <h2>Toutes les actus</h2>
     </div>
-    {% paginate %}
+
+    <div class="news-tools">
+        {% if categories|length > 1 %}
+        <nav class="news-chips" aria-label="Filtrer par catégorie">
+            <a class="news-chip{% if not current_cat %} is-active{% endif %}" href="{% querystring cat=None page=None %}"{% if not current_cat %} aria-current="true"{% endif %}>Toutes</a>
+            {% for cat in categories %}
+            <a class="news-chip{% if current_cat.pk == cat.pk %} is-active{% endif %}" href="{% querystring cat=cat.pk page=None %}"{% if current_cat.pk == cat.pk %} aria-current="true"{% endif %}>{{ cat.name }}</a>
+            {% endfor %}
+        </nav>
+        {% endif %}
+        <form class="news-sort" method="get">
+            {% if current_cat %}<input type="hidden" name="cat" value="{{ current_cat.pk }}">{% endif %}
+            <label for="news-sort">Trier</label>
+            <select id="news-sort" name="tri" onchange="this.form.submit()">
+                {% for key, label in sorts %}<option value="{{ key }}"{% if key == sort %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+            <noscript><button class="btn" type="submit">OK</button></noscript>
+        </form>
+    </div>
+
+    {% for label, items in news_groups %}
+        {% if label %}<h3 class="news-month">{{ label }}</h3>{% endif %}
+        <div class="news-grid news-grid--list">
+            {% for post in items %}{% include 'posts/_news_card.html' %}{% endfor %}
+        </div>
+    {% empty %}
+        <p>Aucune actu pour le moment.</p>
+    {% endfor %}
+
+    {% if is_paginated %}
+    <nav class="news-pager" aria-label="Pagination">
+        {% if page_obj.has_previous %}<a href="{% querystring page=page_obj.previous_page_number %}">« Précédente</a>{% endif %}
+        {% for num in paginator.page_range %}
+            {% if num == page_obj.number %}<span aria-current="page">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' or num == 1 or num == paginator.num_pages %}<a href="{% querystring page=num %}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}<a href="{% querystring page=page_obj.next_page_number %}">Suivante »</a>{% endif %}
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

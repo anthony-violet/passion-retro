@@ -1356,3 +1356,39 @@ hr {
     html { font-size: 16px; }
     body { zoom: 1.6; }
 }
+
+
+/* ===================================================================
+   Actus (accueil, page d'une actu, liste) : variante retrorpg
+   Structure de base : static/css/news.css
+   =================================================================== */
+.theme-retrorpg {
+    --news-head-font: 'Press Start 2P', 'Courier New', monospace;
+    --news-label-font: 'Press Start 2P', monospace;
+    --news-radius: 6px; --news-cover-radius: 0; --news-chip-radius: 0;
+    --news-card-border: 3px solid #fcfcfc;
+    --news-card-shadow: 4px 4px 0 #000;
+    --news-card-hover: 4px 4px 0 #3cbcfc;
+    --news-cat-bg: #885818; --news-cat-text: #fcfcfc;
+    --news-new-bg: #d82800; --news-new-text: #fcfcfc;
+    --news-accent: #fcd800; --news-hot: #f87858;
+    --news-question-bg: #0058f8; --news-question-text: #fcfcfc;
+}
+/* Fenêtres de dialogue 8 bits ; l'accueil devient un journal de quêtes */
+.theme-retrorpg .news-une__title, .theme-retrorpg .news-article__head h1 { font-size: clamp(.9rem, 2vw, 1.2rem); line-height: 1.7; }
+.theme-retrorpg .news-card__title { font-size: .6rem; line-height: 1.8; }
+.theme-retrorpg .news-card__title::before { content: "▶ "; color: #fcd800; }
+.theme-retrorpg .news-cat, .theme-retrorpg .news-new { font-size: .48rem; padding: 4px 6px; }
+.theme-retrorpg .news-buzz h4, .theme-retrorpg .news-discussion__head h2, .theme-retrorpg .news-related h2, .theme-retrorpg .news-month { font-size: .7rem; line-height: 1.6; }
+.theme-retrorpg .news-buzz__rank { font-size: .9rem; }
+.theme-retrorpg .news-question p { font-size: .72rem; line-height: 1.9; }
+.theme-retrorpg .news-buzz, .theme-retrorpg .news-reply, .theme-retrorpg .news-last-reply, .theme-retrorpg .news-nav a { border: 3px solid #fcfcfc; }
+.theme-retrorpg .news-une__excerpt::after { content: " ▼"; color: #fcd800; animation: news-blink 1s steps(1) infinite; }
+.theme-retrorpg .news-cover--empty { background: conic-gradient(from 90deg at 50% 50%, hsl(var(--h) 70% 45%) 25%, hsl(var(--h) 70% 35%) 0 50%, hsl(var(--h) 70% 45%) 0 75%, hsl(var(--h) 70% 35%) 0) 0 0 / 24px 24px; }
+.theme-retrorpg .news-cover--empty::after { font-size: clamp(.9rem, 3vw, 1.6rem); text-shadow: 3px 3px 0 #000; }
+.theme-retrorpg .news-grid--home, .theme-retrorpg .news-grid--related { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.theme-retrorpg .news-grid--home .news-card, .theme-retrorpg .news-grid--related .news-card { grid-template-rows: none; grid-template-columns: 110px minmax(0, 1fr); }
+.theme-retrorpg .news-grid--home .news-cover, .theme-retrorpg .news-grid--related .news-cover { aspect-ratio: 1; height: 100%; }
+.theme-retrorpg .news-grid--home .news-cover--empty::after, .theme-retrorpg .news-grid--related .news-cover--empty::after { font-size: .75rem; }
+@keyframes news-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .theme-retrorpg .news-une__excerpt::after { animation: none; } }

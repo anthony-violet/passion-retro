@@ -740,3 +740,26 @@ body.theme-vicecity a:hover { color: var(--text-link-hover); text-shadow: 0 0 8p
 }
 .theme-vicecity .wm--default .wm-hero .wm-btn:not(.wm-btn--primary):hover { background: rgba(33, 230, 193, .16); }
 .theme-vicecity .wm-filter.is-active { background: var(--bg-active-page); border-color: transparent; }
+
+
+/* ===================================================================
+   Actus (accueil, page d'une actu, liste) : variante vicecity
+   Structure de base : static/css/news.css
+   =================================================================== */
+.theme-vicecity {
+    --news-head-font: 'Anton', Impact, sans-serif;
+    --news-label-font: 'Pacifico', cursive;
+    --news-radius: 8px; --news-cover-radius: 4px; --news-chip-radius: 4px;
+    --news-card-hover: 0 10px 30px rgba(33, 230, 193, .25);
+    --news-cat-bg: transparent; --news-cat-text: #ff7ab8;
+    --news-new-bg: #21e6c1; --news-new-text: #0b0620;
+    --news-accent: #ff2e88; --news-hot: #ff2e88;
+    --news-question-bg: linear-gradient(135deg, #ff2e88, #6a2bd8); --news-question-text: #fff;
+}
+/* Coucher de soleil sur Ocean Drive */
+.theme-vicecity .news-cat { text-transform: none; letter-spacing: 0; font-size: 1rem; padding: 0; }
+.theme-vicecity .news-une__title, .theme-vicecity .news-article__head h1, .theme-vicecity .news-card__title { text-transform: uppercase; font-weight: 400; letter-spacing: .02em; }
+.theme-vicecity .news-une__title a, .theme-vicecity .news-article__head h1 { background: linear-gradient(180deg, #ffd36e, #ff2e88); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.theme-vicecity .news-cover--empty { background: radial-gradient(circle at 50% 78%, #ffd36e 0 18%, transparent 18.5%), repeating-linear-gradient(0deg, transparent 0 8px, rgba(11, 6, 32, .9) 8px 10px) 0 70% / 100% 30% no-repeat, linear-gradient(180deg, #2a0b52 0%, #ff2e88 60%, #ff9a3d 78%, #0b0620 78%); }
+.theme-vicecity .news-cover--empty::after { align-items: start; padding-top: 8%; color: #fff; text-shadow: 0 0 14px #ff2e88; font-weight: 400; }
+.theme-vicecity .news-question small { font-family: 'Pacifico', cursive; text-transform: none; letter-spacing: 0; font-size: 1rem; }

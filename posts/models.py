@@ -60,6 +60,25 @@ class Post(models.Model):
     rejected = models.BooleanField(default=False)
     rejection_reason = models.TextField(blank=True, default='')
 
+    # --- Actus ---
+    excerpt = models.TextField(
+        blank=True, default='', verbose_name='Chapô',
+        help_text="Résumé affiché en tête de l'actu et sur l'accueil. Vide : début du contenu.",
+    )
+    featured = models.BooleanField(default=False, verbose_name='À la une')
+    published_at = models.DateTimeField(null=True, blank=True, verbose_name='Publié le')
+    image_alt = models.CharField(max_length=200, blank=True, default='', verbose_name="Légende de l'image")
+    source_name = models.CharField(max_length=200, blank=True, default='', verbose_name='Source')
+    source_url = models.URLField(max_length=500, blank=True, default='', verbose_name='Lien de la source')
+    forum_prompt = models.CharField(
+        max_length=255, blank=True, default='', verbose_name='Question du rédacteur',
+        help_text='Question posée aux lecteurs pour lancer la discussion sur le forum.',
+    )
+    topic = models.ForeignKey(
+        'forum.Topic', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='news_posts', verbose_name='Sujet du forum',
+    )
+
     def __str__(self):
         return self.title
 
@@ -81,6 +100,24 @@ class Post(models.Model):
     @property
     def is_pending(self):
         return not self.active and not self.rejected and not self.draft
+
+    @property
+    def publication_date(self):
+        return self.published_at or self.created
+
+    @property
+    def summary(self):
+        """Chapô, ou à défaut le début du contenu en texte brut."""
+        if self.excerpt:
+            return self.excerpt
+        from passion_retro.seo import plain_text
+        return plain_text(self.content, 220)
+
+    @property
+    def reading_time(self):
+        from passion_retro.seo import plain_text
+        words = len(plain_text(self.content, 10 ** 7).split())
+        return max(1, round(words / 220))
 
     @property
     def nav_section(self):

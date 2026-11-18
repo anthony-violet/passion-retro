@@ -158,7 +158,9 @@
         {{ post_form.as_p }}
         {% if type == 'news' %}
             <label for="image">Image</label>
-            <input type="file" name="image" id="image">
+            <input type="file" name="image" id="image" accept="image/*">
+            {{ news_form.as_p }}
+            <p><em>Le sujet de discussion du forum sera créé automatiquement à la mise en ligne de l'actu.</em></p>
         {% endif %}
         <br>
         <button type="submit" class="btn btn-primary">Créer</button>

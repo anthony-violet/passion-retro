@@ -1680,3 +1680,34 @@ fieldset.quote-bbcode legend {
     html { font-size: 24px; }
     body { font-size: 19px; }
 }
+
+
+/* ===================================================================
+   Actus (accueil, page d'une actu, liste) : variante 80s
+   Structure de base : static/css/news.css
+   =================================================================== */
+.theme-80s {
+    --news-head-font: 'Orbitron', Arial, sans-serif;
+    --news-label-font: 'Orbitron', sans-serif;
+    --news-radius: 2px; --news-cover-radius: 0; --news-chip-radius: 0;
+    --news-card-border: 1px solid #3a005a;
+    --news-card-shadow: inset 0 0 30px rgba(255, 0, 255, .06);
+    --news-card-hover: 0 0 18px rgba(0, 255, 255, .5);
+    --news-cat-bg: transparent; --news-cat-text: #00ffff;
+    --news-new-bg: #ff00ff; --news-new-text: #04000f;
+    --news-accent: #00ffff; --news-hot: #ff00ff;
+    --news-question-bg: linear-gradient(135deg, #2a0055, #0a0025); --news-question-text: #fff;
+}
+/* Néon et grille en perspective */
+.theme-80s .news-une__title a, .theme-80s .news-article__head h1, .theme-80s .news-section__head h2 { color: #fff; text-shadow: 0 0 6px #ff00ff, 0 0 18px #ff00ff; text-transform: uppercase; }
+.theme-80s .news-cat { border: 1px solid #00ffff; box-shadow: 0 0 6px rgba(0, 255, 255, .6); }
+.theme-80s .news-buzz__rank { text-shadow: 0 0 10px #00ffff; }
+.theme-80s .news-cover--empty { background: linear-gradient(180deg, #1a0040 0%, #ff2a8a 58%, #ffb347 62%, #1a0040 63%); }
+.theme-80s .news-cover--empty::before {
+    content: ""; position: absolute; left: -50%; right: -50%; bottom: 0; height: 55%;
+    background: repeating-linear-gradient(90deg, rgba(255, 0, 255, .7) 0 2px, transparent 2px 40px),
+                repeating-linear-gradient(0deg, rgba(255, 0, 255, .7) 0 2px, transparent 2px 22px);
+    transform: perspective(200px) rotateX(60deg); transform-origin: bottom;
+}
+.theme-80s .news-cover--empty::after { font-weight: 900; align-items: start; padding-top: 10%; text-shadow: 0 0 12px #00ffff; }
+.theme-80s .news-card .news-cover, .theme-80s .news-une .news-cover { border-bottom: 1px solid #ff00ff; }

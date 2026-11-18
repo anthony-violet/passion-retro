@@ -1,0 +1,86 @@
+{% load news_tags users_custom_tags %}
+<div class="container news-section">
+    <div class="news-section__head">
+        <h2>Actus</h2>
+        {% if user.is_authenticated %}
+            {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" or user|has_group:"Rédacteur" %}
+                <a href="{% url 'create_news' 'news' %}" class="btn btn-add" title="Ajouter une actu">+</a>
+            {% endif %}
+        {% endif %}
+        <a class="news-section__more" href="{% url 'news_list' %}">Toutes les actus »</a>
+    </div>
+
+    {% if featured_news %}
+    <div class="news-home">
+        <article class="news-une">
+            <a href="{% url 'view_post' featured_news.slug %}" class="news-une__cover" tabindex="-1" aria-hidden="true">
+                {% include 'posts/_news_cover.html' with post=featured_news size='une' %}
+            </a>
+            <div class="news-tags">
+                <span class="news-cat">{{ featured_news.category.name }}</span>
+                {% if featured_news.pub_date|is_new %}<span class="news-new">Nouveau</span>{% endif %}
+            </div>
+            <h3 class="news-une__title"><a href="{% url 'view_post' featured_news.slug %}">{{ featured_news.title }}</a></h3>
+            <p class="news-une__excerpt">{{ featured_news.summary }}</p>
+            <div class="news-meta">
+                <img class="news-avatar" src="/media/{{ featured_news.author.avatar }}" alt="">
+                <a href="{% url 'profile' featured_news.author.id %}" class="news-author {{ featured_news.author.username_decoration|default:'' }}" data-text="{{ featured_news.author.username }}">{{ featured_news.author.username }}</a>
+                <time class="news-time-rel" datetime="{{ featured_news.pub_date|date:'c' }}">{{ featured_news.pub_date|ago }}</time>
+                <time class="news-time-stamp" datetime="{{ featured_news.pub_date|date:'c' }}">{{ featured_news.pub_date|date:'d/m H:i' }}</time>
+                <span>{{ featured_news.reading_time }} min de lecture</span>
+                {% include 'posts/_news_reactions.html' with post=featured_news long=True %}
+            </div>
+            {% if featured_last_reaction %}
+            <div class="news-last-reply">
+                <img class="news-avatar" src="/media/{{ featured_last_reaction.author.avatar }}" alt="">
+                <div>
+                    <p><b>{{ featured_last_reaction.author.username }}</b> : « {{ featured_last_reaction.content|plain:140 }} »</p>
+                    <small>Dernière réaction {{ featured_last_reaction.created|ago }} sur le forum</small>
+                </div>
+            </div>
+            {% endif %}
+            <div class="news-une__actions">
+                <a class="btn" href="{% url 'view_post' featured_news.slug %}">Lire l'actu</a>
+                {% if featured_news.topic_id %}
+                <a class="btn news-btn-ghost" href="{% url 'view_post' featured_news.slug %}#discussion">{% if featured_news.reactions %}Rejoindre la discussion ({{ featured_news.reactions }}){% else %}Lancer la discussion{% endif %}</a>
+                {% endif %}
+            </div>
+        </article>
+
+        <aside class="news-buzz">
+            <h4>Ça discute en ce moment</h4>
+            {% if news_buzz %}
+            <p class="news-buzz__intro">Les actus qui font réagir sur le forum</p>
+            <ol>
+                {% for n in news_buzz %}
+                <li>
+                    <span class="news-buzz__rank">{{ forloop.counter }}</span>
+                    <div>
+                        <a href="{% url 'view_post' n.slug %}#discussion">{{ n.title }}</a>
+                        <div class="news-meta">{% include 'posts/_news_reactions.html' with post=n long=True %}<span>dernière {{ n.last_activity|ago }}</span></div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+            <p class="news-buzz__intro">Aucune réaction pour l'instant. Soyez le premier à donner votre avis sur une actu !</p>
+            {% endif %}
+            {% if news_prompt %}
+            <div class="news-buzz__prompt">
+                <strong>La question du rédacteur</strong>
+                {{ news_prompt.forum_prompt }}
+                <a href="{% url 'view_post' news_prompt.slug %}#discussion">Répondre »</a>
+            </div>
+            {% endif %}
+        </aside>
+
+        {% if news_cards %}
+        <div class="news-grid news-grid--home">
+            {% for post in news_cards %}{% include 'posts/_news_card.html' %}{% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <p>Aucune actu pour le moment.</p>
+    {% endif %}
+</div>

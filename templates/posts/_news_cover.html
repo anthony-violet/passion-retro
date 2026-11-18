@@ -1,0 +1,6 @@
+{% load news_tags %}{# Illustration d'une actu, ou visuel de repli aux couleurs du thème. #}
+{% if post.image %}
+<img class="news-cover{% if size %} news-cover--{{ size }}{% endif %}" src="{{ post.image.url }}" alt="{{ post.image_alt|default:post.title }}" loading="lazy">
+{% else %}
+<div class="news-cover news-cover--empty{% if size %} news-cover--{{ size }}{% endif %}" style="--h: {{ post|cover_hue }}" data-glyph="{{ post|cover_glyph }}" role="img" aria-label="{{ post.title }}"></div>
+{% endif %}

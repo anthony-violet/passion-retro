@@ -925,3 +925,48 @@ body.theme-doomsday a:hover { color: var(--text-link-hover); text-shadow: 0 0 10
 }
 .theme-doomsday .wm--default .wm-hero .wm-btn:not(.wm-btn--primary):hover { background: rgba(255, 255, 255, .12); }
 .theme-doomsday .wm-filter.is-active { background: var(--dd-red); border-color: var(--dd-red); }
+
+
+/* ===================================================================
+   Actus (accueil, page d'une actu, liste) : variante doomsday
+   Structure de base : static/css/news.css
+   =================================================================== */
+.theme-doomsday {
+    --news-head-font: 'Saira', 'Segoe UI', Arial, sans-serif;
+    --news-label-font: 'Saira', monospace;
+    --news-radius: 2px; --news-cover-radius: 0; --news-chip-radius: 0;
+    --news-card-border: 1px solid rgba(47, 227, 138, .14);
+    --news-card-hover: inset 3px 0 0 #2fe38a;
+    --news-cat-bg: transparent; --news-cat-text: #2fe38a;
+    --news-new-bg: #e62429; --news-new-text: #fff;
+    --news-accent: #2fe38a; --news-hot: #e62429;
+    --news-question-bg: #0a0e0d; --news-question-text: #2fe38a;
+}
+/* Terminal de dépêches : la grille de l'accueil devient un fil horodaté */
+.theme-doomsday .news-section__head h2, .theme-doomsday .news-une__title, .theme-doomsday .news-article__head h1 { font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.theme-doomsday .news-section__head h2::before { content: "■ "; color: #e62429; animation: news-blink 1.2s steps(1) infinite; }
+.theme-doomsday .news-cat::before { content: "["; }
+.theme-doomsday .news-cat::after { content: "]"; }
+.theme-doomsday .news-new::before { content: "⚠ "; }
+.theme-doomsday .news-cover { filter: grayscale(1) contrast(1.3) brightness(.8) sepia(1) hue-rotate(80deg) saturate(2.4); }
+.theme-doomsday .news-une__title a { text-shadow: 0 0 8px rgba(47, 227, 138, .5); }
+.theme-doomsday .news-question p::after { content: "_"; animation: news-blink 1s steps(1) infinite; }
+.theme-doomsday .news-grid--home, .theme-doomsday .news-grid--related { grid-template-columns: minmax(0, 1fr); gap: 0; border-top: 1px solid rgba(47, 227, 138, .18); }
+.theme-doomsday .news-grid--home .news-card, .theme-doomsday .news-grid--related .news-card { grid-template-rows: none; border: 0; border-bottom: 1px solid rgba(47, 227, 138, .14); border-radius: 0; background: transparent; }
+.theme-doomsday .news-grid--home .news-cover, .theme-doomsday .news-grid--related .news-cover { display: none; }
+.theme-doomsday .news-grid--home .news-card__body, .theme-doomsday .news-grid--related .news-card__body { display: grid; grid-template-columns: 6.5em 9.5em minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 10px 6px; }
+.theme-doomsday .news-grid--home .news-card__body > .news-tags, .theme-doomsday .news-grid--related .news-card__body > .news-tags { order: 1; overflow: hidden; white-space: nowrap; }
+.theme-doomsday .news-grid--home .news-card__title, .theme-doomsday .news-grid--related .news-card__title { order: 2; }
+.theme-doomsday .news-grid--home .news-meta, .theme-doomsday .news-grid--related .news-meta { display: contents; }
+.theme-doomsday .news-grid--home .news-time-stamp, .theme-doomsday .news-grid--related .news-time-stamp { display: inline; order: 0; color: #2fe38a; font-family: 'Share Tech Mono', ui-monospace, monospace; font-size: .8rem; }
+.theme-doomsday .news-grid--home .news-time-rel, .theme-doomsday .news-grid--related .news-time-rel,
+.theme-doomsday .news-grid--home .news-by, .theme-doomsday .news-grid--related .news-by { display: none; }
+.theme-doomsday .news-grid--home .news-react, .theme-doomsday .news-grid--related .news-react { order: 3; }
+@keyframes news-blink { 50% { opacity: 0; } }
+@container news (max-width: 560px) {
+    .theme-doomsday .news-grid--home .news-card__body, .theme-doomsday .news-grid--related .news-card__body { grid-template-columns: auto minmax(0, 1fr) auto; }
+    .theme-doomsday .news-grid--home .news-card__title, .theme-doomsday .news-grid--related .news-card__title { grid-column: 1 / -1; order: 4; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .theme-doomsday .news-section__head h2::before, .theme-doomsday .news-question p::after { animation: none; }
+}

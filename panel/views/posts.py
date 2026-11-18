@@ -5,6 +5,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from posts.models import Post, Category
 from posts.notifications import notify_contribution_approved, notify_contribution_rejected
+from posts.forms import NewsFieldsForm
+from posts.news import publish_news
 
 
 def _redirect_back(request, default='panel_posts'):
@@ -43,6 +45,7 @@ def post_approve(request, post_id):
     post.rejected = False
     post.rejection_reason = ''
     post.save()
+    publish_news(post)
     # Publier aussi les chapitres en attente du dossier. Ceux refusés individuellement
     # restent refusés, sauf si tout le dossier avait été refusé (ils l'ont été avec lui).
     chapters_qs = Post.objects.filter(post_parent=post, active=False, draft=False)
@@ -111,15 +114,32 @@ def post_delete(request, post_id):
 def post_edit(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     categories = Category.objects.all()
+    is_news = post.type == 'news'
+    news_form = None
     if request.method == 'POST':
+        if is_news:
+            news_form = NewsFieldsForm(request.POST)
+            if not news_form.is_valid():
+                return render(request, 'panel/posts/edit.html', {
+                    'post': post, 'categories': categories, 'news_form': news_form,
+                })
+            for field, value in news_form.cleaned_data.items():
+                setattr(post, field, value)
         post.title = request.POST.get('title', post.title)
         post.content = request.POST.get('content', post.content)
         post.category_id = request.POST.get('category', post.category_id)
         post.active = 'active' in request.POST
         post.save()
+        publish_news(post)
         messages.success(request, "Article mis à jour.")
         return redirect('view_post', slug=post.slug)
-    return render(request, 'panel/posts/edit.html', {'post': post, 'categories': categories})
+    if is_news:
+        news_form = NewsFieldsForm(initial={
+            field: getattr(post, field) for field in NewsFieldsForm.base_fields
+        })
+    return render(request, 'panel/posts/edit.html', {
+        'post': post, 'categories': categories, 'news_form': news_form,
+    })
 
 
 @staff_required

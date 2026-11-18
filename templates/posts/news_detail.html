@@ -1,0 +1,141 @@
+{% extends 'layout.html' %}
+{% load static news_tags %}
+
+{% block extracss %}
+    <link rel="stylesheet" href="{% static 'css/news.css' %}">
+    {% if show_review_bar %}<link rel="stylesheet" href="{% static 'css/contribute.css' %}">{% endif %}
+{% endblock %}
+
+{% block extrajs %}
+    {% if show_review_bar and can_review %}<script src="{% static 'js/utils/contribute_editor.js' %}" defer></script>{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container news-section">
+    {% if show_review_bar %}
+        {% include 'posts/_review_bar.html' %}
+    {% endif %}
+    <article class="news-article">
+        <nav class="news-crumbs" aria-label="Fil d'Ariane">
+            <a href="{% url 'home' %}">Accueil</a> › <a href="{% url 'news_list' %}">Actus</a> › {{ post.category.name }}
+        </nav>
+
+        <header class="news-article__head">
+            <div class="news-tags">
+                <span class="news-cat">{{ post.category.name }}</span>
+                {% if news_pub_date|is_new %}<span class="news-new">Nouveau</span>{% endif %}
+            </div>
+            <h1>{{ post.title }}</h1>
+            {% if post.excerpt %}<p class="news-chapo">{{ post.excerpt }}</p>{% endif %}
+            <div class="news-byline">
+                <img class="news-avatar news-avatar--lg" src="/media/{{ post.author.avatar }}" alt="">
+                <div class="news-byline__who">
+                    <a href="{% url 'profile' post.author.id %}" class="news-author {{ post.author.username_decoration|default:'' }}" data-text="{{ post.author.username }}">{{ post.author.username }}</a>
+                    <span>
+                        Niveau {{ post.author.level_number }} ·
+                        Publié le <time datetime="{{ news_pub_date|date:'c' }}">{{ news_pub_date|date:"j F Y à H:i" }}</time> ·
+                        {{ post.reading_time }} min de lecture
+                        {% if post.updated|date:"YmdHi" > news_pub_date|date:"YmdHi" and post.active %}· mis à jour {{ post.updated|ago }}{% endif %}
+                    </span>
+                </div>
+                {% if post.topic_id %}
+                <a class="btn news-btn-ghost news-byline__jump" href="#discussion">{{ reactions_count }} réaction{{ reactions_count|pluralize }}</a>
+                {% endif %}
+            </div>
+        </header>
+
+        {% if post.image %}
+        <figure class="news-article__figure">
+            {% include 'posts/_news_cover.html' with post=post size='article' %}
+            {% if post.image_alt %}<figcaption>{{ post.image_alt }}</figcaption>{% endif %}
+        </figure>
+        {% endif %}
+
+        <div class="news-article__body post-body">{% include 'posts/_post_body.html' with content=post.content %}</div>
+
+        {% if post.source_name or post.source_url %}
+        <p class="news-source">Source :
+            {% if post.source_url %}<a href="{{ post.source_url }}" rel="noopener nofollow" target="_blank">{{ post.source_name|default:post.source_url }}</a>{% else %}{{ post.source_name }}{% endif %}
+        </p>
+        {% endif %}
+
+        {% if post.forum_prompt %}
+        <aside class="news-question">
+            <small>La question du rédacteur</small>
+            <p>{{ post.forum_prompt }}</p>
+        </aside>
+        {% endif %}
+
+        {% if post.topic_id %}
+        <section class="news-discussion" id="discussion">
+            <div class="news-discussion__head">
+                <h2>La discussion</h2>
+                <div class="news-meta">
+                    <span>{{ reactions_count }} réaction{{ reactions_count|pluralize }}</span>
+                    {% if reactions_count and last_activity %}<span>· dernière {{ last_activity|ago }}</span>{% endif %}
+                </div>
+            </div>
+
+            {% if reactions %}
+            <ol class="news-replies">
+                {% for r in reactions %}
+                <li class="news-reply">
+                    <img class="news-avatar" src="/media/{{ r.author.avatar }}" alt="">
+                    <div>
+                        <div class="news-reply__top">
+                            <a href="{% url 'profile' r.author.id %}" class="news-author {{ r.author.username_decoration|default:'' }}" data-text="{{ r.author.username }}">{{ r.author.username }}</a>
+                            <span class="news-lvl">Niv. {{ r.author.level_number }}</span>
+                            <time datetime="{{ r.created|date:'c' }}">{{ r.created|ago }}</time>
+                        </div>
+                        <p>{{ r.content|plain:400 }}</p>
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+            {% else %}
+            <p class="news-discussion__empty">Personne n'a encore réagi. Lancez la discussion !</p>
+            {% endif %}
+
+            {% if topic_url %}
+            <a class="btn news-btn-ghost news-discussion__all" href="{{ topic_url }}">Voir tout le sujet sur le forum ({{ reactions_count }})</a>
+            {% endif %}
+
+            {% if topic_locked %}
+            <p class="news-discussion__empty">Cette discussion est fermée.</p>
+            {% elif not post.active %}
+            <p class="news-discussion__empty">Les réactions seront ouvertes à la publication de l'actu.</p>
+            {% elif user.is_authenticated %}
+            <form class="news-quick-reply" method="post" action="{% url 'news_react' post.slug %}">
+                {% csrf_token %}
+                <label for="news-reply-content">Réagir à cette actu</label>
+                <textarea id="news-reply-content" name="content" rows="4" required placeholder="Votre message sera publié dans le sujet du forum lié à l'actu."></textarea>
+                <div class="news-quick-reply__foot">
+                    <label><input type="checkbox" name="subscribe" {% if subscribe_initial %}checked{% endif %}> Me prévenir des réponses</label>
+                    <span><span class="news-xp">+{{ xp_reaction }} XP</span>{% if first_reaction %}, dont {{ xp_bonus }} de bonus pour votre première réaction{% endif %}</span>
+                    <button class="btn" type="submit">Publier sur le forum</button>
+                </div>
+            </form>
+            {% else %}
+            <p class="news-discussion__empty"><a href="{% url 'login' %}?next={{ request.path|urlencode }}%23discussion">Connectez-vous</a> pour réagir et gagner de l'XP.</p>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        {% if previous_news or next_news %}
+        <nav class="news-nav" aria-label="Actus voisines">
+            {% if previous_news %}<a class="news-nav__prev" href="{% url 'view_post' previous_news.slug %}" rel="prev"><span>← Actu précédente</span>{{ previous_news.title }}</a>{% else %}<span></span>{% endif %}
+            {% if next_news %}<a class="news-nav__next" href="{% url 'view_post' next_news.slug %}" rel="next"><span>Actu suivante →</span>{{ next_news.title }}</a>{% endif %}
+        </nav>
+        {% endif %}
+
+        {% if related_news %}
+        <section class="news-related">
+            <h2>À lire aussi</h2>
+            <div class="news-grid news-grid--related">
+                {% for post in related_news %}{% include 'posts/_news_card.html' %}{% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </article>
+</div>
+{% endblock %}

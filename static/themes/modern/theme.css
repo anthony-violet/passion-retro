@@ -1472,3 +1472,29 @@ fieldset.quote-bbcode legend {
     html { font-size: 24px; }
     body { font-size: 20px; }
 }
+
+
+/* ===================================================================
+   Actus (accueil, page d'une actu, liste) : variante modern
+   Structure de base : static/css/news.css
+   =================================================================== */
+.theme-modern {
+    --news-head-font: 'Inter', system-ui, sans-serif;
+    --news-label-font: 'Inter', system-ui, sans-serif;
+    --news-radius: 18px; --news-cover-radius: 14px; --news-chip-radius: 999px;
+    --news-surface: rgba(255, 255, 255, .05);
+    --news-surface-2: rgba(255, 255, 255, .04);
+    --news-card-border: 1px solid rgba(255, 255, 255, .08);
+    --news-card-hover: 0 18px 40px rgba(124, 58, 237, .3);
+    --news-cat-bg: rgba(167, 139, 250, .16); --news-cat-text: #d6caff;
+    --news-new-bg: #22d3ee; --news-new-text: #04121a;
+    --news-hot: #f472b6;
+    --news-question-bg: linear-gradient(135deg, rgba(139, 92, 246, .35), rgba(99, 102, 241, .15)); --news-question-text: #fff;
+}
+/* Verre dépoli, cartes flottantes */
+.theme-modern .news-card { padding: 8px; backdrop-filter: blur(14px); }
+.theme-modern .news-card .news-cover { border-radius: var(--news-cover-radius); }
+.theme-modern .news-card__body { padding: 10px 6px 6px; }
+.theme-modern .news-cat, .theme-modern .news-new { text-transform: none; letter-spacing: 0; font-weight: 600; font-size: .75rem; }
+.theme-modern .news-une__title, .theme-modern .news-article__head h1 { font-weight: 700; letter-spacing: -.025em; }
+.theme-modern .news-buzz, .theme-modern .news-reply, .theme-modern .news-last-reply { backdrop-filter: blur(14px); }

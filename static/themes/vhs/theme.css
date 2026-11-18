@@ -2401,3 +2401,31 @@ fieldset.quote-bbcode legend {
         font-size: 1rem;
     }
 }
+
+
+/* ===================================================================
+   Actus (accueil, page d'une actu, liste) : variante vhs
+   Structure de base : static/css/news.css
+   =================================================================== */
+.theme-vhs {
+    --news-head-font: 'VT323', monospace;
+    --news-label-font: 'Share Tech Mono', monospace;
+    --news-radius: 0; --news-cover-radius: 0; --news-chip-radius: 0;
+    --news-card-hover: 6px 6px 0 #ff006e;
+    --news-cat-bg: #b3004d; --news-cat-text: #fff;
+    --news-new-bg: #00e5ff; --news-new-text: #000;
+    --news-accent: #ff006e; --news-hot: #ff006e;
+    --news-question-bg: #000; --news-question-text: #00e5ff;
+}
+/* Jaquettes de cassettes et horodatage de magnétoscope */
+.theme-vhs .news-une__title { font-size: clamp(1.8rem, 3.4vw, 2.6rem); line-height: 1; text-transform: uppercase; }
+.theme-vhs .news-article__head h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1; text-transform: uppercase; }
+.theme-vhs .news-card__title { font-size: 1.45rem; line-height: 1.05; }
+.theme-vhs .news-card { border-left: 14px solid #ff006e; }
+.theme-vhs .news-card:nth-child(2n) { border-left-color: #00e5ff; }
+.theme-vhs .news-card__body::before { content: "PASSION RÉTRO VIDÉO · SP 120 MIN"; font-size: .62rem; letter-spacing: .15em; color: #666; }
+.theme-vhs .news-time-rel::before { content: "● REC "; color: #ff006e; }
+.theme-vhs .news-cover--empty { background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, .25) 0 1px, transparent 1px 3px), radial-gradient(circle at 25% 30%, hsl(var(--h) 90% 60% / .9), transparent 45%), linear-gradient(135deg, hsl(var(--h) 60% 22%), #000); }
+.theme-vhs .news-cover--empty::before { content: "▶ PLAY  SP"; position: absolute; top: 8px; left: 10px; z-index: 1; font: 1rem 'VT323', monospace; color: #fff; text-shadow: 0 0 4px #fff; }
+.theme-vhs .news-cover--empty::after { font-size: clamp(2.4rem, 7vw, 4.6rem); text-shadow: 3px 0 #ff006e, -3px 0 #00e5ff; }
+.theme-vhs .news-question p { font-size: 1.8rem; }

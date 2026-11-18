@@ -21,6 +21,25 @@ class CreatePost(forms.Form):
         initial=True
     )
 
+class NewsFieldsForm(forms.Form):
+    """Champs propres aux actus (création par l'équipe et édition dans le panel)."""
+
+    excerpt = forms.CharField(
+        label='Chapô', required=False,
+        widget=forms.Textarea(attrs={'rows': 3, 'placeholder': "Résumé en une ou deux phrases. Vide : début du contenu."}),
+    )
+    image_alt = forms.CharField(label="Légende de l'image", required=False, max_length=200)
+    source_name = forms.CharField(label='Source', required=False, max_length=200,
+                                  widget=forms.TextInput(attrs={'placeholder': 'Ex. : Gamekult, témoignage sur le forum…'}))
+    source_url = forms.URLField(label='Lien de la source', required=False, max_length=500, assume_scheme='https')
+    forum_prompt = forms.CharField(
+        label='Question du rédacteur', required=False, max_length=255,
+        widget=forms.TextInput(attrs={'placeholder': 'Ex. : Et vous, vous l’aviez cette cartouche ?'}),
+        help_text='Affichée sous l’actu et dans le sujet du forum pour lancer la discussion.',
+    )
+    featured = forms.BooleanField(label='Mettre à la une', required=False)
+
+
 class EditPost(forms.ModelForm):
     class Meta:
         model = Post

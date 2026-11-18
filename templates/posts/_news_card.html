@@ -1,0 +1,17 @@
+{% load news_tags %}{# Carte d'actu : accueil, liste et actus liées. #}
+<article class="news-card">
+    {% include 'posts/_news_cover.html' with post=post size='card' %}
+    <div class="news-card__body">
+        <div class="news-tags">
+            <span class="news-cat">{{ post.category.name }}</span>
+            {% if post.pub_date|is_new %}<span class="news-new">Nouveau</span>{% endif %}
+        </div>
+        <h3 class="news-card__title"><a href="{% url 'view_post' post.slug %}">{{ post.title }}</a></h3>
+        <div class="news-meta">
+            <time class="news-time-rel" datetime="{{ post.pub_date|date:'c' }}">{{ post.pub_date|ago }}</time>
+            <time class="news-time-stamp" datetime="{{ post.pub_date|date:'c' }}">{{ post.pub_date|date:'d/m H:i' }}</time>
+            <span class="news-by">par <b>{{ post.author.username }}</b></span>
+            {% include 'posts/_news_reactions.html' with post=post %}
+        </div>
+    </div>
+</article>

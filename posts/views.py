@@ -7,8 +7,13 @@ from forum.models import Topic, Forum, Post as ForumPost
 from users.leveling import grant_experience
 from django.contrib import messages
 from users.decorators import groups_required
-from posts.forms import CreatePost, EditPost, ContributionForm, parse_chapters
+from posts.forms import CreatePost, EditPost, ContributionForm, NewsFieldsForm, parse_chapters
 from posts.utils import unique_slug
+from posts.news import (
+    XP_FIRST_REACTION_BONUS, XP_REACTION, latest_reactions, news_queryset,
+    publish_news, react_to_news, topic_url,
+)
+from django.urls import reverse
 from django.db import transaction
 from django.template.loader import render_to_string
 from django.http import Http404
@@ -93,7 +98,76 @@ def view_post(request, slug):
     if is_preview:
         context['seo_noindex'] = True
 
+    if post.type == 'news' and not post.post_parent_id:
+        if post.active and not post.topic_id:
+            # Actu publiée avant l'arrivée des discussions : on crée son sujet maintenant.
+            publish_news(post)
+        context.update(_news_context(request, post))
+        return render(request, "posts/news_detail.html", context)
+
     return render(request, "posts/post.html", context)
+
+
+def _news_context(request, post):
+    """Données propres à la page d'une actu : discussion forum et actus voisines."""
+    from forum.models import TopicSubscription
+
+    news = news_queryset()
+    annotated = news.filter(pk=post.pk).first()
+    pub_date = annotated.pub_date if annotated else post.publication_date
+    reactions_count = annotated.reactions if annotated else 0
+    last_activity = annotated.last_activity if annotated else None
+
+    previous_news = news.filter(pub_date__lt=pub_date).first() if post.active else None
+    next_news = news.filter(pub_date__gt=pub_date).order_by('pub_date', 'pk').first() if post.active else None
+    related = list(news.exclude(pk=post.pk).filter(category_id=post.category_id)[:3])
+    if len(related) < 3:
+        related += list(news.exclude(pk__in=[post.pk, *[r.pk for r in related]])[:3 - len(related)])
+
+    subscribe_initial = True
+    first_reaction = True
+    if request.user.is_authenticated and post.topic_id:
+        subscription = TopicSubscription.objects.filter(user=request.user, topic_id=post.topic_id).first()
+        if subscription:
+            subscribe_initial = subscription.active
+        first_reaction = not ForumPost.objects.filter(topic_id=post.topic_id, author=request.user).exists()
+
+    return {
+        'news_pub_date': pub_date,
+        'reactions': latest_reactions(post, 3),
+        'reactions_count': reactions_count,
+        'last_activity': last_activity,
+        'topic_url': topic_url(post.topic) if post.topic_id else None,
+        'topic_locked': bool(post.topic_id and post.topic.state == 'closed'),
+        'previous_news': previous_news,
+        'next_news': next_news,
+        'related_news': related,
+        'subscribe_initial': subscribe_initial,
+        'first_reaction': first_reaction,
+        'xp_reaction': XP_REACTION + (XP_FIRST_REACTION_BONUS if first_reaction else 0),
+        'xp_bonus': XP_FIRST_REACTION_BONUS,
+    }
+
+
+@login_required
+@require_POST
+def news_react(request, slug):
+    """Réaction rapide depuis la page d'une actu : publiée dans le sujet du forum."""
+    post = get_object_or_404(Post.objects.select_related('topic'), slug=slug, type='news', active=True)
+    target = reverse('view_post', args=[post.slug]) + '#discussion'
+    if not post.topic_id or not request.user.is_active:
+        messages.error(request, "La discussion n'est pas disponible pour cette actu.")
+        return redirect(target)
+    if post.topic.state == 'closed' or not post.topic.active:
+        messages.error(request, 'Cette discussion est fermée.')
+        return redirect(target)
+    content = request.POST.get('content', '').strip()
+    if not content:
+        messages.error(request, 'Écris un message avant de publier ta réaction.')
+        return redirect(target)
+    _, xp = react_to_news(post, request.user, content, request.POST.get('subscribe') == 'on')
+    messages.success(request, f'Réaction publiée sur le forum. +{xp} XP !')
+    return redirect(target)
 
 @groups_required('Rédacteur', 'Admininistrateur', 'Super Admin')
 def create_post(request, type):
@@ -103,30 +177,13 @@ def create_post(request, type):
         content = request.POST.get('content')
         active = request.POST.get('active') == 'on'
         image=request.FILES.get('image') if type == 'news' else None
-        forum_link = ''
-
-        # Si c'est une news, on créer aussi un topic sur le forum news
-        if type == 'news':
-            topic = Topic.objects.create(
-                title=title,
-                forum=Forum.objects.get(name='Actus du site'),
-                author=request.user
-            )
-
-            content_forum = f'<p><img src="/media/images/{image}"></p><p>{content}</p>'
-
-            forum_post = ForumPost.objects.create(
-                topic=topic,
-                content=content_forum,
-                author=request.user
-            )
-
-            grant_experience(request.user, 20)
-
-            topic.save()
-            forum_post.save()
-
-            forum_link = f'forum/{topic.forum.id}/{topic.id}/'
+        news_form = NewsFieldsForm(request.POST) if type == 'news' else None
+        if news_form is not None and not news_form.is_valid():
+            messages.error(request, "Certains champs de l'actu sont invalides.")
+            return render(request, "posts/create_post.html", {
+                'type': type, 'post_form': CreatePost(request.POST), 'news_form': news_form,
+            })
+        news_fields = news_form.cleaned_data if news_form is not None else {}
 
         post = Post.objects.create(
             slug=unique_slug(title),
@@ -137,12 +194,10 @@ def create_post(request, type):
             image=image,
             author=request.user,
             active=active,
-            forum_link=forum_link
+            **news_fields,
         )
-
-        post.save()
-
-
+        # Le sujet du forum n'est créé qu'une fois l'actu en ligne.
+        publish_news(post)
 
         messages.success(request, 'Post créer avec succès !')
 
@@ -151,6 +206,7 @@ def create_post(request, type):
     context = {
         'type': type,
         'post_form': CreatePost(),
+        'news_form': NewsFieldsForm() if type == 'news' else None,
     }
 
     return render(request, "posts/create_post.html", context)

@@ -78,7 +78,7 @@ class PostViewsTest(TestCase):
     def test_view_post(self):
         response = self.client.get(reverse('view_post', args=[self.post.slug]))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'posts/post.html')  # Template réel utilisé
+        self.assertTemplateUsed(response, 'posts/news_detail.html')  # Une actu a sa propre page
         self.assertContains(response, 'Test Post')
         self.assertContains(response, 'Test content')
     
