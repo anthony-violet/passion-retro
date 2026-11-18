@@ -233,6 +233,44 @@ class LevelingTest(TestCase):
 
         self.assertEqual(self.user.money, STARTING_GOLD + 14)
 
+    def test_action_gold_is_credited_without_level_up(self):
+        from users.leveling import GOLD_SMALL_ACTION, grant_experience
+
+        gold = self._gold_item()
+        self.user.inventory.create(item=gold, quantity=50)
+        self.user.levels.create(level=1, experience=0)
+        grant_experience(self.user, 10, gold=GOLD_SMALL_ACTION)
+
+        self.assertEqual(self.user.money, 51)
+
+    def test_action_gold_adds_to_level_gold(self):
+        from users.leveling import GOLD_BIG_ACTION, grant_experience
+
+        gold = self._gold_item()
+        self.user.inventory.create(item=gold, quantity=50)
+        self.user.levels.create(level=1, experience=0)
+        grant_experience(self.user, 20, gold=GOLD_BIG_ACTION)  # niveau 2
+
+        self.assertEqual(self.user.money, 50 + 2 + 14)
+
+    def test_forum_reply_gives_one_gold(self):
+        from forum.models import Category as ForumCategory, Forum, Topic
+
+        gold = self._gold_item()
+        self.user.inventory.create(item=gold, quantity=50)
+        forum = Forum.objects.create(
+            name='Général', description='', author=self.user,
+            category=ForumCategory.objects.create(name='Cat', description=''),
+        )
+        topic = Topic.objects.create(title='Sujet', forum=forum, author=self.user)
+        self.client.force_login(self.user)
+        self.client.post(
+            reverse('post_list', args=[forum.id, topic.id]),
+            {'content': 'Une réponse sur le forum'},
+        )
+
+        self.assertEqual(self.user.money, 51)
+
 
 
 class LevelTitleTest(TestCase):

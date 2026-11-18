@@ -12,6 +12,11 @@ GOLD_LEVEL_BASE = 10
 GOLD_LEVEL_STEP = 2
 
 
+# Or gagné pour une action communautaire, en plus de l'XP.
+GOLD_SMALL_ACTION = 1  # réponse, réaction, commentaire, contribution
+GOLD_BIG_ACTION = 2    # nouveau sujet, article, actu ou souvenir publié
+
+
 def gold_for_level(level):
     """Or offert pour avoir atteint le niveau ``level``."""
     return GOLD_LEVEL_BASE + GOLD_LEVEL_STEP * level
@@ -23,8 +28,10 @@ def gold_for_levels(new_level, levels_gained=1):
     return sum(gold_for_level(level) for level in range(max(2, first), new_level + 1))
 
 
-def grant_experience(user, amount):
+def grant_experience(user, amount, gold=0):
     """Ajoute de l'expérience à un utilisateur et gère les passages de niveau.
+
+    ``gold`` crédite en plus des pièces d'or pour l'action récompensée.
 
     Le calcul repose sur une expérience cumulée : plusieurs niveaux peuvent être
     franchis d'un seul coup. L'opération est atomique et renvoie le nombre de
@@ -52,6 +59,9 @@ def grant_experience(user, amount):
             levels_gained += 1
 
         user_level.save(update_fields=['level', 'experience'])
+
+        if gold > 0:
+            _add_gold(user, gold)
 
         if levels_gained:
             award_level_rewards(user, user_level.level, levels_gained, user_level.experience)

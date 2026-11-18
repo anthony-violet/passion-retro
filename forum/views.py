@@ -12,7 +12,7 @@ from .forms import CreateTopic, CreatePost, EditPost
 from .notifications import notify_topic_subscribers, update_subscription
 from django.db.models import Max, F
 from users.decorators import groups_required
-from users.leveling import grant_experience
+from users.leveling import GOLD_BIG_ACTION, GOLD_SMALL_ACTION, grant_experience
 from passion_retro.seo import absolute_url, breadcrumb_jsonld, discussion_jsonld, plain_text
 from posts.models import Post as Article
 
@@ -215,7 +215,7 @@ def create_topic(request, forum_id):
         )
         notify_topic_subscribers(post)
         messages.success(request, 'Topic créer avec succès.')
-        grant_experience(request.user, 15)
+        grant_experience(request.user, 15, gold=GOLD_BIG_ACTION)
         # on renvoie l'utilisateur sur la page du topic contenu l'id du forum et du topic créer
         return redirect('post_list', forum_id=forum_id, topic_id=topic.id)
     
@@ -273,7 +273,7 @@ def topic_detail(request, topic_id, forum_id):
                 post_form.cleaned_data.get('subscribe', False),
             )
             notify_topic_subscribers(post)
-            grant_experience(request.user, 10)
+            grant_experience(request.user, 10, gold=GOLD_SMALL_ACTION)
             messages.success(request, 'Message posté avec succès.')
             post_form = CreatePost(
                 initial={'subscribe': subscription.active},

@@ -81,7 +81,7 @@ def publish_news(post):
     """
     if post.type != 'news' or not post.active or post.post_parent_id:
         return
-    from users.leveling import grant_experience
+    from users.leveling import GOLD_BIG_ACTION, GOLD_SMALL_ACTION, grant_experience
 
     updates = {}
     if post.published_at is None:
@@ -105,7 +105,7 @@ def publish_news(post):
             setattr(post, field, value)
         type(post).objects.filter(pk=post.pk).update(**updates)
     if created_topic:
-        grant_experience(post.author, XP_NEWS_PUBLISHED)
+        grant_experience(post.author, XP_NEWS_PUBLISHED, gold=GOLD_BIG_ACTION)
 
 
 def react_to_news(post, user, content, subscribe):
@@ -114,7 +114,7 @@ def react_to_news(post, user, content, subscribe):
     Retourne (message_forum, xp_gagnée).
     """
     from forum.notifications import notify_topic_subscribers, update_subscription
-    from users.leveling import grant_experience
+    from users.leveling import GOLD_BIG_ACTION, GOLD_SMALL_ACTION, grant_experience
 
     topic = post.topic
     first_reaction = not ForumPost.objects.filter(topic=topic, author=user).exists()
@@ -123,7 +123,7 @@ def react_to_news(post, user, content, subscribe):
     update_subscription(user, topic, subscribe)
     notify_topic_subscribers(forum_post)
     xp = XP_REACTION + (XP_FIRST_REACTION_BONUS if first_reaction else 0)
-    grant_experience(user, xp)
+    grant_experience(user, xp, gold=GOLD_SMALL_ACTION)
     return forum_post, xp
 
 

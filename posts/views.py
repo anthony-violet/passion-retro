@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from posts.models import Post, Category, NavSection
 from forum.models import Topic, Forum, Post as ForumPost
-from users.leveling import grant_experience
+from users.leveling import GOLD_BIG_ACTION, grant_experience
 from django.contrib import messages
 from users.decorators import groups_required
 from posts.forms import CreatePost, EditPost, ContributionForm, NewsFieldsForm, parse_chapters
@@ -334,7 +334,7 @@ def contribution_form(request, type, post=None):
 
                 # L'expérience n'est gagnée qu'au premier envoi, pas pour un brouillon.
                 if first_submission:
-                    grant_experience(request.user, 10 + 5 * len(chapters))
+                    grant_experience(request.user, 10 + 5 * len(chapters), gold=GOLD_BIG_ACTION)
 
             if is_draft:
                 messages.success(request, "Brouillon enregistré. Il n'est visible que par toi : reviens le terminer quand tu veux.")

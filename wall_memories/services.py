@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from users.leveling import grant_experience
+from users.leveling import GOLD_BIG_ACTION, GOLD_SMALL_ACTION, grant_experience
 
 from .models import Memory, MemoryComment
 
@@ -20,7 +20,7 @@ def grant_memory_xp(memory):
     """XP accordée une seule fois, au moment où le souvenir est validé."""
     if memory.xp_granted:
         return 0
-    levels = grant_experience(memory.author, XP_MEMORY_PUBLISHED)
+    levels = grant_experience(memory.author, XP_MEMORY_PUBLISHED, gold=GOLD_BIG_ACTION)
     Memory.objects.filter(pk=memory.pk).update(xp_granted=True)
     memory.xp_granted = True
     return levels
@@ -46,7 +46,7 @@ def grant_comment_xp(comment):
     if rewarded_today >= COMMENT_XP_DAILY_LIMIT:
         return False
 
-    grant_experience(comment.author, XP_COMMENT)
+    grant_experience(comment.author, XP_COMMENT, gold=GOLD_SMALL_ACTION)
     MemoryComment.objects.filter(pk=comment.pk).update(xp_granted=True)
     comment.xp_granted = True
     return True

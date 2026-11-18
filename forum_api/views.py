@@ -4,7 +4,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from users.leveling import grant_experience
+from users.leveling import GOLD_BIG_ACTION, GOLD_SMALL_ACTION, grant_experience
 from forum.models import Category, Forum, Topic, Post
 from django.contrib.auth import get_user_model
 from users.models import APIKey
@@ -256,7 +256,7 @@ def create_topic(request):
         content=content[:Post._meta.get_field('content').max_length],
     )
 
-    grant_experience(request.user, 15)
+    grant_experience(request.user, 15, gold=GOLD_BIG_ACTION)
 
     topic_data = {
         'id': topic.id,
@@ -310,7 +310,7 @@ def create_post(request, topic_id):
         content=content[:Post._meta.get_field('content').max_length],
     )
 
-    grant_experience(request.user, 10)
+    grant_experience(request.user, 10, gold=GOLD_SMALL_ACTION)
 
     post_data = {
         'id': post.id,
@@ -367,7 +367,7 @@ def contribute_ephemeride(request):
         status=ContributedEphemeride.STATUS_PENDING,
     )
 
-    grant_experience(request.user, 20)
+    grant_experience(request.user, 20, gold=GOLD_SMALL_ACTION)
 
     return JsonResponse({
         'id': contributed.id,
