@@ -390,3 +390,46 @@ class ProfileRetroInfoTest(TestCase):
         self.assertContains(response, 'Mon univers rétro')
         self.assertContains(response, 'Mon anecdote')
         self.assertNotContains(response, 'Complète ton profil')
+
+
+class LevelUpMessageTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='grimpeur', email='g@test.com', password='testpass123')
+        self.bot = User.objects.create_user(username='RetroBot', email='bot@test.com', password='testpass123')
+
+    def test_message_mentions_level_gold_and_next_step(self):
+        from users.leveling import level_up_message
+
+        subject, body = level_up_message(self.user, 3, levels_gained=1, gold=20, experience=200)
+        self.assertIn('Niveau 3', subject)
+        self.assertIn('[b]niveau 3[/b]', body)
+        self.assertIn('20 pièces d\'or', body)
+        self.assertIn('niveau 4, encore [b]49 XP[/b]', body)  # 249 - 200
+        self.assertNotIn("d'un coup", body)
+        self.assertNotIn('Nouveau titre', body)
+
+    def test_message_celebrates_new_title_and_multiple_levels(self):
+        from users.leveling import level_up_message
+
+        _, body = level_up_message(self.user, 5, levels_gained=2)
+        self.assertIn("2 niveaux d'un coup", body)
+        self.assertIn('[b]Apprenti[/b]', body)
+        self.assertNotIn("pièces d'or", body)  # pas d'or ajouté : on n'en parle pas
+
+    def test_long_username_keeps_subject_within_limit(self):
+        from users.leveling import level_up_message
+
+        self.user.username = 'x' * 120
+        subject, _ = level_up_message(self.user, 2)
+        self.assertLessEqual(len(subject), 100)
+
+    def test_retrobot_sends_message_on_level_up(self):
+        from messagerie.models import PrivateMessage
+        from users.leveling import grant_experience
+
+        self.user.levels.create(level=1, experience=0)
+        grant_experience(self.user, 20)
+        message = PrivateMessage.objects.select_related('subject').get(author=self.bot)
+        self.assertEqual(message.subject.receiver, self.user)
+        self.assertIn('Niveau 2', message.subject.subject)
+        self.assertIn('Hé grimpeur', message.message)
