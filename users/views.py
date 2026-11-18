@@ -14,7 +14,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from .models import User
-from .leveling import grant_experience
+from .leveling import STARTING_GOLD, grant_experience
 import urllib.request
 import json
 
@@ -272,7 +272,7 @@ def new_feature_user(request):
         from shop.models import Item
         gold_item = Item.objects.filter(name='Or').first() or Item.objects.order_by('pk').first()
         if gold_item is not None:
-            request.user.inventory.get_or_create(item=gold_item, defaults={'quantity': 100})
+            request.user.inventory.get_or_create(item=gold_item, defaults={'quantity': STARTING_GOLD})
     return render(request, "features/new_feature_user_inventory.html")
 
 @login_required

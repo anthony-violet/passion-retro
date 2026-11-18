@@ -3,7 +3,24 @@ from django.db.models import F
 
 from .models import UserLevel, level_title, xp_required
 
-GOLD_PER_LEVEL = 20
+# Or offert à l'ouverture de l'inventaire.
+STARTING_GOLD = 100
+# Or gagné en atteignant le niveau N : GOLD_LEVEL_BASE + GOLD_LEVEL_STEP * N.
+# La récompense grandit avec le niveau pour suivre le coût en XP, qui lui
+# augmente avec le carré du niveau.
+GOLD_LEVEL_BASE = 10
+GOLD_LEVEL_STEP = 2
+
+
+def gold_for_level(level):
+    """Or offert pour avoir atteint le niveau ``level``."""
+    return GOLD_LEVEL_BASE + GOLD_LEVEL_STEP * level
+
+
+def gold_for_levels(new_level, levels_gained=1):
+    """Or total pour les ``levels_gained`` niveaux franchis jusqu'à ``new_level``."""
+    first = new_level - levels_gained + 1
+    return sum(gold_for_level(level) for level in range(max(2, first), new_level + 1))
 
 
 def grant_experience(user, amount):
@@ -44,7 +61,7 @@ def grant_experience(user, amount):
 
 def award_level_rewards(user, new_level, levels_gained, experience=None):
     """Envoie le message et l'or de récompense, sans jamais bloquer le gain d'XP."""
-    gold = GOLD_PER_LEVEL * levels_gained
+    gold = gold_for_levels(new_level, levels_gained)
     gold_added = _add_gold(user, gold)
     _send_level_message(
         user, new_level,
@@ -106,14 +123,24 @@ def _send_level_message(user, new_level, levels_gained=1, gold=0, experience=Non
 
 
 def _add_gold(user, amount):
+    """Crédite ``amount`` pièces d'or.
+
+    Si l'utilisateur n'a pas encore d'or dans son inventaire, l'entrée est créée
+    avec l'or de départ en plus : sinon la récompense serait perdue.
+    """
+    from shop.models import Item
+
     from .models import UserInventory
 
-    inventory_item = UserInventory.objects.filter(
-        user=user, item__name='Or'
-    ).first()
-    if inventory_item is None:
+    gold_item = Item.objects.filter(name='Or').first()
+    if gold_item is None:
         return False
-    UserInventory.objects.filter(pk=inventory_item.pk).update(
-        quantity=F('quantity') + amount
+    inventory_item, created = UserInventory.objects.get_or_create(
+        user=user, item=gold_item,
+        defaults={'quantity': STARTING_GOLD + amount},
     )
+    if not created:
+        UserInventory.objects.filter(pk=inventory_item.pk).update(
+            quantity=F('quantity') + amount
+        )
     return True
