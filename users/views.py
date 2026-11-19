@@ -175,6 +175,7 @@ def login(request):
     return render(request, 'users/login.html', {'form': form})
 
 def _profile_context(user):
+    from shop.services import showcase_entries
     from forum.models import Topic
     from forum.models import Post as ForumPost
     from posts.models import Post as Article
@@ -184,6 +185,7 @@ def _profile_context(user):
         'forum_posts': ForumPost.objects.filter(author=user).count(),
         'posts': Article.objects.filter(author=user).count(),
         'memories': _published_memories(user),
+        'showcase': showcase_entries(user),
     }
 
 

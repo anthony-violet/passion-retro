@@ -1,5 +1,5 @@
 {% extends 'forum_layout.html' %}
-{% load forum_extras %}
+{% load forum_extras shop_tags %}
 {% load users_custom_tags %}
 {% load paginator_tag %}
 {% load bbcode_tags %}
@@ -42,6 +42,7 @@
                   class="vhs-segment__username {{ post.author.username_decoration }}">
                 <a href="{% url 'profile' post.author.id %}">{{ post.author.username }}</a>
             </span>
+            {% featured_collectible post.author %}
 
             <div class="vhs-segment__date">{{ post.created|date:"d/m/y H:i" }}</div>
 
@@ -153,7 +154,7 @@
                         </div>
                         {% user_level_badge post.author %}
                     </div>
-                    <span id="author-post-{{ post.id }}" class="rpg-post-author {{ post.author.username_decoration }}"><a href="{% url 'profile' post.author.id %}">{{ post.author.username }}</a></span>
+                    <span id="author-post-{{ post.id }}" class="rpg-post-author {{ post.author.username_decoration }}"><a href="{% url 'profile' post.author.id %}">{{ post.author.username }}</a></span>{% featured_collectible post.author %}
                     <span class="forum-level-title rpg-post-level">{{ post.author.level_title }}</span>
 
                     <ul class="rpg-post-author-info">
@@ -259,7 +260,7 @@
 
             {% for post in posts %}
                 <div class="forum-header" id="{{ post.id }}">
-                    <div class="forum-column-detail"><div class="row"><span id="author-post-{{ post.id }}" class="{{ post.author.username_decoration }}" style="font-size:1.3rem;">{{ post.author.username }}</span> <small>le {{ post.created }}</small></div></div>
+                    <div class="forum-column-detail"><div class="row"><span id="author-post-{{ post.id }}" class="{{ post.author.username_decoration }}" style="font-size:1.3rem;">{{ post.author.username }}</span>{% featured_collectible post.author %} <small>le {{ post.created }}</small></div></div>
                 </div>
                 <div class="forum-body">
                     <div class="forum-row">

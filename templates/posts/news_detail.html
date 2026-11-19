@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% load static news_tags %}
+{% load static news_tags shop_tags %}
 
 {% block extracss %}
     <link rel="stylesheet" href="{% static 'css/news.css' %}">
@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block extrajs %}
-    {% if show_review_bar and can_review %}<script src="{% static 'js/utils/contribute_editor.js' %}" defer></script>{% endif %}
+    {% if show_review_bar and can_review %}<script src="{% static 'js/utils/contribute_editor.js' %}?v=collection" defer></script>{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -30,7 +30,7 @@
             <div class="news-byline">
                 <img class="news-avatar news-avatar--lg" src="/media/{{ post.author.avatar }}" alt="">
                 <div class="news-byline__who">
-                    <a href="{% url 'profile' post.author.id %}" class="news-author {{ post.author.username_decoration|default:'' }}" data-text="{{ post.author.username }}">{{ post.author.username }}</a>
+                    <a href="{% url 'profile' post.author.id %}" class="news-author {{ post.author.username_decoration|default:'' }}" data-text="{{ post.author.username }}">{{ post.author.username }}</a>{% featured_collectible post.author %}
                     <span>
                         Niveau {{ post.author.level_number }} ·
                         Publié le <time datetime="{{ news_pub_date|date:'c' }}">{{ news_pub_date|date:"j F Y à H:i" }}</time> ·
@@ -83,7 +83,7 @@
                     <img class="news-avatar" src="/media/{{ r.author.avatar }}" alt="">
                     <div>
                         <div class="news-reply__top">
-                            <a href="{% url 'profile' r.author.id %}" class="news-author {{ r.author.username_decoration|default:'' }}" data-text="{{ r.author.username }}">{{ r.author.username }}</a>
+                            <a href="{% url 'profile' r.author.id %}" class="news-author {{ r.author.username_decoration|default:'' }}" data-text="{{ r.author.username }}">{{ r.author.username }}</a>{% featured_collectible r.author %}
                             <span class="news-lvl">Niv. {{ r.author.level_number }}</span>
                             <time datetime="{{ r.created|date:'c' }}">{{ r.created|ago }}</time>
                         </div>

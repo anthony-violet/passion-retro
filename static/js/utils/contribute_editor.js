@@ -47,6 +47,8 @@
             } else if (button.dataset.insert === 'link') {
                 const url = window.prompt('Adresse du lien :', 'https://');
                 if (url && url !== 'https://') wrapSelection(textarea, '[url=' + url.trim() + ']', '[/url]');
+            } else if (button.dataset.insert === 'collection' && window.openCollectionPicker) {
+                window.openCollectionPicker(button, (tag) => wrapSelection(textarea, tag, ''));
             }
         });
 

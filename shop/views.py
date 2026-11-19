@@ -1,11 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from .models import Category, Item
-from .services import ShopError, equipped_items, purchase
+from .services import (SHOWCASE_SIZE, ShopError, equipped_items, purchase, toggle_featured,
+                       toggle_showcase)
 
 SORTS = {
     'prix': ('Prix croissant', lambda item: (item.sale_price, item.name.lower())),
@@ -85,6 +87,7 @@ def inventory(request):
                    .select_related('item__category').order_by('item__kind', '-acquired_at'))
     for entry in entries:
         entry.equipped = entry.item.is_equipped_by(request.user)
+        entry.featured = entry.item_id == request.user.featured_collectible_id
 
     kinds = [(code, label) for code, label in Item.KIND_CHOICES
              if any(entry.item.kind == code for entry in entries)]
@@ -99,9 +102,39 @@ def inventory(request):
         'total': len(entries),
         'kinds': kinds,
         'current_kind': current_kind,
+        'showcase_count': sum(1 for e in entries if e.showcased and e.item.kind == Item.KIND_COLLECTIBLE),
+        'showcase_size': SHOWCASE_SIZE,
         'slots': [
             (Item.KIND_FRAME, "Cadre d'avatar", slots[Item.KIND_FRAME]),
             (Item.KIND_USERNAME, 'Décoration de pseudo', slots[Item.KIND_USERNAME]),
             (Item.KIND_THEME, 'Thème', slots[Item.KIND_THEME]),
         ],
     })
+
+
+@login_required
+@require_POST
+def collectible_action(request, item_id):
+    """Objet de collection : le mettre en avant à côté du pseudo, ou l'exposer dans la vitrine."""
+    action = toggle_showcase if request.POST.get('action') == 'showcase' else toggle_featured
+    try:
+        messages.success(request, action(request.user, item_id))
+    except ShopError as error:
+        messages.error(request, str(error))
+    next_url = request.POST.get('next', '')
+    if next_url.startswith('/shop/') and not next_url.startswith('//'):
+        return redirect(next_url)
+    return redirect('shop_inventory')
+
+
+def my_collection(request):
+    """Objets de collection du membre, pour le bouton « Collection » de l'éditeur BBCode."""
+    if not request.user.is_authenticated:
+        return JsonResponse({'items': [], 'login_required': True})
+    entries = (request.user.inventory.filter(quantity__gt=0, item__kind=Item.KIND_COLLECTIBLE)
+               .select_related('item').order_by('-acquired_at'))
+    return JsonResponse({'items': [
+        {'id': entry.pk, 'name': entry.item.name, 'rarity': entry.item.get_rarity_display(),
+         'image': entry.item.visual_url}
+        for entry in entries
+    ]})

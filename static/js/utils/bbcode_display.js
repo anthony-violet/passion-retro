@@ -125,6 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         }
                     }
+                } else if (event.target.tagName === 'BUTTON' && event.target.classList.contains('bbcode-bar-button-collection')) {
+                    event.preventDefault();
+                    if (window.openCollectionPicker) {
+                        window.openCollectionPicker(event.target, (tag) => insertBBCode(tag, ''));
+                    }
                 } else if (event.target.tagName === 'BUTTON' && event.target.classList.contains('bbcode-bar-button-colors')) {
                     event.preventDefault();
                     

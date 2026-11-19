@@ -119,6 +119,16 @@ class Item(models.Model):
         return _builtin_visual(self.slug)
 
     @property
+    def visual_url(self):
+        """Image envoyée depuis le panel, sinon illustration versionnée, sinon ''."""
+        if self.image:
+            return self.image.url
+        if self.builtin_visual:
+            from django.templatetags.static import static
+            return static(self.builtin_visual)
+        return ''
+
+    @property
     def rarity_rank(self):
         return self.RARITY_ORDER.get(self.rarity, 0)
 

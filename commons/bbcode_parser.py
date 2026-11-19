@@ -4,6 +4,9 @@ import re
 # Schémas d'URL autorisés dans les liens et images (le reste est neutralisé).
 SAFE_URL = re.compile(r'^(https?:|mailto:|/|#|\?|[^:]*$)', re.IGNORECASE)
 URL_ATTR = re.compile(r'(href|src)="([^"]*)"')
+# [objet]42[/objet] : 42 = ligne d'inventaire (shop) du membre qui expose l'objet.
+COLLECTIBLE_TAG = re.compile(r'\[objet\]\s*(\d{1,10})\s*\[/objet\]', re.IGNORECASE)
+MAX_COLLECTIBLES_PER_TEXT = 6
 
 class BBCodeParser:
     def __init__(self):
@@ -76,6 +79,23 @@ class BBCodeParser:
         # Enveloppe dans pre/code sans modifier les \n
         return f'''<pre class="language-{language}"><code class="language-{language}">{escaped_content}</code></pre>'''
 
+    def _extract_collectibles(self, text, cards):
+        ids = []
+        for match in COLLECTIBLE_TAG.finditer(text):
+            pk = int(match.group(1))
+            if pk not in ids:
+                ids.append(pk)
+        if not ids:
+            return text
+        entries = _collectible_entries(ids[:MAX_COLLECTIBLES_PER_TEXT])
+
+        def replace(match):
+            entry = entries.get(int(match.group(1)))
+            cards.append(_collectible_card(entry))
+            return f'@@OBJET_{len(cards) - 1}@@'
+
+        return COLLECTIBLE_TAG.sub(replace, text)
+
     @staticmethod
     def _safe_url(match):
         value = html_lib.unescape(match.group(2))
@@ -103,6 +123,10 @@ class BBCodeParser:
 
         if not allow_html:
             text = html_lib.escape(text, quote=True)
+
+        # Objets de collection : remplacés par un repère, restaurés à la fin.
+        collectibles = []
+        text = self._extract_collectibles(text, collectibles)
         
         # Les listes d'abord : chaque [*] doit englober son texte.
         previous = None
@@ -130,4 +154,39 @@ class BBCodeParser:
                 lang = re.sub(r'[^\w+-]', '', lang) or 'none'
             text = text.replace(f'@@CODE_BLOCK_{i}@@', self._handle_code(content, lang))
 
-        return URL_ATTR.sub(self._safe_url, text)
+        text = URL_ATTR.sub(self._safe_url, text)
+        for i, card in enumerate(collectibles):
+            text = text.replace(f'@@OBJET_{i}@@', card)
+        return text
+
+
+def _collectible_entries(ids):
+    """{id de ligne d'inventaire: ligne} pour les objets de collection encore possédés."""
+    try:
+        from shop.models import Item
+        from users.models import UserInventory
+    except ImportError:  # pragma: no cover - apps absentes
+        return {}
+    entries = (UserInventory.objects.select_related('item', 'user')
+               .filter(pk__in=ids, quantity__gt=0, item__kind=Item.KIND_COLLECTIBLE))
+    return {entry.pk: entry for entry in entries}
+
+
+def _collectible_card(entry):
+    esc = html_lib.escape
+    if entry is None:
+        return ('<span class="collectible-card collectible-card--inline collectible-card--missing">'
+                'Objet de collection indisponible</span>')
+    item = entry.item
+    url = item.visual_url
+    visual = f'<img src="{esc(url)}" alt="">' if url else '<span aria-hidden="true">💎</span>'
+    limited = ' · Série limitée' if item.is_limited else ''
+    return (
+        f'<span class="collectible-card collectible-card--inline collectible-card--{esc(item.rarity)}">'
+        f'<span class="collectible-card__visual">{visual}</span>'
+        f'<span class="collectible-card__text">'
+        f'<strong class="collectible-card__name">{esc(item.name)}</strong><br>'
+        f'<span class="collectible-card__rarity">{esc(item.get_rarity_display())}{limited}</span><br>'
+        f'<span class="collectible-card__owner">Collection de {esc(entry.user.username)}</span>'
+        f'</span></span>'
+    )

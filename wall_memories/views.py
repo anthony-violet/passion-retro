@@ -62,7 +62,7 @@ def _render(request, name, context):
 def _published():
     return (
         Memory.objects.filter(status=Memory.STATUS_PUBLISHED)
-        .select_related('author')
+        .select_related('author__featured_collectible')
         .prefetch_related('consoles', 'author__levels')
     )
 
@@ -202,7 +202,7 @@ def detail(request, pk, slug=None):
 
     comments = (
         memory.comments.filter(status=MemoryComment.STATUS_PUBLISHED)
-        .select_related('author')
+        .select_related('author__featured_collectible')
         .prefetch_related('author__levels')
     )
     others = (

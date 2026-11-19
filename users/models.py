@@ -71,6 +71,11 @@ class User(AbstractUser):
     starting_gold_given = models.BooleanField(default=False)
     # Fin du boost d'XP x2 obtenu avec un consommable de la boutique.
     xp_boost_until = models.DateTimeField(blank=True, null=True)
+    # Objet de collection mis en avant à côté du pseudo (forum, livre d'or…).
+    featured_collectible = models.ForeignKey(
+        Item, verbose_name="Objet fétiche", on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='+',
+    )
 
     groups = models.ManyToManyField(
         Group,
@@ -184,6 +189,8 @@ class UserInventory(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     acquired_at = models.DateTimeField(default=timezone.now)
+    # Exposé dans la vitrine du profil public (objets de collection, 3 au plus).
+    showcased = models.BooleanField("En vitrine", default=False)
 
     def __str__(self):
         return self.item.name

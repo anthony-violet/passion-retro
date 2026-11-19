@@ -9,7 +9,8 @@
         <div class="sh-header__intro">
             <div>
                 <h2>Mon inventaire</h2>
-                <p>{{ total }} objet{{ total|pluralize }} dans ton sac. Clique sur un objet pour l'équiper, le retirer ou l'utiliser.</p>
+                <p>{{ total }} objet{{ total|pluralize }} dans ton sac. Clique sur un objet pour l'équiper, le retirer ou l'utiliser.
+                Tes objets de collection peuvent s'afficher à côté de ton pseudo, dans la vitrine de ton profil ({{ showcase_count }}/{{ showcase_size }}) ou dans tes messages avec le bouton « Collection ».</p>
             </div>
         </div>
         <div class="sh-wallet">
@@ -57,7 +58,7 @@
     <div class="sh-grid">
         {% for entry in entries %}
         {% with item=entry.item %}
-        <article class="sh-card sh-rarity--{{ item.rarity }}{% if entry.equipped %} is-equipped{% endif %}">
+        <article class="sh-card sh-rarity--{{ item.rarity }}{% if entry.equipped or entry.featured %} is-equipped{% endif %}">
             <div class="sh-card__badges">
                 <span class="sh-badge sh-badge--rarity">{{ item.get_rarity_display }}</span>
                 {% if entry.quantity > 1 %}<span class="sh-badge">x{{ entry.quantity }}</span>{% endif %}
@@ -83,8 +84,29 @@
                         <button type="submit" class="btn btn-small btn-add">Utiliser</button>
                     {% endif %}
                 </form>
-                {% else %}
-                    <span class="sh-status">Collection</span>
+                {% elif item.kind == 'collectible' %}
+                <div class="sh-collect-actions">
+                    <form method="post" action="{% url 'shop_collectible_action' item.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <input type="hidden" name="action" value="featured">
+                        {% if entry.featured %}
+                            <button type="submit" class="btn btn-small btn-danger" title="Ne plus l'afficher à côté de ton pseudo">★ Fétiche · retirer</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-small btn-add" title="L'afficher à côté de ton pseudo sur le forum, le livre d'or…">☆ Mettre en avant</button>
+                        {% endif %}
+                    </form>
+                    <form method="post" action="{% url 'shop_collectible_action' item.pk %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <input type="hidden" name="action" value="showcase">
+                        {% if entry.showcased %}
+                            <button type="submit" class="btn btn-small btn-danger" title="Retirer de la vitrine de ton profil">🏆 Vitrine · retirer</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-small"{% if showcase_count >= showcase_size %} disabled title="Vitrine pleine ({{ showcase_size }} objets)"{% else %} title="L'exposer dans la vitrine de ton profil"{% endif %}>🏆 En vitrine</button>
+                        {% endif %}
+                    </form>
+                </div>
                 {% endif %}
             </footer>
         </article>

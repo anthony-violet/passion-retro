@@ -51,7 +51,7 @@ def latest_reactions(post, limit=3):
     posts = ForumPost.objects.filter(topic_id=post.topic_id, active=True)
     opening = posts.order_by('created', 'pk').values_list('pk', flat=True).first()
     latest = (
-        posts.exclude(pk=opening).select_related('author')
+        posts.exclude(pk=opening).select_related('author__featured_collectible')
         .prefetch_related('author__levels').order_by('-created', '-pk')[:limit]
     )
     return list(reversed(latest))

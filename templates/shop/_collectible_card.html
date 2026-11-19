@@ -1,0 +1,11 @@
+{% comment %}Carte d'un objet de collection (vitrine du profil). Variables : item, owner.{% endcomment %}
+<figure class="collectible-card collectible-card--{{ item.rarity }}">
+    <div class="collectible-card__visual">
+        {% if item.visual_url %}<img src="{{ item.visual_url }}" alt="">{% else %}<span aria-hidden="true">💎</span>{% endif %}
+    </div>
+    <figcaption>
+        <strong class="collectible-card__name">{{ item.name }}</strong>
+        <span class="collectible-card__rarity">{{ item.get_rarity_display }}{% if item.is_limited %} · Série limitée{% endif %}</span>
+        {% if owner.featured_collectible_id == item.pk %}<span class="collectible-card__featured">★ Objet fétiche</span>{% endif %}
+    </figcaption>
+</figure>

@@ -295,7 +295,7 @@ def topic_detail(request, topic_id, forum_id):
 
     posts = Post.objects.filter(
         topic=topic, active=True
-    ).select_related('author').prefetch_related('author__levels').order_by(
+    ).select_related('author__featured_collectible').prefetch_related('author__levels').order_by(
         'created'
     )
     paginator = Paginator(posts, 20)

@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block extrajs %}
-    <script src="{% static 'js/utils/contribute_editor.js' %}" defer></script>
+    <script src="{% static 'js/utils/contribute_editor.js' %}?v=collection" defer></script>
     {% if request.user.is_staff %}<script src="{% static 'js/utils/ai_assistant.js' %}" defer></script>{% endif %}
 {% endblock %}
 

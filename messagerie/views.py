@@ -22,7 +22,7 @@ def view_message(request, message_id):
     if (pm_message.receiver != request.user and pm_message.sender != request.user) or not pm_message.is_active:
         return redirect('pm_home')
 
-    private_messages = PrivateMessage.objects.filter(subject=pm_message).order_by('date_sent')
+    private_messages = PrivateMessage.objects.filter(subject=pm_message).select_related('author__featured_collectible').order_by('date_sent')
 
     form = PrivateMessageForm(request.POST or None)
 

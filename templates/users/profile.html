@@ -118,6 +118,24 @@
             </div>
         </div>
 
+        {% if showcase or user.id == request.user.id %}
+        <div class="profile-card profile-showcase">
+            <h3>🏆 {% if user.id == request.user.id %}Ma vitrine{% else %}Sa vitrine{% endif %}</h3>
+            {% if showcase %}
+                <div class="collectible-showcase">
+                    {% for entry in showcase %}
+                        {% include "shop/_collectible_card.html" with item=entry.item owner=user %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="no-items">Ta vitrine est vide. Expose jusqu'à 3 objets de collection depuis ton inventaire.</p>
+            {% endif %}
+            {% if user.id == request.user.id %}
+                <p><a href="{% url 'shop_inventory' %}?type=collectible" class="btn btn-small">Gérer ma vitrine</a></p>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <div class="profile-card profile-memories">
             <h3>🧡 {% if user.id == request.user.id %}Mes souvenirs{% else %}Ses souvenirs{% endif %}</h3>
             {% if memories %}

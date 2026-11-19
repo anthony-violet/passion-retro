@@ -1,5 +1,5 @@
 {% extends 'layout.html' %}
-{% load forum_extras %}
+{% load forum_extras shop_tags %}
 {% load users_custom_tags %}
 {% load paginator_tag %}
 {% load bbcode_tags %}
@@ -36,7 +36,7 @@
                             {% user_level_badge message.author %}
                         </div>
 
-                        <span id="author-post-{{ message.id }}" class="rpg-post-author {{ message.author.username_decoration }}">{{ message.author.username }}</span>
+                        <span id="author-post-{{ message.id }}" class="rpg-post-author {{ message.author.username_decoration }}">{{ message.author.username }}</span>{% featured_collectible message.author %}
                         <span class="forum-level-title rpg-post-level">{{ message.author.level_title }}</span>
 
                         <ul class="rpg-post-author-info">
@@ -126,6 +126,7 @@
                       class="vhs-segment__username {{ message.author.username_decoration }}">
                     {{ message.author.username }}
                 </span>
+                {% featured_collectible message.author %}
 
                 <div class="vhs-segment__date">{{ message.date_sent|date:"d/m/y H:i" }}</div>
 
@@ -196,7 +197,7 @@
                             <small>
                                 <ul>
                                     <li style="font-size:1.2rem;">
-                                        <center><span class="{{ message.author.username_decoration }}">{{ message.author.username }}</span></center>
+                                        <center><span class="{{ message.author.username_decoration }}">{{ message.author.username }}</span>{% featured_collectible message.author %}</center>
                                     </li>
                                 </ul>
                             </small>

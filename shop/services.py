@@ -109,3 +109,55 @@ def equipped_items(user, entries):
         if entry.item.is_equippable and entry.item.is_equipped_by(user):
             slots[entry.item.kind] = entry
     return slots
+
+
+# --- Objets de collection : objet fétiche et vitrine du profil -------------
+SHOWCASE_SIZE = 3
+
+
+def _owned_collectible(user, item_id):
+    from users.models import UserInventory
+
+    entry = (UserInventory.objects.select_related('item')
+             .filter(user=user, item_id=item_id, quantity__gt=0).first())
+    if entry is None:
+        raise ShopError("Cet objet n'est pas dans ton inventaire.")
+    if entry.item.kind != Item.KIND_COLLECTIBLE:
+        raise ShopError("Seuls les objets de collection peuvent être exposés.")
+    return entry
+
+
+def toggle_featured(user, item_id):
+    """Met en avant l'objet à côté du pseudo, ou le retire s'il l'est déjà."""
+    entry = _owned_collectible(user, item_id)
+    if user.featured_collectible_id == entry.item_id:
+        user.featured_collectible = None
+        message = f"{entry.item.name} n'est plus affiché à côté de ton pseudo."
+    else:
+        user.featured_collectible = entry.item
+        message = f"{entry.item.name} s'affiche maintenant à côté de ton pseudo."
+    user.save(update_fields=['featured_collectible'])
+    return message
+
+
+def toggle_showcase(user, item_id):
+    """Ajoute l'objet à la vitrine du profil (3 au plus), ou l'en retire."""
+    from users.models import UserInventory
+
+    entry = _owned_collectible(user, item_id)
+    if entry.showcased:
+        entry.showcased = False
+        message = f"{entry.item.name} est retiré de ta vitrine."
+    else:
+        shown = UserInventory.objects.filter(user=user, showcased=True, quantity__gt=0).count()
+        if shown >= SHOWCASE_SIZE:
+            raise ShopError(f"Ta vitrine est pleine ({SHOWCASE_SIZE} objets) : retires-en un d'abord.")
+        entry.showcased = True
+        message = f"{entry.item.name} est exposé dans ta vitrine."
+    entry.save(update_fields=['showcased'])
+    return message
+
+
+def showcase_entries(user):
+    return list(user.inventory.filter(showcased=True, quantity__gt=0, item__kind=Item.KIND_COLLECTIBLE)
+                .select_related('item').order_by('acquired_at')[:SHOWCASE_SIZE])

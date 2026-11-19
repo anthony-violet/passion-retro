@@ -1206,3 +1206,114 @@
     .vice-nights-username, .gyrophare-username, .cash-username::after { animation: none; }
     .gyrophare-username { color: #ff3b3b; }
 }
+
+/* =============================================================
+   Objet de collection fétiche, affiché à côté du pseudo
+   ============================================================= */
+.featured-collectible {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 24px;
+    margin: 0 4px;
+    padding: 1px 2px;
+    vertical-align: middle;
+    border-radius: 6px;
+    border: 1px solid var(--fc-rarity, #8a94a6);
+    background: color-mix(in srgb, var(--fc-rarity, #8a94a6) 16%, transparent);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--fc-rarity, #8a94a6) 45%, transparent);
+    font-size: 14px;
+    line-height: 1;
+    cursor: help;
+    text-shadow: none;
+    filter: none;
+    animation: none;
+}
+.featured-collectible img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.featured-collectible--common { --fc-rarity: #8a94a6; }
+.featured-collectible--rare { --fc-rarity: #3a86ff; }
+.featured-collectible--epic { --fc-rarity: #a855f7; }
+.featured-collectible--legendary { --fc-rarity: #f5a524; }
+
+/* Carte d'objet de collection : vitrine du profil et balise BBCode [objet] */
+.collectible-showcase {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin: 0.5rem 0 1rem;
+}
+.collectible-card {
+    --fc-rarity: #8a94a6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 12px 10px;
+    border: 2px solid var(--fc-rarity);
+    border-radius: 10px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--fc-rarity) 20%, transparent), transparent 80%);
+    text-align: center;
+}
+.collectible-card--rare { --fc-rarity: #3a86ff; }
+.collectible-card--epic { --fc-rarity: #a855f7; }
+.collectible-card--legendary { --fc-rarity: #f5a524; box-shadow: 0 0 12px rgba(245, 165, 36, 0.4); }
+.collectible-card__visual { display: flex; flex: none; align-items: center; justify-content: center; height: 80px; font-size: 2.6rem; }
+.collectible-card__visual img { width: 120px; height: 80px; object-fit: contain; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.35)); }
+.collectible-card figcaption { display: flex; flex-direction: column; gap: 2px; }
+.collectible-card__name { font-size: 0.95rem; }
+.collectible-card__rarity { font-size: 0.78rem; opacity: 0.8; }
+.collectible-card__featured, .collectible-card__owner { font-size: 0.75rem; color: var(--fc-rarity); font-weight: 700; }
+
+/* Variante en ligne dans un message ([objet]) */
+.collectible-card--inline {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 10px;
+    max-width: 320px;
+    padding: 8px 12px;
+    margin: 4px 0;
+    text-align: left;
+    vertical-align: middle;
+}
+.collectible-card--inline .collectible-card__visual { height: 52px; font-size: 1.8rem; }
+.collectible-card--inline .collectible-card__visual img { width: 72px; height: 52px; }
+.collectible-card--missing { opacity: 0.6; font-style: italic; }
+
+/* Sélecteur « Collection » des éditeurs BBCode */
+.collection-picker {
+    position: absolute;
+    z-index: 1000;
+    width: 280px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(128, 128, 128, 0.45);
+    background-color: var(--bg-body, #fff);
+    background-image: linear-gradient(var(--bg-container, transparent), var(--bg-container, transparent));
+    color: var(--text-primary, inherit);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    font-size: 0.9rem;
+}
+.collection-picker__title { margin: 0 0 8px; font-weight: 700; }
+.collection-picker__body { display: flex; flex-direction: column; gap: 4px; }
+.collection-picker__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.collection-picker__item:hover, .collection-picker__item:focus-visible { border-color: currentColor; background: rgba(128, 128, 128, 0.12); }
+.collection-picker__item img { width: 48px; height: 32px; object-fit: contain; }
+.collection-picker__icon { width: 48px; text-align: center; font-size: 1.4rem; }
+.collection-picker__label { display: flex; flex-direction: column; }
+.collection-picker__label small { opacity: 0.75; }
