@@ -304,3 +304,8 @@ LOGGING = {
         },
     },
 }
+
+# Statistiques internes : base IP → pays au format .mmdb (MaxMind ou DB-IP
+# « IP to Country Lite »). Facultatif : sans elle, le pays n'est connu que
+# derrière Cloudflare.
+GEOIP_COUNTRY_DB = os.getenv('GEOIP_COUNTRY_DB', '')

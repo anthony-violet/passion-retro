@@ -128,6 +128,37 @@ class VisitorStats(models.Model):
     total_visitors = models.PositiveIntegerField(default=0)
     last_reset = models.DateTimeField(auto_now=True)
 
+
+class Visit(models.Model):
+    """Une visite sur le site (statistiques internes, sans Google Analytics).
+
+    Une visite se termine après 30 minutes d'inactivité ; le même visiteur
+    (``visitor_id``, gardé en session) peut donc en faire plusieurs. L'adresse
+    IP n'est jamais enregistrée : seul le pays qui en est déduit est conservé.
+    """
+
+    visitor_id = models.CharField(max_length=32, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                             related_name='visits')
+    started = models.DateTimeField(db_index=True)
+    last_seen = models.DateTimeField(db_index=True)
+    landing_path = models.CharField(max_length=255, blank=True, default='')
+    current_path = models.CharField(max_length=255, blank=True, default='')
+    referrer = models.CharField(max_length=255, blank=True, default='')
+    referrer_domain = models.CharField(max_length=120, blank=True, default='', db_index=True)
+    country = models.CharField(max_length=2, blank=True, default='', db_index=True)
+    utm_source = models.CharField(max_length=100, blank=True, default='', db_index=True)
+    utm_medium = models.CharField(max_length=100, blank=True, default='')
+    utm_campaign = models.CharField(max_length=100, blank=True, default='', db_index=True)
+    utm_content = models.CharField(max_length=100, blank=True, default='')
+    utm_term = models.CharField(max_length=100, blank=True, default='')
+
+    class Meta:
+        ordering = ['-last_seen']
+
+    def __str__(self):
+        return f"{self.visitor_id} ({self.started:%d/%m/%Y %H:%M})"
+
 class UserLevel(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='levels')
     level = models.PositiveIntegerField(default=1)
@@ -184,3 +215,41 @@ class APIKey(models.Model):
     def mark_used(self):
         self.last_used_at = timezone.now()
         self.save(update_fields=['last_used_at'])
+
+class UtmLink(models.Model):
+    """Lien de campagne (paramètres UTM) créé depuis le panel."""
+
+    name = models.CharField("Nom", max_length=120)
+    destination = models.CharField("Page de destination", max_length=255, default='/')
+    source = models.CharField("Source (utm_source)", max_length=100)
+    medium = models.CharField("Support (utm_medium)", max_length=100)
+    campaign = models.CharField("Campagne (utm_campaign)", max_length=100)
+    content = models.CharField("Contenu (utm_content)", max_length=100, blank=True, default='')
+    term = models.CharField("Terme (utm_term)", max_length=100, blank=True, default='')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='utm_links')
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created']
+
+    def __str__(self):
+        return self.name
+
+    def query_params(self):
+        params = {'utm_source': self.source, 'utm_medium': self.medium, 'utm_campaign': self.campaign}
+        if self.content:
+            params['utm_content'] = self.content
+        if self.term:
+            params['utm_term'] = self.term
+        return params
+
+    def visits(self):
+        """Visites arrivées par ce lien."""
+        visits = Visit.objects.filter(utm_source=self.source, utm_medium=self.medium,
+                                      utm_campaign=self.campaign)
+        if self.content:
+            visits = visits.filter(utm_content=self.content)
+        if self.term:
+            visits = visits.filter(utm_term=self.term)
+        return visits

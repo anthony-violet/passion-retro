@@ -1,0 +1,59 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Liens UTM</h2>
+    <div>
+        <a href="{% url 'panel_stats' %}" class="btn btn-small">← Statistiques</a>
+        <a href="{% url 'panel_utm_create' %}" class="btn btn-add">+ Créer un lien</a>
+    </div>
+</div>
+<p class="panel-hint">Crée un lien suivi pour chaque endroit où tu partages le site (post Discord, newsletter, bannière chez un partenaire…). Les visites arrivées par ce lien sont comptées ici et dans les statistiques.</p>
+
+<div class="panel-section">
+    <table class="panel-table">
+        <thead><tr><th>Nom</th><th>Lien à partager</th><th>Visites</th><th>30 j</th><th>Visiteurs</th><th>Membres</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for link in links %}
+            <tr>
+                <td>
+                    <strong>{{ link.name }}</strong><br>
+                    <small>{{ link.source }} / {{ link.medium }} / {{ link.campaign }}{% if link.content %} / {{ link.content }}{% endif %}</small>
+                </td>
+                <td>
+                    <input type="text" readonly value="{{ link.url }}" class="utm-url" onclick="this.select()" aria-label="Lien de {{ link.name }}">
+                    <button type="button" class="btn btn-small utm-copy" data-url="{{ link.url }}">Copier</button>
+                </td>
+                <td>{{ link.nb_visits }}</td>
+                <td>{{ link.nb_visits_month }}</td>
+                <td>{{ link.nb_visitors }}</td>
+                <td>{{ link.nb_members }}</td>
+                <td class="panel-actions">
+                    <a href="{% url 'panel_utm_edit' link.id %}" class="btn btn-small">Éditer</a>
+                    <form method="post" action="{% url 'panel_utm_delete' link.id %}" style="display:inline" onsubmit="return confirm('Supprimer ce lien ? Les visites déjà enregistrées restent comptées.')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="panel-empty">Aucun lien pour le moment.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<style>
+    .utm-url { width: 100%; min-width: 220px; font-size: .85em; padding: 3px 5px; box-sizing: border-box; }
+</style>
+<script>
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('.utm-copy');
+        if (!button) return;
+        navigator.clipboard.writeText(button.dataset.url).then(function () {
+            var label = button.textContent;
+            button.textContent = 'Copié !';
+            setTimeout(function () { button.textContent = label; }, 1500);
+        });
+    });
+</script>
+{% endblock %}

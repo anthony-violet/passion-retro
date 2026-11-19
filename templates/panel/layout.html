@@ -11,6 +11,9 @@
             <a href="{% url 'panel_dashboard' %}" class="panel-nav-item {% if request.resolver_match.url_name == 'panel_dashboard' %}active{% endif %}">
                 📊 Tableau de bord
             </a>
+            <a href="{% url 'panel_stats' %}" class="panel-nav-item {% if 'panel_stats' in request.resolver_match.url_name or 'panel_utm' in request.resolver_match.url_name %}active{% endif %}">
+                📈 Statistiques
+            </a>
             <a href="{% url 'panel_user_list' %}" class="panel-nav-item {% if 'panel_user' in request.resolver_match.url_name %}active{% endif %}">
                 👤 Utilisateurs
             </a>

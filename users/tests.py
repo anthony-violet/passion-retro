@@ -503,3 +503,179 @@ class LevelUpMessageTest(TestCase):
         self.assertEqual(message.subject.receiver, self.user)
         self.assertIn('Niveau 2', message.subject.subject)
         self.assertIn('Hé grimpeur', message.message)
+
+
+
+class VisitTestMixin:
+    """Active UserStatsMiddleware (absent des réglages de test) et simule un navigateur."""
+
+    BROWSER = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 Chrome/120 Safari/537.36'
+
+    def setUp(self):
+        from django.conf import settings
+        from django.test import Client
+
+        self.middleware = self.settings(MIDDLEWARE=[*settings.MIDDLEWARE, 'users.middleware.UserStatsMiddleware'])
+        self.middleware.enable()
+        self.addCleanup(self.middleware.disable)
+        self.Client = Client
+
+    def _get(self, client, path='/', **extra):
+        extra.setdefault('HTTP_USER_AGENT', self.BROWSER)
+        extra.setdefault('HTTP_ACCEPT', 'text/html')
+        return client.get(path, **extra).wsgi_request
+
+
+class VisitTrackingTest(VisitTestMixin, TestCase):
+    """Compteur de visiteurs et statistiques internes (users.visits)."""
+
+    def test_same_visitor_counted_once_even_after_login(self):
+        from users.models import Visit
+
+        member = User.objects.create_user(username='compte', email='c@test.com', password='pass12345', active=True)
+        member.levels.create(level=1, experience=0)
+        client = self.Client()
+        self._get(client)
+        # Connexion par le vrai formulaire du site (elle doit garder la visite).
+        client.post('/users/login/', {'username': 'compte', 'password': 'pass12345'},
+                    HTTP_USER_AGENT=self.BROWSER)
+        request = self._get(client, '/forum/')
+        self.assertEqual(request.visitor_count, 1)
+        visit = Visit.objects.get()
+        self.assertEqual(visit.user.username, 'compte')
+        self.assertEqual(visit.current_path, '/forum/')
+        self.assertEqual(visit.landing_path, '/')
+
+    def test_two_visitors_and_historic_total(self):
+        from users.models import VisitorStats
+
+        first, second = self.Client(), self.Client()
+        self._get(first)
+        self._get(first)
+        request = self._get(second)
+        self.assertEqual(request.visitor_count, 2)
+        self.assertEqual(VisitorStats.objects.get(pk=1).total_visitors, 2)
+
+    def test_inactive_visitors_leave_the_live_count(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from users import visits
+        from users.models import Visit
+
+        now = timezone.now()
+        Visit.objects.create(visitor_id='ancien', started=now, last_seen=now - timedelta(minutes=6))
+        Visit.objects.create(visitor_id='recent', started=now, last_seen=now - timedelta(minutes=2))
+        self.assertEqual(visits.active_visitor_count(now), 1)
+
+    def test_new_visit_after_thirty_minutes_of_inactivity(self):
+        from datetime import timedelta
+
+        from users.models import Visit
+
+        client = self.Client()
+        self._get(client)
+        Visit.objects.update(last_seen=Visit.objects.get().last_seen - timedelta(minutes=31))
+        self._get(client)
+        self.assertEqual(Visit.objects.count(), 2)
+        self.assertEqual(Visit.objects.values('visitor_id').distinct().count(), 1)
+
+    def test_referrer_country_and_no_ip_stored(self):
+        from users.models import Visit
+
+        self._get(self.Client(), HTTP_REFERER='https://www.google.com/search?q=retro',
+                  HTTP_CF_IPCOUNTRY='BE', REMOTE_ADDR='203.0.113.7')
+        visit = Visit.objects.get()
+        self.assertEqual((visit.referrer_domain, visit.country), ('google.com', 'BE'))
+        self.assertNotIn('203.0.113.7', str(Visit.objects.values().get()))
+
+    def test_internal_navigation_is_not_a_source(self):
+        from users.models import Visit
+
+        client = self.Client()
+        self._get(client, HTTP_REFERER='http://testserver/forum/')
+        self.assertEqual(Visit.objects.get().referrer_domain, '')
+
+    def test_ajax_and_api_calls_do_not_change_current_page(self):
+        from users.models import Visit
+
+        client = self.Client()
+        self._get(client, '/forum/')
+        self._get(client, '/api/inexistant/')
+        self._get(client, '/', HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(Visit.objects.get().current_path, '/forum/')
+
+    def test_bots_are_not_counted(self):
+        from users.models import Visit, VisitorStats
+
+        request = self._get(self.Client(), HTTP_USER_AGENT='Googlebot/2.1 (+http://www.google.com/bot.html)')
+        self.assertEqual(request.visitor_count, 0)
+        self.assertFalse(Visit.objects.exists())
+        self.assertFalse(VisitorStats.objects.filter(total_visitors__gt=0).exists())
+
+    def test_panel_stats_page(self):
+        staff = User.objects.create_user(username='modo', email='m@test.com', password='pass12345',
+                                         active=True, is_staff=True)
+        visitor = self.Client()
+        self._get(visitor, '/forum/', HTTP_REFERER='https://forum.example.org/topic/1', HTTP_CF_IPCOUNTRY='FR')
+        admin = self.Client()
+        admin.force_login(staff)
+        response = admin.get('/panel/statistiques/', HTTP_USER_AGENT=self.BROWSER)
+        self.assertContains(response, 'Visiteur anonyme')
+        self.assertContains(response, 'forum.example.org')
+        self.assertContains(response, 'France')
+        self.assertContains(response, '/forum/')
+
+        self.client.force_login(User.objects.create_user(
+            username='membre', email='x@test.com', password='pass12345', active=True))
+        self.assertEqual(self.client.get('/panel/statistiques/').status_code, 302)
+
+
+class UtmTest(VisitTestMixin, TestCase):
+    def _staff_client(self):
+        staff = User.objects.create_user(username='modo', email='m@test.com', password='pass12345',
+                                         active=True, is_staff=True)
+        client = self.Client()
+        client.force_login(staff)
+        return client
+
+    def test_landing_utm_parameters_are_recorded(self):
+        from users.models import Visit
+
+        self._get(self.Client(), '/?utm_source=discord&utm_medium=social&utm_campaign=mystere')
+        visit = Visit.objects.get()
+        self.assertEqual((visit.utm_source, visit.utm_medium, visit.utm_campaign),
+                         ('discord', 'social', 'mystere'))
+
+    def test_create_link_normalizes_values_and_counts_visits(self):
+        from users.models import UtmLink
+
+        admin = self._staff_client()
+        response = admin.post('/panel/statistiques/utm/create/', {
+            'name': 'Annonce Discord', 'destination': 'games/mystere',
+            'source': 'Discord', 'medium': 'Social', 'campaign': 'Lancement Jeu Mystère',
+        }, HTTP_USER_AGENT=self.BROWSER)
+        self.assertRedirects(response, '/panel/statistiques/utm/', fetch_redirect_response=False)
+        link = UtmLink.objects.get()
+        self.assertEqual((link.destination, link.source, link.medium, link.campaign),
+                         ('/games/mystere', 'discord', 'social', 'lancement-jeu-mystere'))
+
+        self._get(self.Client(), '/games/mystere?utm_source=discord&utm_medium=social&utm_campaign=lancement-jeu-mystere')
+        self._get(self.Client(), '/?utm_source=facebook&utm_medium=social&utm_campaign=lancement-jeu-mystere')
+        self.assertEqual(link.visits().count(), 1)
+
+        response = admin.get('/panel/statistiques/utm/', HTTP_USER_AGENT=self.BROWSER)
+        self.assertContains(response, 'utm_source=discord&amp;utm_medium=social&amp;utm_campaign=lancement-jeu-mystere')
+        self.assertEqual(response.context['links'][0].nb_visits, 1)
+
+        response = admin.get('/panel/statistiques/', HTTP_USER_AGENT=self.BROWSER)
+        self.assertContains(response, 'lancement-jeu-mystere')
+
+    def test_external_destination_refused(self):
+        from users.models import UtmLink
+
+        self._staff_client().post('/panel/statistiques/utm/create/', {
+            'name': 'x', 'destination': 'https://ailleurs.example', 'source': 'a', 'medium': 'b', 'campaign': 'c',
+        }, HTTP_USER_AGENT=self.BROWSER)
+        self.assertFalse(UtmLink.objects.exists())

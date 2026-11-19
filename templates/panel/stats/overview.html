@@ -1,0 +1,161 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Statistiques du site</h2>
+    <div>
+        <a href="{% url 'panel_utm_list' %}" class="btn btn-small">🔗 Liens UTM</a>
+        <a href="{% url 'panel_stats' %}?periode={{ period_days }}" class="btn btn-small">↻ Actualiser</a>
+    </div>
+</div>
+<p class="panel-hint">Statistiques internes, indépendantes de Google Analytics : elles comptent aussi les membres connectés et les visiteurs qui refusent les cookies. Les robots ne sont pas comptés et aucune adresse IP n'est conservée.</p>
+
+<div class="panel-section stats-cards">
+    <div class="stats-card"><span class="stats-card__value">{{ online_visitors|length }}</span><span>visiteur{{ online_visitors|length|pluralize }} en ce moment</span></div>
+    <div class="stats-card"><span class="stats-card__value">{{ online_members|length }}</span><span>membre{{ online_members|length|pluralize }} connecté{{ online_members|length|pluralize }}</span></div>
+    <div class="stats-card"><span class="stats-card__value">{{ unique_today }}</span><span>visiteurs uniques (24 h)</span></div>
+    <div class="stats-card"><span class="stats-card__value">{{ unique_week }}</span><span>visiteurs uniques (7 j)</span></div>
+    <div class="stats-card"><span class="stats-card__value">{{ unique_month }}</span><span>visiteurs uniques (30 j)</span></div>
+    <div class="stats-card"><span class="stats-card__value">{{ total_visitors }}</span><span>visiteurs depuis l'ouverture</span></div>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header"><h3>En ce moment sur le site <small>(actifs ces 5 dernières minutes)</small></h3></div>
+    <table class="panel-table">
+        <thead><tr><th>Visiteur</th><th>Pays</th><th>Page actuelle</th><th>Arrivé depuis</th><th>Sur le site depuis</th><th>Dernière activité</th></tr></thead>
+        <tbody>
+            {% for visit in online_visitors %}
+            <tr>
+                <td>{% if visit.user %}<strong>{{ visit.user }}</strong>{% else %}Visiteur anonyme{% endif %}</td>
+                <td>{{ visit.country_label }}</td>
+                <td><a href="{{ visit.current_path }}" target="_blank">{{ visit.current_path|truncatechars:50 }}</a></td>
+                <td>{% if visit.referrer %}<a href="{{ visit.referrer }}" target="_blank" rel="noopener noreferrer">{{ visit.referrer_domain }}</a>{% else %}Accès direct{% endif %}</td>
+                <td>{{ visit.started|timesince }}</td>
+                <td>il y a {{ visit.last_seen|timesince }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="panel-empty">Personne en ce moment.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header"><h3>Membres connectés</h3></div>
+    <table class="panel-table">
+        <thead><tr><th>Membre</th><th>Pays</th><th>Page actuelle</th><th>Dernière activité</th></tr></thead>
+        <tbody>
+            {% for visit in online_members %}
+            <tr>
+                <td><a href="{% url 'panel_user_edit' visit.user.id %}"><strong>{{ visit.user }}</strong></a></td>
+                <td>{{ visit.country_label }}</td>
+                <td><a href="{{ visit.current_path }}" target="_blank">{{ visit.current_path|truncatechars:60 }}</a></td>
+                <td>il y a {{ visit.last_seen|timesince }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="panel-empty">Aucun membre connecté.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header">
+        <h3>Sur la période : {{ period_label }}</h3>
+        <div>
+            {% for value, label in periods %}
+            <a href="?periode={{ value }}" class="btn btn-small {% if value == period_days %}btn-add{% endif %}">{{ label }}</a>
+            {% endfor %}
+        </div>
+    </div>
+    <p>{{ unique_visitors }} visiteur{{ unique_visitors|pluralize }} unique{{ unique_visitors|pluralize }} · {{ period_visits }} visite{{ period_visits|pluralize }}</p>
+</div>
+
+<div class="stats-columns">
+    <div class="panel-section">
+        <div class="panel-section-header"><h3>Pays des visiteurs</h3></div>
+        {% if not geoip_enabled %}
+        <p class="panel-hint">⚠️ Aucune base de géolocalisation n'est installée : le pays n'est connu que si le site passe par Cloudflare. Voir le réglage <code>GEOIP_COUNTRY_DB</code>.</p>
+        {% endif %}
+        <table class="panel-table">
+            <thead><tr><th>Pays</th><th>Visiteurs</th><th>Part</th></tr></thead>
+            <tbody>
+                {% for row in countries %}
+                <tr>
+                    <td>{{ row.label }}</td>
+                    <td>{{ row.count }}</td>
+                    <td><div class="stats-bar"><span style="width: {{ row.share }}%"></span></div> {{ row.share }} %</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="panel-empty">Aucune visite sur la période.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-section">
+        <div class="panel-section-header"><h3>D'où viennent les visites</h3></div>
+        <table class="panel-table">
+            <thead><tr><th>Site d'origine</th><th>Visites</th><th>Part</th></tr></thead>
+            <tbody>
+                {% for row in sources %}
+                <tr>
+                    <td>{% if row.referrer_domain %}{{ row.referrer_domain }}{% else %}Accès direct / favori{% endif %}</td>
+                    <td>{{ row.count }}</td>
+                    <td><div class="stats-bar"><span style="width: {{ row.share }}%"></span></div> {{ row.share }} %</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="panel-empty">Aucune visite sur la période.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header">
+        <h3>Campagnes UTM</h3>
+        <a href="{% url 'panel_utm_create' %}" class="btn btn-small btn-add">+ Créer un lien</a>
+    </div>
+    <table class="panel-table">
+        <thead><tr><th>Campagne</th><th>Source</th><th>Support</th><th>Visites</th><th>Visiteurs uniques</th></tr></thead>
+        <tbody>
+            {% for row in campaigns %}
+            <tr>
+                <td><strong>{{ row.utm_campaign|default:"—" }}</strong></td>
+                <td>{{ row.utm_source|default:"—" }}</td>
+                <td>{{ row.utm_medium|default:"—" }}</td>
+                <td>{{ row.count }}</td>
+                <td>{{ row.visitors }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="panel-empty">Aucune visite arrivée par un lien de campagne sur la période.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header"><h3>Pages d'arrivée les plus fréquentes</h3></div>
+    <table class="panel-table">
+        <thead><tr><th>Page</th><th>Visites</th></tr></thead>
+        <tbody>
+            {% for row in landing %}
+            <tr><td><a href="{{ row.landing_path }}" target="_blank">{{ row.landing_path|truncatechars:80 }}</a></td><td>{{ row.count }}</td></tr>
+            {% empty %}
+            <tr><td colspan="2" class="panel-empty">Aucune visite sur la période.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .stats-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .stats-card { border: 1px solid currentColor; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .stats-card__value { font-size: 1.8em; font-weight: bold; line-height: 1.1; }
+    .stats-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 0 16px; }
+    .stats-bar { display: inline-block; width: 80px; height: 8px; border: 1px solid currentColor; border-radius: 4px; vertical-align: middle; overflow: hidden; }
+    .stats-bar span { display: block; height: 100%; background: currentColor; }
+    .panel-section-header { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; }
+</style>
+{% endblock %}

@@ -1,9 +1,14 @@
 from django.urls import path
-from panel.views import dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation, wall_memories, seasonal
+from panel.views import stats, dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation, wall_memories, seasonal
 
 urlpatterns = [
     # Dashboard
     path('', dashboard.dashboard, name='panel_dashboard'),
+    path('statistiques/', stats.stats_overview, name='panel_stats'),
+    path('statistiques/utm/', stats.utm_list, name='panel_utm_list'),
+    path('statistiques/utm/create/', stats.utm_create, name='panel_utm_create'),
+    path('statistiques/utm/<int:link_id>/edit/', stats.utm_edit, name='panel_utm_edit'),
+    path('statistiques/utm/<int:link_id>/delete/', stats.utm_delete, name='panel_utm_delete'),
 
     # Users
     path('users/', users.user_list, name='panel_user_list'),

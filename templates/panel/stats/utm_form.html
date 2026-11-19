@@ -1,0 +1,83 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>{{ action }} un lien UTM</h2>
+    <a href="{% url 'panel_utm_list' %}" class="btn btn-small">← Retour</a>
+</div>
+<div class="panel-section">
+    <p class="panel-hint">Les valeurs sont mises en minuscules et sans espaces (ex. « Discord » → « discord ») pour que les statistiques restent propres.</p>
+    <form method="post" class="panel-form" id="utm-form">
+        {% csrf_token %}
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label>Nom (pour toi)</label>
+                <input type="text" name="name" value="{{ link.name|default:'' }}" maxlength="120" required placeholder="Annonce jeu mystère sur Discord">
+            </div>
+            <div class="panel-form-group">
+                <label>Page de destination</label>
+                <input type="text" name="destination" value="{{ link.destination|default:'/' }}" maxlength="255" required placeholder="/games/mystere">
+                <small>Une page du site, par ex. <code>/</code> ou <code>/games/mystere</code>.</small>
+            </div>
+            <div class="panel-form-group">
+                <label>Source <small>(utm_source)</small> *</label>
+                <input type="text" name="source" value="{{ link.source|default:'' }}" maxlength="100" required list="utm-sources" placeholder="discord">
+                <small>Où le lien est publié.</small>
+            </div>
+            <div class="panel-form-group">
+                <label>Support <small>(utm_medium)</small> *</label>
+                <input type="text" name="medium" value="{{ link.medium|default:'' }}" maxlength="100" required list="utm-mediums" placeholder="social">
+                <small>Le type de canal.</small>
+            </div>
+            <div class="panel-form-group">
+                <label>Campagne <small>(utm_campaign)</small> *</label>
+                <input type="text" name="campaign" value="{{ link.campaign|default:'' }}" maxlength="100" required placeholder="lancement-jeu-mystere">
+                <small>Ce que tu mets en avant.</small>
+            </div>
+            <div class="panel-form-group">
+                <label>Contenu <small>(utm_content, facultatif)</small></label>
+                <input type="text" name="content" value="{{ link.content|default:'' }}" maxlength="100" placeholder="banniere-haut">
+                <small>Pour distinguer deux liens d'une même campagne.</small>
+            </div>
+            <div class="panel-form-group">
+                <label>Terme <small>(utm_term, facultatif)</small></label>
+                <input type="text" name="term" value="{{ link.term|default:'' }}" maxlength="100">
+            </div>
+        </div>
+        <datalist id="utm-sources">{% for value in suggestions.source %}<option value="{{ value }}">{% endfor %}</datalist>
+        <datalist id="utm-mediums">{% for value in suggestions.medium %}<option value="{{ value }}">{% endfor %}</datalist>
+
+        <div class="panel-form-group">
+            <label>Aperçu du lien</label>
+            <input type="text" readonly id="utm-preview" onclick="this.select()">
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">{{ action }}</button>
+            <a href="{% url 'panel_utm_list' %}" class="btn btn-danger">Annuler</a>
+        </div>
+    </form>
+</div>
+<script>
+    (function () {
+        var form = document.getElementById('utm-form');
+        var preview = document.getElementById('utm-preview');
+        var siteUrl = "{{ site_url|escapejs }}";
+        function clean(value) {
+            return value.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+                .replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+        }
+        function update() {
+            var destination = form.destination.value.trim() || '/';
+            if (destination.charAt(0) !== '/') destination = '/' + destination;
+            var params = new URLSearchParams();
+            ['source', 'medium', 'campaign', 'content', 'term'].forEach(function (field) {
+                var value = clean(form[field].value);
+                if (value) params.append('utm_' + field, value);
+            });
+            preview.value = siteUrl + destination + (destination.indexOf('?') === -1 ? '?' : '&') + params.toString();
+        }
+        form.addEventListener('input', update);
+        update();
+    })();
+</script>
+{% endblock %}
