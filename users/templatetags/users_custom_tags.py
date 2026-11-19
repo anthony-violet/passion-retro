@@ -42,3 +42,12 @@ def first_item(value, max_length=25):
     if len(first) > max_length:
         first = first[:max_length - 1].rstrip() + '…'
     return first
+
+
+@register.simple_tag
+def member_theme_options(user):
+    """Thèmes du sélecteur du menu : {'options': [(code, nom, verrouillé)], 'has_locked': bool}."""
+    from users.themes import theme_options
+
+    options = theme_options(user)
+    return {'options': options, 'has_locked': any(locked for _, _, locked in options)}

@@ -1,4 +1,4 @@
-{% load bbcode_tags %}
+{% load bbcode_tags users_custom_tags %}
 
 <div class="menu">
     <h2>Membre</h2>
@@ -8,16 +8,19 @@
             <center><div class="{{ request.user.border_avatar }}"><img src="/media/{{ request.user.avatar }}" style="width:150px;" alt="Avatar de {{ request.user.username }}"></div></center>
             <li>Bonjour <strong><span class="{{ request.user.username_decoration }}" data-text="{{ request.user.username }}">{{ request.user.username }}</span></strong></li>
             <li>
-                <label for="theme-select" style="font-weight: normal;">Thème :</label>
-                <select id="theme-select" onchange="window.location.href='/users/theme/set/' + this.value + '/'">
-                    <option value="default" {% if request.theme_active == 'default' %}selected{% endif %}>Default</option>
-                    <option value="rpg" {% if request.theme_active == 'rpg' %}selected{% endif %}>RPG</option>
-                    <option value="retrorpg" {% if request.theme_active == 'retrorpg' %}selected{% endif %}>RetroRPG</option>
-                    <option value="80s" {% if request.theme_active == '80s' %}selected{% endif %}>80s</option>
-                    <option value="00s" {% if request.theme_active == '00s' %}selected{% endif %}>00s</option>
-                    <option value="vhs" {% if request.theme_active == 'vhs' %}selected{% endif %}>VHS</option>
-                    <option value="modern" {% if request.theme_active == 'modern' %}selected{% endif %}>Modern</option>
-                </select>
+                {% member_theme_options request.user as themes %}
+                <form method="post" action="{% url 'set_theme' %}" class="theme-select-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <label for="theme-select" style="font-weight: normal;">Thème :</label>
+                    <select id="theme-select" name="theme" onchange="this.form.submit()">
+                        {% for code, label, locked in themes.options %}
+                        <option value="{{ code }}"{% if request.theme_active == code %} selected{% endif %}{% if locked %} disabled{% endif %}>{% if locked %}🔒 {% endif %}{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <noscript><button type="submit" class="btn btn-small">OK</button></noscript>
+                    {% if themes.has_locked %}<small><a href="{% url 'shop_home' %}?filtre=themes">🔒 Débloquer des thèmes</a></small>{% endif %}
+                </form>
             </li>
             <li><a href="{% url 'profile' %}">Mon Profil</a></li>
             <li><a href="{% url 'home_gallery' %}">Ma galerie</a></li>

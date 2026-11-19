@@ -51,7 +51,7 @@ class ItemModelTest(TestCase):
         Item.objects.create(category=self.category, name='Futur', available_from=now + timedelta(days=2))
         Item.objects.create(category=self.category, name='Fini', available_until=now - timedelta(days=2))
         Item.objects.create(category=self.category, name='Inactif', is_active=False)
-        self.assertEqual([i.name for i in Item.objects.on_sale(now)], ['Cadre Doré'])
+        self.assertEqual([i.name for i in Item.objects.on_sale(now).filter(category=self.category)], ['Cadre Doré'])
 
     def test_only_consumables_stack(self):
         self.assertFalse(self.item.is_stackable)

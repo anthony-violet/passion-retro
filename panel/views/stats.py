@@ -6,7 +6,8 @@ from django.utils import timezone
 
 from panel.decorators import staff_required
 from users import visits
-from users.models import Visit, VisitorStats
+from users.models import User, UserInventory, Visit, VisitorStats
+from users.themes import PAID_THEMES, THEME_LABELS
 
 PERIODS = {1: "24 dernières heures", 7: "7 derniers jours", 30: "30 derniers jours", 365: "12 derniers mois"}
 
@@ -20,6 +21,28 @@ def _latest_per(queryset, key):
             seen.add(value)
             rows.append(visit)
     return rows
+
+
+def theme_usage(since):
+    """Thème choisi par les membres : nombre d'utilisateurs, actifs sur la période, propriétaires."""
+    members = User.objects.filter(is_active=True)
+    total = members.count()
+    using = dict(members.values_list('theme').annotate(count=Count('id')))
+    active = dict(members.filter(last_seen__gte=since).values_list('theme').annotate(count=Count('id')))
+    owners = dict(UserInventory.objects.filter(item__kind='theme', quantity__gt=0)
+                  .values_list('item__css_class').annotate(count=Count('user', distinct=True)))
+    codes = list(THEME_LABELS) + sorted(code for code in using if code not in THEME_LABELS)
+    rows = [{
+        'code': code,
+        'label': THEME_LABELS.get(code, code or '—'),
+        'known': code in THEME_LABELS,
+        'paid': code in PAID_THEMES,
+        'count': using.get(code, 0),
+        'active': active.get(code, 0),
+        'owners': owners.get(code, 0) if code in PAID_THEMES else None,
+    } for code in codes]
+    rows.sort(key=lambda row: (-row['count'], row['label'].lower()))
+    return _with_share(rows, total), total
 
 
 def _with_share(rows, total):
@@ -67,6 +90,7 @@ def stats_overview(request):
                      .annotate(count=Count('id'), visitors=Count('visitor_id', distinct=True))
                      .order_by('-count')[:20])
 
+    themes, themed_members = theme_usage(since)
     stats = VisitorStats.objects.filter(pk=1).first()
     return render(request, 'panel/stats/overview.html', {
         'online_visitors': online_visitors,
@@ -85,6 +109,8 @@ def stats_overview(request):
         'landing': landing,
         'campaigns': campaigns,
         'geoip_enabled': visits._geoip_reader() is not None,
+        'themes': themes,
+        'themed_members': themed_members,
     })
 
 

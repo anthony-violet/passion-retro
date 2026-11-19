@@ -72,15 +72,20 @@ class UserLoginForm(forms.Form):
     )
 
 class UserUpdateForm(forms.ModelForm):
-    theme = forms.ChoiceField(
-        label='Thème',
-        choices=[
-            ('default', 'Thème par défaut'),
-            ('80s', 'Thème années 80'),
-            ('00s', 'Thème années 2000'),
-        ],
-        widget=forms.Select(),
-    )
+    theme = forms.ChoiceField(label='Thème', choices=[], widget=forms.Select())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .themes import theme_options
+
+        # Seuls les thèmes gratuits et ceux achetés en boutique sont proposés ;
+        # on garde le thème actuel pour ne pas bloquer l'enregistrement du profil.
+        current = getattr(self.instance, 'theme', None)
+        choices = [(code, label) for code, label, locked in theme_options(self.instance)
+                   if not locked or code == current]
+        if current and current not in dict(choices):
+            choices.append((current, current))
+        self.fields['theme'].choices = choices
 
     class Meta:
         model = User

@@ -248,3 +248,16 @@
     .sh-card { transition: none; }
     .sh-card:hover { transform: none; }
 }
+
+/* Les thèmes s'affichent avec une capture du site : on l'agrandit. */
+.sh-visual--theme { padding: 2rem 0.6rem 0.6rem; }
+.sh-visual--theme .sh-visual__image {
+    max-width: 100%;
+    max-height: none;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 4px;
+    border: 1px solid var(--border-container, #b0b8c8);
+}

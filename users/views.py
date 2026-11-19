@@ -296,14 +296,23 @@ def use_item(request, item_id):
     return redirect('shop_inventory')
 
 @login_required
-def set_theme(request, theme_name):
-    """Vue pour changer le thème directement depuis le menu"""
-    available_themes = ["default", "rpg", "retrorpg", "80s", "00s", "vhs", "modern"]
-    if theme_name in available_themes:
+@require_POST
+def set_theme(request, theme_name=None):
+    """Change le thème depuis le menu ; RPG, Modern et 80s doivent avoir été achetés."""
+    from .themes import PAID_THEMES, THEME_LABELS, can_use_theme
+
+    theme_name = theme_name or request.POST.get('theme', '')
+    if can_use_theme(request.user, theme_name):
         request.user.theme = theme_name
-        request.user.save()
+        request.user.save(update_fields=['theme'])
         request.theme_active = theme_name
-    return redirect(request.META.get("HTTP_REFERER", "/"))
+    elif theme_name in PAID_THEMES:
+        messages.error(request, f"Le thème {THEME_LABELS[theme_name]} se débloque à la boutique.")
+    next_url = request.POST.get('next') or request.META.get("HTTP_REFERER", "/")
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()},
+                                           require_https=request.is_secure()):
+        next_url = "/"
+    return redirect(next_url)
 
 def announcement(request):
     """Page publique de la nouveauté en cours ; les membres reçoivent leur cadeau la première fois."""

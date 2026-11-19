@@ -41,3 +41,38 @@ class PanelShopTest(TestCase):
                          {'name': 'Potions', 'position': '3', 'is_active': 'on'})
         self.category.refresh_from_db()
         self.assertEqual(self.category.position, 3)
+
+
+class ThemeStatsTest(TestCase):
+    def test_theme_usage_counts(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from panel.views.stats import theme_usage
+
+        category = Category.objects.create(name='Thèmes', description='')
+        rpg = Item.objects.create(category=category, name='Thème RPG X', kind='theme', css_class='rpg')
+        now = timezone.now()
+        a = User.objects.create_user('a', theme='rpg', last_seen=now)
+        User.objects.create_user('b', theme='rpg', last_seen=now - timedelta(days=60))
+        User.objects.create_user('c', theme='retrogame')
+        User.objects.create_user('d', theme='vhs', is_active=False)
+        a.inventory.create(item=rpg)
+
+        rows, total = theme_usage(now - timedelta(days=30))
+        by_code = {row['code']: row for row in rows}
+        self.assertEqual(total, 3)
+        self.assertEqual((by_code['rpg']['count'], by_code['rpg']['active'], by_code['rpg']['share']), (2, 1, 67))
+        self.assertGreaterEqual(by_code['rpg']['owners'], 1)
+        self.assertFalse(by_code['retrogame']['known'])
+        self.assertEqual(by_code['vhs']['count'], 0)
+        self.assertIsNone(by_code['vhs']['owners'])
+        self.assertEqual(rows[0]['code'], 'rpg')
+
+    def test_stats_page_shows_themes(self):
+        staff = User.objects.create_user('staff', 's@test.com', 'pass12345', is_staff=True)
+        self.client.force_login(staff)
+        response = self.client.get(reverse('panel_stats'))
+        self.assertContains(response, 'Thèmes des membres')
+        self.assertContains(response, 'RetroRPG')

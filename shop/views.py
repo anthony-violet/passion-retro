@@ -34,6 +34,8 @@ def home(request):
         items = [item for item in items if item.category_id == current.pk]
     if request.GET.get('filtre') == 'promos':
         items = [item for item in items if item.on_discount]
+    elif request.GET.get('filtre') == 'themes':
+        items = [item for item in items if item.kind == Item.KIND_THEME]
     elif request.GET.get('filtre') == 'limites':
         items = [item for item in items if item.is_limited]
 

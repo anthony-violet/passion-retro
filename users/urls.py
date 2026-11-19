@@ -25,6 +25,7 @@ urlpatterns = [
     path("contribute/<str:type>/", views.form_contribute, name="form_contribute"),
     path("new/feature", views.new_feature_user, name="new_feature_user"),
     path("item/use/<int:item_id>/", views.use_item, name="use_item"),
-    path("theme/set/<str:theme_name>/", views.set_theme, name="set_theme"),
+    path("theme/set/", views.set_theme, name="set_theme"),
+    path("theme/set/<str:theme_name>/", views.set_theme, name="set_theme_named"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 ]

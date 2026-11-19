@@ -32,8 +32,9 @@ class Command(BaseCommand):
         from shop.models import Category, Item
         items = [
             {"category": "cadres", "name": "Cadre défaut", "description": "Cadre de base", "price": 0, "kind": "frame"},
-            {"category": "themes", "name": "Thème 00s", "description": "Thème années 2000", "price": 100, "kind": "theme", "css_class": "00s"},
-            {"category": "themes", "name": "Thème RPG", "description": "Thème RPG", "price": 150, "kind": "theme", "css_class": "rpg"},
+            {"category": "themes", "name": "Thème RPG", "description": "Débloque le thème RPG", "price": 150, "kind": "theme", "css_class": "rpg", "rarity": "rare"},
+            {"category": "themes", "name": "Thème Modern", "description": "Débloque le thème Modern", "price": 200, "kind": "theme", "css_class": "modern", "rarity": "rare"},
+            {"category": "themes", "name": "Thème Rétro 80s", "description": "Débloque le thème 80s", "price": 250, "kind": "theme", "css_class": "80s", "rarity": "epic"},
             {"category": "Décoration pseudo", "name": "Décoration défaut", "description": "Décoration de base pour le pseudo", "price": 0, "kind": "username"},
             {"category": "Consommables", "name": "Potion d'XP", "description": "Double l'XP gagnée pendant 24 heures.", "price": 80, "kind": "consumable", "effect": "xp_boost", "rarity": "rare"},
         ]

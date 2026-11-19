@@ -138,6 +138,26 @@
 </div>
 
 <div class="panel-section">
+    <div class="panel-section-header"><h3>Thèmes des membres</h3></div>
+    <p class="panel-hint">Thème enregistré par chacun des {{ themed_members }} membres actifs. « Actifs » = membres venus sur le site pendant la période ({{ period_label|lower }}). Une édition spéciale (Noël, Avengers…) remplace l'affichage sans changer ce choix.</p>
+    <table class="panel-table">
+        <thead><tr><th>Thème</th><th>Accès</th><th>Membres</th><th>Part</th><th>Actifs sur la période</th><th>Achats</th></tr></thead>
+        <tbody>
+            {% for row in themes %}
+            <tr>
+                <td><strong>{{ row.label }}</strong>{% if not row.known %} <span class="panel-badge panel-badge-danger" title="Ce thème n'est plus proposé dans le menu">Ancien</span>{% endif %}</td>
+                <td>{% if row.paid %}<span class="panel-badge">🔒 Boutique</span>{% elif row.known %}Gratuit{% else %}—{% endif %}</td>
+                <td>{{ row.count }}</td>
+                <td><div class="stats-bar"><span style="width: {{ row.share }}%"></span></div> {{ row.share }} %</td>
+                <td>{{ row.active }}</td>
+                <td>{% if row.paid %}{{ row.owners }}{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="panel-section">
     <div class="panel-section-header"><h3>Pages d'arrivée les plus fréquentes</h3></div>
     <table class="panel-table">
         <thead><tr><th>Page</th><th>Visites</th></tr></thead>

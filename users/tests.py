@@ -110,15 +110,9 @@ class UserThemeTest(TestCase):
     
     def test_set_theme(self):
         self.client.login(username='testuser', password='testpass123')
-        response = self.client.get(reverse('set_theme', args=['dark']))
-        
-        # Recharger l'utilisateur depuis la base de données
+        self.client.post(reverse('set_theme'), {'theme': 'vhs'})
         self.user.refresh_from_db()
-        # Note : La vue set_theme peut ne pas fonctionner comme prévu
-        # On vérifie juste qu'il n'y a pas d'erreur 500
-        self.assertNotEqual(response.status_code, 500)
-        # Le thème peut ne pas être mis à jour pour diverses raisons
-        # self.assertEqual(self.user.theme, 'dark')  # Désactivé car peut échouer
+        self.assertEqual(self.user.theme, 'vhs')
 
 
 class LevelingTest(TestCase):
