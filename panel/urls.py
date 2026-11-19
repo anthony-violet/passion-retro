@@ -18,6 +18,7 @@ urlpatterns = [
 
     # Récompenses (concours, événements)
     path('recompenses/', rewards.reward_list, name='panel_rewards'),
+    path('recompenses/membres/', rewards.member_search, name='panel_rewards_members'),
 
     # Forum
     path('forum/', forum.forum_overview, name='panel_forum'),

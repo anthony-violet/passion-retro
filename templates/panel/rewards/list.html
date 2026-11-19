@@ -13,8 +13,14 @@
         <div class="panel-form-grid">
             <div class="panel-form-group panel-form-full">
                 <label>Membres *</label>
-                <input type="text" name="usernames" value="{{ form.usernames }}" placeholder="Pseudo1, Pseudo2…" required>
-                <small>Un ou plusieurs pseudos, séparés par des virgules ou des espaces.</small>
+                <div class="reward-picker" data-search-url="{% url 'panel_rewards_members' %}">
+                    <input type="hidden" name="usernames" value="{{ form.usernames }}">
+                    <div class="reward-picker-chips" aria-live="polite"></div>
+                    <input type="text" class="reward-picker-input" placeholder="Tape un pseudo…" autocomplete="off"
+                           role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="reward-picker-list">
+                    <ul class="reward-picker-list" id="reward-picker-list" role="listbox" hidden></ul>
+                </div>
+                <small>Tape les premières lettres puis choisis le membre dans la liste (↑ ↓ et Entrée au clavier). Ajoute-en autant que tu veux.</small>
             </div>
             <div class="panel-form-group panel-form-full">
                 <label>Motif *</label>
@@ -83,4 +89,198 @@
         </tbody>
     </table>
 </div>
+<style>
+.reward-picker { position: relative; }
+.reward-picker-input { width: 100%; box-sizing: border-box; }
+.reward-picker-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.reward-picker-chips:not(:empty) { margin-bottom: 6px; }
+.reward-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; }
+.reward-chip button { border: 0; background: transparent; color: inherit; cursor: pointer;
+    font-size: 1rem; line-height: 1; padding: 0 4px; opacity: .75; }
+.reward-chip button:hover, .reward-chip button:focus-visible { opacity: 1; }
+.reward-picker-list { position: absolute; left: 0; right: 0; z-index: 50; margin: 2px 0 0; padding: 4px 0;
+    list-style: none; max-height: 280px; overflow-y: auto; border: 1px solid; border-radius: 4px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .35); }
+.reward-picker-list li { display: flex; align-items: center; gap: 8px; padding: 6px 10px; cursor: pointer; }
+.reward-picker-list li[aria-selected="true"] { outline: 2px solid currentColor; outline-offset: -2px; }
+.reward-picker-list li.is-chosen { opacity: .5; }
+.reward-picker-list img { width: 28px; height: 28px; object-fit: cover; border-radius: 3px; flex: none; }
+.reward-picker-list .reward-meta { margin-left: auto; font-size: .8em; opacity: .75; white-space: nowrap; }
+.reward-picker-list .reward-empty { cursor: default; opacity: .75; }
+</style>
+<script>
+(function () {
+    const picker = document.querySelector('.reward-picker');
+    if (!picker) return;
+    const hidden = picker.querySelector('input[type=hidden]');
+    const input = picker.querySelector('.reward-picker-input');
+    const chips = picker.querySelector('.reward-picker-chips');
+    const list = picker.querySelector('.reward-picker-list');
+    const url = picker.dataset.searchUrl;
+    let chosen = hidden.value.split(/[\s,;]+/).filter(Boolean);
+    let results = [];
+    let active = -1;
+    let timer = null;
+    let lastQuery = null;
+
+    // La liste reprend les couleurs du champ, quel que soit le thème.
+    function themeList() {
+        const style = getComputedStyle(input);
+        const rgb = c => (c.match(/[\d.]+/g) || []).map(Number);
+        const [tr, tg, tb] = rgb(style.color);
+        const lightText = (0.299 * tr + 0.587 * tg + 0.114 * tb) > 128;
+        // Un fond semi-transparent est posé sur une base unie, sinon la page se voit à travers.
+        const base = lightText ? [21, 21, 24] : [255, 255, 255];
+        const [r = 0, g = 0, b = 0, a = 1] = rgb(style.backgroundColor);
+        const mix = (fg, bgc) => Math.round(fg * a + bgc * (1 - a));
+        list.style.background = `rgb(${mix(r, base[0])}, ${mix(g, base[1])}, ${mix(b, base[2])})`;
+        list.style.color = style.color;
+        list.style.borderColor = style.borderTopColor;
+    }
+
+    function has(name) {
+        return chosen.some(n => n.toLowerCase() === name.toLowerCase());
+    }
+
+    function sync() {
+        hidden.value = chosen.join(', ');
+        chips.innerHTML = '';
+        chosen.forEach((name, index) => {
+            const chip = document.createElement('span');
+            chip.className = 'panel-badge panel-badge-info reward-chip';
+            chip.textContent = name;
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.textContent = '×';
+            remove.setAttribute('aria-label', 'Retirer ' + name);
+            remove.addEventListener('click', () => {
+                chosen.splice(index, 1);
+                sync();
+                input.focus();
+            });
+            chip.appendChild(remove);
+            chips.appendChild(chip);
+        });
+    }
+
+    function close() {
+        list.hidden = true;
+        input.setAttribute('aria-expanded', 'false');
+        active = -1;
+    }
+
+    function render() {
+        list.innerHTML = '';
+        if (!results.length) {
+            const li = document.createElement('li');
+            li.className = 'reward-empty';
+            li.textContent = 'Aucun membre trouvé.';
+            list.appendChild(li);
+        }
+        results.forEach((user, index) => {
+            const li = document.createElement('li');
+            li.setAttribute('role', 'option');
+            li.setAttribute('aria-selected', index === active ? 'true' : 'false');
+            if (has(user.username)) li.classList.add('is-chosen');
+            if (user.avatar) {
+                const img = document.createElement('img');
+                img.src = user.avatar;
+                img.alt = '';
+                li.appendChild(img);
+            }
+            const name = document.createElement('strong');
+            name.textContent = user.username;
+            li.appendChild(name);
+            const meta = document.createElement('span');
+            meta.className = 'reward-meta';
+            meta.textContent = 'niv. ' + user.level + (user.active ? '' : ' · inactif') + (has(user.username) ? ' · ajouté' : '');
+            li.appendChild(meta);
+            li.addEventListener('mousedown', event => {
+                event.preventDefault();  // garde le focus dans le champ
+                pick(user.username);
+            });
+            list.appendChild(li);
+        });
+        themeList();
+        list.hidden = false;
+        input.setAttribute('aria-expanded', 'true');
+        const current = list.children[active];
+        if (current) current.scrollIntoView({block: 'nearest'});
+    }
+
+    function pick(name) {
+        if (!has(name)) chosen.push(name);
+        sync();
+        input.value = '';
+        lastQuery = null;
+        close();
+        input.focus();
+    }
+
+    async function search() {
+        const q = input.value.trim();
+        if (!q) { close(); lastQuery = null; return; }
+        if (q === lastQuery) return;
+        lastQuery = q;
+        try {
+            const response = await fetch(url + '?q=' + encodeURIComponent(q), {headers: {'Accept': 'application/json'}});
+            if (!response.ok) return;
+            const data = await response.json();
+            if (input.value.trim() !== q) return;  // une frappe plus récente a pris le relais
+            results = data.results;
+            active = results.findIndex(u => !has(u.username));
+            render();
+        } catch (error) {
+            close();
+        }
+    }
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(search, 150);
+    });
+    input.addEventListener('focus', () => { if (input.value.trim()) { lastQuery = null; search(); } });
+    input.addEventListener('blur', () => setTimeout(close, 100));
+    input.addEventListener('keydown', event => {
+        const open = !list.hidden && results.length;
+        if (event.key === 'ArrowDown' && open) {
+            event.preventDefault();
+            active = (active + 1) % results.length;
+            render();
+        } else if (event.key === 'ArrowUp' && open) {
+            event.preventDefault();
+            active = (active - 1 + results.length) % results.length;
+            render();
+        } else if (event.key === 'Enter') {
+            if (open && active >= 0) {
+                event.preventDefault();
+                pick(results[active].username);
+            } else if (input.value.trim()) {
+                event.preventDefault();  // pas d'envoi du formulaire avec un pseudo non choisi
+            }
+        } else if (event.key === 'Escape') {
+            close();
+        } else if (event.key === 'Backspace' && !input.value && chosen.length) {
+            chosen.pop();
+            sync();
+        }
+    });
+
+    picker.closest('form').addEventListener('submit', event => {
+        // Un pseudo tapé sans être choisi est quand même envoyé : le serveur dira s'il est introuvable.
+        const typed = input.value.trim();
+        if (typed && !has(typed)) chosen.push(typed);
+        sync();
+        if (!chosen.length) {
+            event.preventDefault();
+            input.focus();
+            input.setCustomValidity('Choisis au moins un membre.');
+            input.reportValidity();
+            input.addEventListener('input', () => input.setCustomValidity(''), {once: true});
+        }
+    });
+
+    sync();
+})();
+</script>
 {% endblock %}

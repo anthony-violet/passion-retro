@@ -80,3 +80,18 @@ class StaffRewardPanelTest(TestCase):
         self.post(gold='', experience='')
         self.post(gold='-3')
         self.assertFalse(StaffReward.objects.exists())
+
+    def test_member_search(self):
+        User.objects.create_user('malice', 'm@test.com', 'pass12345')
+        url = reverse('panel_rewards_members')
+        self.client.login(username='staff', password='pass12345')
+        names = [r['username'] for r in self.client.get(url, {'q': 'ali'}).json()['results']]
+        # Les pseudos qui commencent par la recherche passent en premier.
+        self.assertEqual(names, ['Alice', 'malice'])
+        self.assertEqual(self.client.get(url, {'q': 'retro'}).json()['results'], [])
+        self.assertEqual(self.client.get(url).json()['results'], [])
+
+    def test_member_search_staff_only(self):
+        self.client.login(username='bob', password='pass12345')
+        response = self.client.get(reverse('panel_rewards_members'), {'q': 'a'})
+        self.assertEqual(response.status_code, 302)

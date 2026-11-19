@@ -1,7 +1,8 @@
 import re
 
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Case, IntegerField, Max, Q, Value, When
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
 
 from panel.decorators import staff_required
@@ -94,3 +95,34 @@ def reward_list(request):
     return render(request, 'panel/rewards/list.html', {
         'form': form, 'items': items, 'rewards': rewards,
     })
+
+
+@staff_required
+def member_search(request):
+    """Suggestions de membres pour le sélecteur de la page Récompenses."""
+    q = request.GET.get('q', '').strip()
+    if not q:
+        return JsonResponse({'results': []})
+    users = (
+        User.objects.filter(username__icontains=q)
+        .exclude(username='RetroBot')
+        .annotate(
+            starts=Case(When(username__istartswith=q, then=Value(0)),
+                        default=Value(1), output_field=IntegerField()),
+            max_level=Max('levels__level'),
+        )
+        .order_by('starts', 'username')[:10]
+    )
+    results = []
+    for user in users:
+        try:
+            avatar = user.avatar.url if user.avatar else ''
+        except ValueError:
+            avatar = ''
+        results.append({
+            'username': user.username,
+            'level': user.max_level or 1,
+            'avatar': avatar,
+            'active': user.active,
+        })
+    return JsonResponse({'results': results})
