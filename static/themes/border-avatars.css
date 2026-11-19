@@ -614,3 +614,9 @@
 @media (prefers-reduced-motion: reduce) {
     .cadre-vice-beach, .cadre-leonida-neon, .cadre-wanted, .cadre-wanted::before { animation: none; }
 }
+
+/* Le badge de niveau reste au-dessus des cadres, dont certains éléments
+   (image, gemme, coins, palmier…) sont en z-index 1 à 3. */
+.level-badge {
+    z-index: 5;
+}
