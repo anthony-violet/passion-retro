@@ -47,13 +47,16 @@ DEFAULT_DESCRIPTION = (
 
 
 def theme_context(request):
+    # Le panel d'administration occupe toute la largeur, sans colonnes latérales.
+    full_width_page = request.path.startswith("/panel/")
     if not hasattr(request, "theme_active"):
-        return {}
+        return {"full_width_page": full_width_page}
 
     config = get_theme_config(request.theme_active)
     layout = get_layout_config(request.theme_active)
 
     return {
+        "full_width_page": full_width_page,
         "theme_config": config,
         "theme_layout": layout,
         "site_name": settings.SITE_NAME,

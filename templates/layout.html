@@ -89,7 +89,7 @@
 <body class="theme-{{ request.theme_active }}{% if christmas_enabled %} xmas{% endif %}">
     {% if theme_layout.navbar != 'none' %}{% include './components/banner.html' %}{% endif %}
     <div class="row">
-        {% if theme_layout.left_menu %}
+        {% if theme_layout.left_menu and not full_width_page or theme_layout.left_menu and theme_layout.menu_type == 'horizontal' %}
             {% if theme_layout.menu_type == 'vertical' %}
                 <div class="col col-2">
             {% endif %}
@@ -100,7 +100,9 @@
             {% endif %}
         {% endif %}
 
-        {% if theme_layout.left_menu and theme_layout.menu_type == 'vertical' %}
+        {% if full_width_page %}
+            <div class="col col-12">
+        {% elif theme_layout.left_menu and theme_layout.menu_type == 'vertical' %}
             </div>
             <div class="col col-7">
         {% elif not theme_layout.left_menu %}
@@ -123,7 +125,7 @@
             {% block content %}{% endblock %}
         </div>
 
-        {% if theme_layout.right_menu %}
+        {% if theme_layout.right_menu and not full_width_page %}
             <div class="col col-2">
                 {% include './components/right_menu.html' %}
             </div>

@@ -57,3 +57,18 @@ class PanelTogglesPostOnlyTest(TestCase):
                 response = self.client.get(reverse(page))
                 self.assertContains(response, f'action="{reverse(name, args=[pk])}"')
                 self.assertNotContains(response, f'href="{reverse(name, args=[pk])}"')
+
+
+class PanelFullWidthTest(TestCase):
+    def test_panel_takes_full_width(self):
+        staff = User.objects.create_user(username='staff', password='p', is_staff=True)
+        self.client.force_login(staff)
+        response = self.client.get(reverse('panel_dashboard'))
+        self.assertContains(response, 'class="col col-12"')
+        self.assertNotContains(response, 'class="col col-2"')
+        self.assertNotContains(response, 'class="col col-7"')
+
+    def test_regular_pages_keep_side_columns(self):
+        response = self.client.get(reverse('forum_home'))
+        self.assertNotContains(response, 'class="col col-12"')
+        self.assertTrue(response.context['full_width_page'] is False)
