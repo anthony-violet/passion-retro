@@ -99,7 +99,7 @@
                     <p class="discover-meta">
                         Publié le {{ post.created|date:"d F Y" }} par {{ post.author.username }}
                     </p>
-                    <p>{{ post.content|bbcode|safe|linebreaksbr|truncatewords_html:28 }}</p>
+                    <p>{{ post.content|bbcode_by:post.author|safe|linebreaksbr|truncatewords_html:28 }}</p>
                 </article>
             {% empty %}
                 <p class="discover-panel">Les premières publications arrivent bientôt.</p>

@@ -3,7 +3,7 @@
     <div class="news-section__head">
         <h2>Actus</h2>
         {% if user.is_authenticated %}
-            {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" or user|has_group:"Rédacteur" %}
+            {% if user|has_group:"Administrateur" or user|has_group:"Super Admin" or user|has_group:"Rédacteur" %}
                 <a href="{% url 'create_news' 'news' %}" class="btn btn-add" title="Ajouter une actu">+</a>
             {% endif %}
         {% endif %}

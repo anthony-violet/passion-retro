@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
+from django.contrib.auth.password_validation import validate_password
 
 from .models import User
 
@@ -22,13 +23,42 @@ class UserRegistrationForm(forms.Form):
         widget=forms.PasswordInput(attrs={'class': 'form-group', 'placeholder': 'Mot de passe (vérification)'})
     )
 
+    def clean_username(self):
+        username = self.cleaned_data['username'].strip()
+        if User.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError("Ce pseudo est déjà pris.")
+        return username
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Un compte existe déjà avec cette adresse e-mail.")
+        return email
+
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get("password1")
         password2 = cleaned_data.get("password2")
 
         if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords do not match")
+            self.add_error('password2', "Les deux mots de passe ne correspondent pas.")
+        elif password1:
+            candidate = User(
+                username=cleaned_data.get('username', ''),
+                email=cleaned_data.get('email', ''),
+            )
+            try:
+                validate_password(password1, candidate)
+            except forms.ValidationError as error:
+                self.add_error('password1', error)
+        return cleaned_data
+
+
+class ResendActivationForm(forms.Form):
+    email = forms.EmailField(
+        label='',
+        widget=forms.EmailInput(attrs={'class': 'form-group', 'placeholder': 'Ton adresse e-mail'}),
+    )
 
 class UserLoginForm(forms.Form):
     username = forms.CharField(

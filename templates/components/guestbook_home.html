@@ -7,16 +7,23 @@
     <h2>Livre d'Or</h2>
     <div class="guestbook">
         {% for message in guestbook %}    
-            <p>Le {{ message.created }}, <span class="author {{ message.author.username_decoration }}">{{ message.author }}</span> à dit : {{ message.content|bbcode|safe|linebreaksbr }}</p>
+            <p>Le {{ message.created }}, <span class="author {{ message.author.username_decoration }}">{{ message.author }}</span> à dit : {{ message.content|bbcode_user|safe|linebreaksbr }}</p>
         {% endfor %}
     </div>
     <h3 id="form">Laisser un message</h3>
     <form action="" method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        <p>{{ form.author }}{{ form.author.errors }}</p>
+        <p>{{ form.content }}{{ form.content.errors }}</p>
+        {{ form.form_token }}
+        <div class="guestbook-trap" aria-hidden="true">
+            <label for="{{ form.website.id_for_label }}">{{ form.website.label }}</label>
+            {{ form.website }}
+        </div>
         <!-- <script src='https://www.google.com/recaptcha/api.js'></script>
         <div class="g-recaptcha" style="margin-left:50px" data-sitekey="{{ GOOGLE_PUBLIC_KEY }}"></div> -->
         <button>Envoyer</button>
     </form>
 </div>
+<style>.guestbook-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }</style>
 {% endblock %}

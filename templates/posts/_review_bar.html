@@ -19,7 +19,7 @@
     </div>
 
     {% if post.rejected and post.rejection_reason %}
-        <div>Motif :<div class="contrib-reason">{% include 'posts/_post_body.html' with content=post.rejection_reason %}</div></div>
+        <div>Motif :<div class="contrib-reason">{% include 'posts/_post_body.html' with content=post.rejection_reason trusted=True %}</div></div>
     {% endif %}
 
     <ul>

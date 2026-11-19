@@ -328,3 +328,7 @@ img {
 .staff-preview-bar a { color: #9cc4ff; text-decoration: underline; }
 .staff-preview-bar form { display: inline; margin: 0; }
 .staff-preview-bar .seasonal-toggle { color: #ffb3b6; opacity: 1; }
+
+/* Boutons d'action envoyés en POST (modération, suppression…) */
+.inline-form { display: inline; margin: 0; padding: 0; }
+.inline-form button { font: inherit; cursor: pointer; }

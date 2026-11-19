@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.models import Group
@@ -67,6 +68,7 @@ def user_edit(request, user_id):
 
 
 @staff_required
+@require_POST
 def user_toggle_active(request, user_id):
     user = get_object_or_404(User, pk=user_id)
     if user == request.user:

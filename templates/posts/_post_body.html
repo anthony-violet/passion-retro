@@ -1,1 +1,1 @@
-{% load bbcode_tags %}{{ content|bbcode|safe|linebreaksbr }}
+{% load bbcode_tags %}{% if trusted %}{{ content|bbcode|safe|linebreaksbr }}{% else %}{{ content|bbcode_by:author|safe|linebreaksbr }}{% endif %}

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from .models import *
 from .models import MysteryAttempt
@@ -83,7 +84,7 @@ def little_bac_start(request):
 
 @login_required()
 def little_bac_party(request, party_id):
-    game = LittleBacGames.objects.get(id=party_id)
+    game = get_object_or_404(LittleBacGames, id=party_id)
     players = LittleBacPlayers.objects.filter(game=game).select_related(
         'user'
     ).prefetch_related('user__levels')
@@ -97,7 +98,7 @@ def little_bac_party(request, party_id):
 
 @login_required()
 def little_bac_party_join(request, party_id):
-    game = LittleBacGames.objects.get(id=party_id)
+    game = get_object_or_404(LittleBacGames, id=party_id)
     players = LittleBacPlayers.objects.filter(game=game)
     
     if players.filter(user=request.user).exists():
@@ -113,7 +114,7 @@ def little_bac_party_join(request, party_id):
 
 @login_required()
 def little_bac_party_play(request, party_id):
-    game = LittleBacGames.objects.get(id=party_id)
+    game = get_object_or_404(LittleBacGames, id=party_id)
     players = LittleBacPlayers.objects.filter(game=game).select_related(
         'user'
     ).prefetch_related('user__levels')
@@ -297,12 +298,12 @@ def game_little_bac_results(request, party_id):
         'total_scores': total_scores
     })
 
-login_required()
+@login_required()
 def game_little_bac_start_new_round(request, game_id):
     import random
     import string
 
-    game = LittleBacGames.objects.get(id=game_id)
+    game = get_object_or_404(LittleBacGames, id=game_id)
     if game.author != request.user:
         return redirect('bac_party_games', party_id=game_id)
     
@@ -357,6 +358,9 @@ def game_players_little_bac(request, game_id):
 
 @login_required()
 def toggle_ready_status_little_bac(request, game_id, player_id):
+    # Un joueur ne peut changer que son propre statut (player_id = id utilisateur).
+    if player_id != request.user.id:
+        return JsonResponse({"error": "Forbidden"}, status=403)
     try:
         game = LittleBacGames.objects.get(id=game_id)
         player = LittleBacPlayers.objects.get(game=game, user_id=player_id)
@@ -369,7 +373,7 @@ def toggle_ready_status_little_bac(request, game_id, player_id):
         all_ready = LittleBacPlayers.objects.filter(game=game, is_ready=True).count()
 
         return JsonResponse({"is_ready": player.is_ready, "all_ready": all_ready})
-    except LittleBacPlayers.DoesNotExist:
+    except (LittleBacGames.DoesNotExist, LittleBacPlayers.DoesNotExist):
         return JsonResponse({"error": "Player not found"}, status=404)
 
 def game_infos_little_bac(request, game_id):
@@ -468,7 +472,9 @@ def game_start_countdown(request, game_id):
 def game_countdown_status(request, game_id):
     from django.utils.timezone import now
 
-    game = LittleBacGames.objects.get(id=game_id)
+    game = LittleBacGames.objects.filter(id=game_id).first()
+    if game is None:
+        return JsonResponse({"error": "Game not found"}, status=404)
 
     if game.countdown_started and game.countdown_start_time:
         # Temps écoulé en secondes
@@ -482,24 +488,44 @@ def game_countdown_status(request, game_id):
         "countdown_time": remaining_time
     })
 
+# Marge pour les horloges des navigateurs, légèrement en avance sur le serveur.
+END_GAME_TOLERANCE_SECONDS = 2
+
+
+def _little_bac_can_end(game):
+    """La partie peut se terminer quand tous ont fini ou que le décompte final est écoulé."""
+    players = LittleBacPlayers.objects.filter(game=game)
+    if players.exists() and not players.exclude(status='overed').exists():
+        return True
+    if game.current_phase == 'finish_game' and game.countdown_started and game.countdown_start_time:
+        elapsed = (now() - game.countdown_start_time).total_seconds()
+        return elapsed + END_GAME_TOLERANCE_SECONDS >= game.countdown_time
+    return False
+
+
+@require_POST
 @login_required()
 def game_liitle_bac_end_game(request, game_id):
-    from django.utils.timezone import now
-
-    try:
-        game = LittleBacGames.objects.get(id=game_id)
-
-        # Mettre à jour l'état du jeu à "finished"
-        game.status = 'finished'
-        game.updated = now()
-        game.save()
-
-        # Optionnel : Mettez à jour tous les joueurs pour les marquer comme ayant terminé
-        LittleBacPlayers.objects.filter(game=game).update(status='overed')
-
-        return JsonResponse({"success": True, "message": "Game ended successfully."})
-    except LittleBacGames.DoesNotExist:
+    game = LittleBacGames.objects.filter(id=game_id).first()
+    if game is None:
         return JsonResponse({"error": "Game not found"}, status=404)
+
+    # Seuls les joueurs de la partie peuvent la terminer.
+    if not LittleBacPlayers.objects.filter(game=game, user=request.user).exists():
+        return JsonResponse({"success": False, "error": "Vous ne jouez pas dans cette partie."}, status=403)
+
+    # Plusieurs joueurs appellent cette route : une partie déjà finie reste un succès.
+    if game.status == 'finished':
+        return JsonResponse({"success": True, "message": "Game already ended."})
+
+    if game.status != 'in_progress' or not _little_bac_can_end(game):
+        return JsonResponse({"success": False, "error": "La partie n'est pas encore terminée."}, status=400)
+
+    game.status = 'finished'
+    game.save(update_fields=['status', 'updated'])
+    LittleBacPlayers.objects.filter(game=game).update(status='overed')
+
+    return JsonResponse({"success": True, "message": "Game ended successfully."})
 
 # --- Jeu mystère -----------------------------------------------------------
 

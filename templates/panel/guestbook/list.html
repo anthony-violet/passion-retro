@@ -24,9 +24,10 @@
                     {% endif %}
                 </td>
                 <td class="panel-actions">
-                    <a href="{% url 'panel_guestbook_toggle' entry.id %}" class="btn btn-small btn-warning">
-                        {% if entry.active %}Masquer{% else %}Approuver{% endif %}
-                    </a>
+                    <form method="post" action="{% url 'panel_guestbook_toggle' entry.id %}" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-warning">{% if entry.active %}Masquer{% else %}Approuver{% endif %}</button>
+                    </form>
                     <form method="post" action="{% url 'panel_guestbook_delete' entry.id %}" style="display:inline" onsubmit="return confirm('Supprimer ce message ?')">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-small btn-danger">Suppr.</button>

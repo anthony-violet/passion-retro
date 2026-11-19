@@ -25,9 +25,10 @@
                 </td>
                 <td class="panel-actions">
                     <a href="{% url 'panel_quiz_detail' quiz.id %}" class="btn btn-small">Voir</a>
-                    <a href="{% url 'panel_quiz_toggle' quiz.id %}" class="btn btn-small btn-warning">
-                        {% if quiz.is_active %}Désactiver{% else %}Activer{% endif %}
-                    </a>
+                    <form method="post" action="{% url 'panel_quiz_toggle' quiz.id %}" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-warning">{% if quiz.is_active %}Désactiver{% else %}Activer{% endif %}</button>
+                    </form>
                     <form method="post" action="{% url 'panel_quiz_delete' quiz.id %}" style="display:inline" onsubmit="return confirm('Supprimer ce quiz ?')">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-small btn-danger">Suppr.</button>

@@ -4,61 +4,50 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
-from .forms import PostForm, UserRegistrationForm, UserLoginForm, UserUpdateForm, ProfileUpdateForm, PasswordUpdateForm
+from . import accounts
+from .forms import PostForm, ResendActivationForm, UserRegistrationForm, UserLoginForm, UserUpdateForm, ProfileUpdateForm, PasswordUpdateForm
 from posts.models import Post
 from django.utils.text import slugify
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.conf import settings
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
 from .models import User
 from .leveling import STARTING_GOLD, grant_experience
+import urllib.parse
 import urllib.request
 import json
 
-def register(request):
-    from messagerie.models import PrivateMessageSubject, PrivateMessage
-    if request.user.is_authenticated:
-        return redirect('profile')
-    
-    if request.method == "POST":
-        form = UserRegistrationForm(request.POST)
-        recaptcha = request.POST.get('g-recaptcha-response')
-        if form.is_valid():
+def _recaptcha_ok(request):
+    """Vérifie le reCAPTCHA. Sans clé configurée en développement, on laisse passer."""
+    if not settings.GOOGLE_PRIVATE_KEY:
+        return settings.DEBUG
+    data = urllib.parse.urlencode({
+        'secret': settings.GOOGLE_PRIVATE_KEY,
+        'response': request.POST.get('g-recaptcha-response', ''),
+    }).encode()
+    try:
+        req = urllib.request.Request('https://www.google.com/recaptcha/api/siteverify', data=data)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            return bool(json.loads(response.read().decode()).get('success'))
+    except (OSError, ValueError):
+        return False
 
-            url = 'https://www.google.com/recaptcha/api/siteverify'
-            values = {
-                'secret': settings.GOOGLE_PRIVATE_KEY,
-                'response': recaptcha
-            }
-            data = urllib.parse.urlencode(values).encode()
-            req =  urllib.request.Request(url, data=data)
-            response = urllib.request.urlopen(req)
-            result = json.loads(response.read().decode())
 
-            if result['success']:
-                user = User.objects.create_user(
-                    username=form.cleaned_data['username'],
-                    email=form.cleaned_data['email'],
-                    password=form.cleaned_data['password1'],
-                    theme='00s',
-                    active=True
-                )
+def _send_welcome_message(user):
+    from messagerie.models import PrivateMessage, PrivateMessageSubject
 
-                messages.success(request, f"Bonjour et bienvenue {user.username} ! Ton compte a été créé avec succès. Tu peux désormais te connecter.")
-
-                subject = PrivateMessageSubject.objects.create(
-                    receiver=user,
-                    sender=User.objects.get(username='RetroBot'),
-                    subject=f"Bienvenue sur {settings.SITE_NAME} !"
-                )
-
-                PrivateMessage.objects.create(
-                    subject=subject,
-                    author=User.objects.get(username='RetroBot'),
-                    message=f"""[b]Bienvenue sur {settings.SITE_NAME} ![/b]
+    bot = User.objects.filter(username='RetroBot').first()
+    if bot is None:
+        return
+    subject = PrivateMessageSubject.objects.create(
+        receiver=user,
+        sender=bot,
+        subject=f"Bienvenue sur {settings.SITE_NAME} !",
+    )
+    PrivateMessage.objects.create(
+        subject=subject,
+        author=bot,
+        message=f"""[b]Bienvenue sur {settings.SITE_NAME} ![/b]
 
 Salut [b]{user.username}[/b] !,
 
@@ -75,71 +64,85 @@ Si tu as des questions ou des suggestions pour améliorer le site, contacte-nous
 Encore une fois, bienvenue parmi nous et prépare-toi à replonger dans l’univers du rétro !  
 
 À bientôt,  
-[b]L'équipe {settings.SITE_NAME}[/b]""")
+[b]L'équipe {settings.SITE_NAME}[/b]""",
+    )
 
-                return redirect('login')
-            else:
-                messages.error(request, f"On y est presque ! Vérifie bien le captcha pour finaliser ton inscription.")            
 
-    form = UserRegistrationForm()
-    return render(request, 'users/register.html', {'form': form, 'GOOGLE_PUBLIC_KEY': settings.GOOGLE_PUBLIC_KEY})
-
-def register_with_token(request):
-    # Si l'utilisateur est deja connecté, on le redirige vers la page de pr>
+def register(request):
     if request.user.is_authenticated:
         return redirect('profile')
-    if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
+
+    form = UserRegistrationForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        if not _recaptcha_ok(request):
+            messages.error(request, "On y est presque ! Vérifie bien le captcha pour finaliser ton inscription.")
+        else:
+            # Le compte reste désactivé tant que l'adresse e-mail n'est pas validée.
             user = User.objects.create_user(
                 username=form.cleaned_data['username'],
                 email=form.cleaned_data['email'],
-                password=form.cleaned_data['password1']
+                password=form.cleaned_data['password1'],
+                theme='00s',
+                active=False,
             )
-            genToken = PasswordResetTokenGenerator()
-            token = genToken.make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-            activation_link = request.build_absolute_uri(f"/users/activate/{uid}/{token}")
-           
-            email_subject = 'Activation de votre compte'
-            email_body = render_to_string('emails/activation_account.html', {
-                'user': user,
-                'activation_link': activation_link,
-            })
-
-            send_mail(
-                email_subject,
-                email_body,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-
-            messages.success(request, f"Ton compte a été créé avec succès, {user.username}! Un email d'activation t'a été envoyé pour valider ton inscription.")
-
+            _send_welcome_message(user)
+            if accounts.send_activation_email(user):
+                messages.success(
+                    request,
+                    f"Bienvenue {user.username} ! Ton compte est créé : clique sur le lien "
+                    f"envoyé à {user.email} pour l'activer, puis connecte-toi.",
+                )
+            else:
+                messages.warning(
+                    request,
+                    "Ton compte est créé, mais l'e-mail d'activation n'a pas pu partir. "
+                    "Redemande-le depuis la page « Renvoyer l'e-mail d'activation ».",
+                )
             return redirect('login')
-    else:
-        form = UserRegistrationForm()
-    return render(request, 'users/register.html', {'form': form})
+
+    return render(request, 'users/register.html', {'form': form, 'GOOGLE_PUBLIC_KEY': settings.GOOGLE_PUBLIC_KEY})
+
 
 def activate(request, uidb64, token):
-    uid = None  # Initialisation de la variable uid
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-
-    token_generator = PasswordResetTokenGenerator()
-    if user is not None and token_generator.check_token(user, token):
-        user.active = True
-        user.save()
-        messages.success(request, "Votre compte a été activé avec succès.")
+    user = accounts.user_from_uid(uidb64)
+    if user is not None and user.active:
+        messages.info(request, "Ton compte est déjà activé, tu peux te connecter.")
         return redirect('login')
-    else:
-        messages.error(request, "Le lien d'activation est invalide.")
-        return redirect('register')
+    if user is None or not accounts.activation_token.check_token(user, token):
+        messages.error(
+            request,
+            "Ce lien d'activation est invalide ou a expiré. Demande un nouveau lien ci-dessous.",
+        )
+        return redirect('resend_activation')
+
+    user.active = True
+    user.save(update_fields=['active'])
+    messages.success(request, "Ton compte est activé ! Tu peux maintenant te connecter.")
+    return redirect('login')
+
+
+def resend_activation(request):
+    if request.user.is_authenticated:
+        return redirect('profile')
+
+    form = ResendActivationForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        user = User.objects.filter(email__iexact=form.cleaned_data['email'], active=False).first()
+        if user is not None:
+            accounts.send_activation_email(user)
+        # Même réponse dans tous les cas : on ne révèle pas quelles adresses sont inscrites.
+        messages.success(
+            request,
+            "Si un compte non activé correspond à cette adresse, un nouveau lien d'activation vient d'y être envoyé.",
+        )
+        return redirect('login')
+
+    return render(request, 'users/resend_activation.html', {
+        'form': form,
+        'page_title': f"Renvoyer l'e-mail d'activation - {settings.SITE_NAME}",
+        'seo_noindex': True,
+    })
+
 
 def login(request):
     if request.method == 'POST':
@@ -152,8 +155,12 @@ def login(request):
                 messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
                 return redirect('login')
             
-            if user.active == False:
-                messages.error(request, "Votre compte n'est pas activé. Veuillez vérifier votre boîte mail.")
+            if not user.active:
+                messages.error(
+                    request,
+                    "Ton compte n'est pas encore activé : clique sur le lien reçu par e-mail. "
+                    "Rien reçu ? Utilise « Renvoyer l'e-mail d'activation ».",
+                )
                 return redirect('login')
             
             auth_login(request, user)
@@ -277,7 +284,10 @@ def new_feature_user(request):
 
 @login_required
 def use_item(request, item_id):
-    item = request.user.inventory.get(item_id=item_id)
+    item = request.user.inventory.filter(item_id=item_id).select_related('item__category').first()
+    if item is None:
+        messages.error(request, "Cet objet n'est pas dans votre inventaire.")
+        return redirect('profile')
 
     # On slugify le nom de l'item pour l'utiliser dans les conditions
     item_name = slugify(item.item.name)
@@ -296,7 +306,7 @@ def use_item(request, item_id):
         
         messages.success(request, f"Vous avez utilisé {item.item.name}.")
     else:
-        messages.error(request, f"Vous n'avez pass de {item.item.name}.")
+        messages.error(request, f"Vous n'avez pas de {item.item.name}.")
     return redirect('profile')
 
 @login_required

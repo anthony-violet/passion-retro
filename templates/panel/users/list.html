@@ -39,9 +39,10 @@
                 </td>
                 <td class="panel-actions">
                     <a href="{% url 'panel_user_edit' user.id %}" class="btn btn-small">Éditer</a>
-                    <a href="{% url 'panel_user_toggle' user.id %}" class="btn btn-small btn-warning">
-                        {% if user.active %}Désactiver{% else %}Activer{% endif %}
-                    </a>
+                    <form method="post" action="{% url 'panel_user_toggle' user.id %}" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-warning">{% if user.active %}Désactiver{% else %}Activer{% endif %}</button>
+                    </form>
                     <form method="post" action="{% url 'panel_user_delete' user.id %}" style="display:inline" onsubmit="return confirm('Supprimer {{ user.username }} ?')">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-small btn-danger">Suppr.</button>

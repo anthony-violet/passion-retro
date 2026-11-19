@@ -24,9 +24,10 @@
                     {% endif %}
                 </td>
                 <td class="panel-actions">
-                    <a href="{% url 'panel_forum_post_toggle' post.id %}" class="btn btn-small btn-warning">
-                        {% if post.active %}Masquer{% else %}Afficher{% endif %}
-                    </a>
+                    <form method="post" action="{% url 'panel_forum_post_toggle' post.id %}" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-warning">{% if post.active %}Masquer{% else %}Afficher{% endif %}</button>
+                    </form>
                     <form method="post" action="{% url 'panel_forum_post_delete' post.id %}" style="display:inline" onsubmit="return confirm('Supprimer ce message ?')">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-small btn-danger">Suppr.</button>

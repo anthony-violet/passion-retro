@@ -3,10 +3,18 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
 from passion_retro import settings
-from . import views
+from . import password_reset, views
 
 urlpatterns = [
     path("activate/<uidb64>/<token>/", views.activate, name="activate"),
+    path("activation/renvoyer/", views.resend_activation, name="resend_activation"),
+    path("mot-de-passe-oublie/", password_reset.PasswordResetView.as_view(), name="password_reset"),
+    path("mot-de-passe-oublie/envoye/", password_reset.PasswordResetDoneView.as_view(), name="password_reset_done"),
+    path(
+        "mot-de-passe-oublie/<uidb64>/<token>/",
+        password_reset.PasswordResetConfirmView.as_view(),
+        name="password_reset_confirm",
+    ),
     path("login/", views.login, name="login"),
     path("register/", views.register, name="register"),
     path("profile/", views.profile, name="profile"),

@@ -40,7 +40,7 @@
         {% if post.type == 'news' and post.image %}
             <div style="float:left;margin:5px"><img src="/media/{{ post.image }}" style="max-width: 200px;" alt="{{ post.title }}"></div>
         {% endif %}
-        <div class="post-body">{% include 'posts/_post_body.html' with content=post.content %}</div>
+        <div class="post-body">{% include 'posts/_post_body.html' with content=post.content author=post.author %}</div>
         {% if previous_post or next_post %}
             <nav class="post-nav" aria-label="Navigation dans le dossier">
                 {% if previous_post %}

@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+{% block content %}
+    <div class="container">
+        <h2>Renvoyer l'e-mail d'activation</h2>
+        <p class="auth-intro">Tu n'as pas reçu le lien d'activation, ou il a expiré ? Indique l'adresse e-mail utilisée à l'inscription.</p>
+        <div class="auth-form">
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn-submit">Renvoyer le lien</button>
+            </form>
+            <p><a href="{% url 'login' %}">Retour à la connexion</a></p>
+        </div>
+    </div>
+{% endblock %}

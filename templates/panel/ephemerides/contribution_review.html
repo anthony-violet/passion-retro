@@ -21,7 +21,7 @@
             {% if contribution.content %}
             <div class="contribution-content">
                 <h4>Description :</h4>
-                <div class="bbcode-content">{{ contribution.content|bbcode|safe }}</div>
+                <div class="bbcode-content">{{ contribution.content|bbcode_by:contribution.user|safe }}</div>
             </div>
             {% endif %}
 

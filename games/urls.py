@@ -24,10 +24,10 @@ urlpatterns = [
     path("mystere/mes-propositions/<int:game_id>/modifier", views.mystery_proposal_edit, name="mystery_proposal_edit"),
     path("bac", views.little_bac_home, name="bac_games"),
     path("bac/party", views.little_bac_start, name="bac_start_games"),
-    path("bac/party/<str:party_id>", views.little_bac_party, name="bac_party_games"),
-    path("bac/party/<str:party_id>/join", views.little_bac_party_join, name="bac_party_join_games"),
-    path("bac/party/<str:party_id>/play", views.little_bac_party_play, name="bac_party_play_games"),
-    path("bac/party/<str:party_id>/results", views.game_little_bac_results, name="bac_party_results_games"),
+    path("bac/party/<int:party_id>", views.little_bac_party, name="bac_party_games"),
+    path("bac/party/<int:party_id>/join", views.little_bac_party_join, name="bac_party_join_games"),
+    path("bac/party/<int:party_id>/play", views.little_bac_party_play, name="bac_party_play_games"),
+    path("bac/party/<int:party_id>/results", views.game_little_bac_results, name="bac_party_results_games"),
     path('party/<int:game_id>/new_round/', views.game_little_bac_start_new_round, name='bac_start_new_round'),
 
 ]

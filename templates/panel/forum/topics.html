@@ -25,9 +25,10 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{% url 'panel_forum_topic_toggle' topic.id %}" class="btn btn-small btn-warning">
-                        {% if topic.state == 'open' %}Fermer{% else %}Ouvrir{% endif %}
-                    </a>
+                    <form method="post" action="{% url 'panel_forum_topic_toggle' topic.id %}" style="display:inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-warning">{% if topic.state == 'open' %}Fermer{% else %}Ouvrir{% endif %}</button>
+                    </form>
                 </td>
             </tr>
             {% empty %}

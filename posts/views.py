@@ -7,6 +7,7 @@ from forum.models import Topic, Forum, Post as ForumPost
 from users.leveling import GOLD_BIG_ACTION, grant_experience
 from django.contrib import messages
 from users.decorators import groups_required
+from users.groups import ADMIN_GROUPS, EDITOR_GROUPS
 from posts.forms import CreatePost, EditPost, ContributionForm, NewsFieldsForm, parse_chapters
 from posts.utils import unique_slug
 from posts.news import (
@@ -169,7 +170,7 @@ def news_react(request, slug):
     messages.success(request, f'Réaction publiée sur le forum. +{xp} XP !')
     return redirect(target)
 
-@groups_required('Rédacteur', 'Admininistrateur', 'Super Admin')
+@groups_required(*EDITOR_GROUPS)
 def create_post(request, type):
     # Create a new post
     if request.method == 'POST':
@@ -392,11 +393,13 @@ def edit_post(request, post_id):
 def preview_content(request):
     """Rendu serveur du BBCode, identique à celui de la page article."""
     content = request.POST.get('content', '')
-    html = render_to_string('posts/_post_body.html', {'content': content})
+    html = render_to_string(
+        'posts/_post_body.html', {'content': content, 'author': request.user}
+    )
     return JsonResponse({'html': html})
 
 
-@groups_required('Administrateur', 'Super Admin')
+@groups_required(*ADMIN_GROUPS)
 def prending_posts(request):
     posts = Post.objects.filter(active=False)
 

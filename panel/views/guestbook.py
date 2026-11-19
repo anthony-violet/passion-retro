@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from panel.decorators import staff_required
@@ -11,6 +12,7 @@ def guestbook_list(request):
 
 
 @staff_required
+@require_POST
 def entry_toggle(request, entry_id):
     entry = get_object_or_404(Guestbook, pk=entry_id)
     entry.active = not entry.active

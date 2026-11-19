@@ -311,7 +311,7 @@ class ForumSeoP0Test(TestCase):
 
     def test_deactivated_topic_is_hidden(self):
         self.client.force_login(self.moderator)
-        self.client.get(f'/forum/{self.forum.id}/{self.topic.id}/deactivate/')
+        self.client.post(f'/forum/{self.forum.id}/{self.topic.id}/deactivate/')
         self.topic.refresh_from_db()
         self.assertFalse(self.topic.active)
         url = f'/forum/{self.forum.id}/{self.topic.id}/'

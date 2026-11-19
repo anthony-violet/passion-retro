@@ -12,6 +12,10 @@
                     {{ form.as_p }}
                     <button type="submit" class="btn-submit">Connexion</button>
                 </form>
+                <p class="auth-links">
+                    <a href="{% url 'password_reset' %}">Mot de passe oublié ?</a>
+                    · <a href="{% url 'resend_activation' %}">Renvoyer l'e-mail d'activation</a>
+                </p>
             </div>
             <aside class="auth-benefits">
                 <h3>Ton compte {{ site_name }}</h3>

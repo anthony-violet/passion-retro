@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from panel.decorators import staff_required
@@ -11,6 +12,7 @@ def quiz_list(request):
 
 
 @staff_required
+@require_POST
 def quiz_toggle(request, quiz_id):
     quiz = get_object_or_404(Quiz, pk=quiz_id)
     quiz.is_active = not quiz.is_active

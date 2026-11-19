@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from panel.decorators import staff_required
@@ -92,6 +93,7 @@ def topic_list(request):
 
 
 @staff_required
+@require_POST
 def topic_toggle_state(request, topic_id):
     topic = get_object_or_404(Topic, pk=topic_id)
     topic.state = 'closed' if topic.state == 'open' else 'open'
@@ -107,6 +109,7 @@ def post_list(request):
 
 
 @staff_required
+@require_POST
 def post_toggle_active(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     post.active = not post.active

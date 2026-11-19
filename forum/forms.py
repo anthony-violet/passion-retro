@@ -9,7 +9,7 @@ class CreateTopic(forms.Form):
         ('announce', 'Annonce'),
     )
     title = forms.CharField(
-        max_length=150, 
+        max_length=50,
         label='', 
         widget=forms.TextInput(attrs={'placeholder': 'Titre du sujet'})
     )
@@ -17,7 +17,9 @@ class CreateTopic(forms.Form):
         label='', 
         widget=forms.Textarea(attrs={'placeholder': 'Contenu du sujet'})
     )
-    type = forms.ChoiceField(choices=TOPIC_TYPE_CHOICES, label='Type de sujet')
+    type = forms.ChoiceField(
+        choices=TOPIC_TYPE_CHOICES, label='Type de sujet', required=False,
+    )
     subscribe = forms.BooleanField(
         required=False,
         initial=True,

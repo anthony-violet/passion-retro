@@ -44,7 +44,7 @@
                                 <span class="rpg-info-label">Groupe</span>
                                 <span class="rpg-info-value">
                                     {% for group in message.author.groups.all %}
-                                        {% if group.name == "Administrateurs" %}<span class="text-admin">{{ group.name }}</span>{% elif group.name == "Super Admin" %}<span class="text-sadmin">{{ group.name }}</span>{% else %}{{ group.name }}{% endif %}{% if not forloop.last %}, {% endif %}
+                                        {% if group.name == "Administrateur" %}<span class="text-admin">{{ group.name }}</span>{% elif group.name == "Super Admin" %}<span class="text-sadmin">{{ group.name }}</span>{% else %}{{ group.name }}{% endif %}{% if not forloop.last %}, {% endif %}
                                     {% empty %}—{% endfor %}
                                 </span>
                             </li>
@@ -61,13 +61,13 @@
                     </aside>
 
                     <div class="rpg-post-body">
-                        <div class="rpg-post-content" id="post-{{ message.id }}">{{ message.message|bbcode|safe|linebreaksbr }}</div>
+                        <div class="rpg-post-content" id="post-{{ message.id }}">{{ message.message|bbcode_by:message.author|safe|linebreaksbr }}</div>
 
                         <footer class="rpg-post-footer">
                             {% if message.author.biography %}
                             <div class="rpg-post-signature">
                                 <span class="rpg-post-signature-label">— ✒ Signature —</span>
-                                <p>{{ message.author.biography|bbcode|safe|linebreaksbr }}</p>
+                                <p>{{ message.author.biography|bbcode_by:message.author|safe|linebreaksbr }}</p>
                             </div>
                             {% endif %}
                             <div class="rpg-post-footer-bar">
@@ -132,7 +132,7 @@
                 <ul class="vhs-segment__meta">
                     {% for group in message.author.groups.all %}
                     <li>
-                        <span class="vhs-segment__group{% if group.name == 'Administrateurs' %} vhs-segment__group--admin{% elif group.name == 'Super Admin' %} vhs-segment__group--sadmin{% endif %}">
+                        <span class="vhs-segment__group{% if group.name == 'Administrateur' %} vhs-segment__group--admin{% elif group.name == 'Super Admin' %} vhs-segment__group--sadmin{% endif %}">
                             {{ group.name }}
                         </span>
                     </li>
@@ -142,11 +142,11 @@
 
             <div class="vhs-segment__content">
                 <div class="vhs-segment__text" id="post-{{ message.id }}">
-                    {{ message.message|bbcode|safe|linebreaksbr }}
+                    {{ message.message|bbcode_by:message.author|safe|linebreaksbr }}
                 </div>
 
                 <div class="vhs-segment__bio">
-                    {{ message.author.biography|bbcode|safe|linebreaksbr }}
+                    {{ message.author.biography|bbcode_by:message.author|safe|linebreaksbr }}
                 </div>
 
                 <div class="vhs-segment__actions">
@@ -202,10 +202,10 @@
                             </small>
                         </div>
                         <div class="forum-column-detail">
-                            <span id="message-{{ message.id }}">{{ message.message|bbcode|safe|linebreaksbr }}</span>
+                            <span id="message-{{ message.id }}">{{ message.message|bbcode_by:message.author|safe|linebreaksbr }}</span>
                             <div class="footer-message" style="margin-top:50px;">
                                 <hr>
-                                <p style="padding: 10px;">{{ message.author.biography|bbcode|safe|linebreaksbr }}</p>
+                                <p style="padding: 10px;">{{ message.author.biography|bbcode_by:message.author|safe|linebreaksbr }}</p>
                                 {% if message.created|date:"Y-m-d H:i:s" != message.updated|date:"Y-m-d H:i:s" %}
                                     <span style="font-style:italic;font-size: 0.8rem;">modifié le {{ message.updated }}</span>  
                                 {% endif %}

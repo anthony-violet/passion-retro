@@ -1,0 +1,9 @@
+Salut {{ user.username }},
+
+Merci de t'être inscrit sur {{ site_name }} ! Ouvre ce lien pour activer ton compte :
+
+{{ activation_link }}
+
+Ce lien est valable 3 jours. Si tu n'es pas à l'origine de cette inscription, ignore simplement cet e-mail.
+
+L'équipe {{ site_name }}

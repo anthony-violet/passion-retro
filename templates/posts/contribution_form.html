@@ -24,7 +24,7 @@
         {% elif post.rejected %}
             <div class="contrib-notice contrib-notice-danger">
                 <strong>Cette contribution a été refusée.</strong>
-                {% if post.rejection_reason %}<p>Motif :</p><div class="contrib-reason">{% include 'posts/_post_body.html' with content=post.rejection_reason %}</div>{% endif %}
+                {% if post.rejection_reason %}<p>Motif :</p><div class="contrib-reason">{% include 'posts/_post_body.html' with content=post.rejection_reason trusted=True %}</div>{% endif %}
                 <p>Corrige-la puis enregistre : elle repartira en relecture.</p>
             </div>
         {% elif post.active %}

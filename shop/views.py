@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from .models import *
 from users.models import UserInventory
 from django.contrib.auth.decorators import login_required
@@ -11,15 +11,16 @@ def home(request):
 
 @login_required
 def buy(request, item_id):
-    item = Item.objects.get(id=item_id)
+    item = get_object_or_404(Item, id=item_id, is_active=True)
     # ON vérifie si l'utilisateur a assez d'argent pour acheter l'item
     if request.user.money >= item.price:
         # On vérifie que l'utilisateur n'a pas déjà acheté l'item
         if not request.user.inventory.filter(item=item).exists():
             # On déduit le prix de l'item de l'argent de l'utilisateur
-            user_inventory = UserInventory.objects.get(user=request.user, item__name='Or')
-            user_inventory.quantity -= item.price
-            user_inventory.save()
+            gold = UserInventory.objects.filter(user=request.user, item__name='Or').first()
+            if gold is not None:
+                gold.quantity -= item.price
+                gold.save()
 
             # On ajoute l'item dans l'inventaire de l'utilisateur
             user_inventory = UserInventory.objects.create(user=request.user, item=item)

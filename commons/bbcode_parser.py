@@ -1,4 +1,9 @@
+import html as html_lib
 import re
+
+# Schémas d'URL autorisés dans les liens et images (le reste est neutralisé).
+SAFE_URL = re.compile(r'^(https?:|mailto:|/|#|\?|[^:]*$)', re.IGNORECASE)
+URL_ATTR = re.compile(r'(href|src)="([^"]*)"')
 
 class BBCodeParser:
     def __init__(self):
@@ -23,8 +28,8 @@ class BBCodeParser:
             r'\[citation=(.*?)\](.*?)\[/citation\]': r'<fieldset class="quote-bbcode"><legend>\1</legend>\2</fieldset>',
             r'\[quote\](.*?)\[/quote\]': r'<fieldset class="quote-bbcode">\1</fieldset>',
             r'\[quote=(.*?)\](.*?)\[/quote\]': r'<fieldset class="quote-bbcode"><legend>\1</legend>\2</fieldset>',
-            r'\[color=(.*?)\](.*?)\[/color\]': r'<span style="color: \1;">\2</span>',
-            r'\[size=(.*?)\](.*?)\[/size\]': r'<span style="font-size: \1px;">\2</span>',
+            r'\[color=([#\w]+)\](.*?)\[/color\]': r'<span style="color: \1;">\2</span>',
+            r'\[size=(\d{1,3})\](.*?)\[/size\]': r'<span style="font-size: \1px;">\2</span>',
             r'\[p](.*?)\[/p\]': r'<p>\1</p>',
             r'\[center\](.*?)\[/center\]': r'<div style="text-align:center;">\1</div>',
             r'\[right\](.*?)\[/right\]': r'<div style="text-align:right;">\1</div>',
@@ -71,7 +76,23 @@ class BBCodeParser:
         # Enveloppe dans pre/code sans modifier les \n
         return f'''<pre class="language-{language}"><code class="language-{language}">{escaped_content}</code></pre>'''
 
-    def parse(self, text):
+    @staticmethod
+    def _safe_url(match):
+        value = html_lib.unescape(match.group(2))
+        # Les navigateurs ignorent espaces et caractères de contrôle dans le schéma.
+        compact = re.sub(r'[\x00-\x20]', '', value)
+        if not SAFE_URL.match(compact):
+            return f'{match.group(1)}="#"'
+        return match.group(0)
+
+    def parse(self, text, allow_html=True):
+        """Convertit le BBCode en HTML.
+
+        allow_html=False échappe tout HTML saisi : à utiliser pour le contenu
+        écrit par les membres et les visiteurs. Le HTML brut n'est conservé que
+        pour le contenu rédigé par l'équipe.
+        """
+        text = str(text or '')
         # Protège temporairement le contenu des balises [code]
         code_blocks = []
         def save_code(match):
@@ -79,6 +100,9 @@ class BBCodeParser:
             return f'@@CODE_BLOCK_{len(code_blocks)-1}@@'
             
         text = re.sub(r'\[code(?:=.*?)?\].*?\[/code\]', save_code, text, flags=re.DOTALL)
+
+        if not allow_html:
+            text = html_lib.escape(text, quote=True)
         
         # Les listes d'abord : chaque [*] doit englober son texte.
         previous = None
@@ -102,6 +126,8 @@ class BBCodeParser:
                 lang = 'none'
                 content = re.search(r'\[code\](.*?)\[/code\]', code_block, re.DOTALL).group(1)
             
+            if not allow_html:
+                lang = re.sub(r'[^\w+-]', '', lang) or 'none'
             text = text.replace(f'@@CODE_BLOCK_{i}@@', self._handle_code(content, lang))
-            
-        return text
+
+        return URL_ATTR.sub(self._safe_url, text)

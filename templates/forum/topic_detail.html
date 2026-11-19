@@ -48,7 +48,7 @@
             <ul class="vhs-segment__meta">
                 {% for group in post.author.groups.all %}
                 <li>
-                    <span class="vhs-segment__group{% if group.name == 'Administrateurs' %} vhs-segment__group--admin{% elif group.name == 'Super Admin' %} vhs-segment__group--sadmin{% endif %}">
+                    <span class="vhs-segment__group{% if group.name == 'Administrateur' %} vhs-segment__group--admin{% elif group.name == 'Super Admin' %} vhs-segment__group--sadmin{% endif %}">
                         {{ group.name }}
                     </span>
                 </li>
@@ -58,20 +58,20 @@
 
             {% include 'components/member_retro_badge.html' with person=post.author css_class='vhs-segment__retro' %}
 
-            {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
+            {% if is_forum_moderator %}
             <div class="vhs-segment__admin-actions">
-                <a href="{% url 'deactivate_post' post.id %}" class="btn-vhs btn-vhs--danger">■ DÉSACT.</a>
+                <form method="post" action="{% url 'deactivate_post' post.id %}" class="inline-form">{% csrf_token %}<button type="submit" class="btn-vhs btn-vhs--danger">■ DÉSACT.</button></form>
             </div>
             {% endif %}
         </div>
 
         <div class="vhs-segment__content">
             <div class="vhs-segment__text" id="post-{{ post.id }}">
-                {{ post.content|bbcode|safe|linebreaksbr }}
+                {{ post.content|bbcode_by:post.author|safe|linebreaksbr }}
             </div>
 
             <div class="vhs-segment__bio">
-                {{ post.author.biography|bbcode|safe|linebreaksbr }}
+                {{ post.author.biography|bbcode_by:post.author|safe|linebreaksbr }}
             </div>
 
             <div class="vhs-segment__actions">
@@ -79,7 +79,7 @@
                 <span class="vhs-segment__edited">⚙ modifié le {{ post.updated }}</span>
                 {% endif %}
                 <a class="btn-vhs" id="quote" target="{{ post.id }}">❝ CITER</a>
-                {% if request.user == post.author or request.user.is_staff %}
+                {% if request.user == post.author or is_forum_moderator %}
                 <a href="{% url 'forum_edit_post' post.id %}" class="btn-vhs">✎ MODIFIER</a>
                 {% endif %}
             </div>
@@ -93,8 +93,8 @@
         {% if topic.state == "closed" %}
         <div class="vhs-closed">
             TOPIC FERMÉ
-            {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
-            &nbsp;—&nbsp;<a href="{% url 'unlock_topic' topic.id %}" class="btn-vhs" style="display:inline-flex;">▶ OUVRIR</a>
+            {% if is_forum_moderator %}
+            &nbsp;—&nbsp;<form method="post" action="{% url 'unlock_topic' topic.id %}" class="inline-form" style="display:inline-flex;">{% csrf_token %}<button type="submit" class="btn-vhs">▶ OUVRIR</button></form>
             {% endif %}
         </div>
         {% else %}
@@ -102,8 +102,8 @@
             <div class="vhs-rec-header">
                 <span class="vhs-rec-indicator">ENREGISTREMENT</span>
                 <span class="vhs-rec-title">RÉPONDRE AU SUJET</span>
-                {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
-                <a href="{% url 'lock_topic' topic.id %}" class="btn-vhs btn-vhs--danger" style="margin-left:auto;">■ FERMER</a>
+                {% if is_forum_moderator %}
+                <form method="post" action="{% url 'lock_topic' topic.id %}" class="inline-form" style="margin-left:auto;">{% csrf_token %}<button type="submit" class="btn-vhs btn-vhs--danger">■ FERMER</button></form>
                 {% endif %}
             </div>
             <form method="post">
@@ -161,7 +161,7 @@
                             <span class="rpg-info-label">Groupe</span>
                             <span class="rpg-info-value">
                                 {% for group in post.author.groups.all %}
-                                    {% if group.name == "Administrateurs" %}<span class="text-admin">{{ group.name }}</span>{% elif group.name == "Super Admin" %}<span class="text-sadmin">{{ group.name }}</span>{% else %}{{ group.name }}{% endif %}{% if not forloop.last %}, {% endif %}
+                                    {% if group.name == "Administrateur" %}<span class="text-admin">{{ group.name }}</span>{% elif group.name == "Super Admin" %}<span class="text-sadmin">{{ group.name }}</span>{% else %}{{ group.name }}{% endif %}{% if not forloop.last %}, {% endif %}
                                 {% empty %}—{% endfor %}
                             </span>
                         </li>
@@ -179,19 +179,19 @@
 
                     {% include 'components/member_retro_badge.html' with person=post.author css_class='rpg-post-retro' %}
 
-                    {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
-                    <a href="{% url 'deactivate_post' post.id %}" class="btn btn-warning rpg-post-deactivate">Désactiver</a>
+                    {% if is_forum_moderator %}
+                    <form method="post" action="{% url 'deactivate_post' post.id %}" class="inline-form">{% csrf_token %}<button type="submit" class="btn btn-warning rpg-post-deactivate">Désactiver</button></form>
                     {% endif %}
                 </aside>
 
                 <div class="rpg-post-body">
-                    <div class="rpg-post-content" id="post-{{ post.id }}">{{ post.content|bbcode|safe|linebreaksbr }}</div>
+                    <div class="rpg-post-content" id="post-{{ post.id }}">{{ post.content|bbcode_by:post.author|safe|linebreaksbr }}</div>
 
                     <footer class="rpg-post-footer">
                         {% if post.author.biography %}
                         <div class="rpg-post-signature">
                             <span class="rpg-post-signature-label">— ✒ Signature —</span>
-                            <p>{{ post.author.biography|bbcode|safe|linebreaksbr }}</p>
+                            <p>{{ post.author.biography|bbcode_by:post.author|safe|linebreaksbr }}</p>
                         </div>
                         {% endif %}
                         <div class="rpg-post-footer-bar">
@@ -202,7 +202,7 @@
                                 {% if not forloop.first %}
                                 <a id="quote" target="{{ post.id }}" class="rpg-post-action-icon" title="Citer">❝ Citer</a>
                                 {% endif %}
-                                {% if request.user == post.author or request.user.is_staff %}
+                                {% if request.user == post.author or is_forum_moderator %}
                                 <a href="{% url 'forum_edit_post' post.id %}" id="edit" class="rpg-post-action-icon" title="Modifier">✎ Modifier</a>
                                 {% endif %}
                             </div>
@@ -223,8 +223,8 @@
         <div class="rpg-topic-closed">
             <span class="rpg-topic-closed-icon">⚔</span>
             <span class="rpg-topic-closed-label">Topic fermé</span>
-            {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
-            <a href="{% url 'unlock_topic' topic.id %}" class="btn rpg-btn-quest rpg-topic-closed-action">Ouvrir le topic</a>
+            {% if is_forum_moderator %}
+            <form method="post" action="{% url 'unlock_topic' topic.id %}" class="inline-form">{% csrf_token %}<button type="submit" class="btn rpg-btn-quest rpg-topic-closed-action">Ouvrir le topic</button></form>
             {% endif %}
         </div>
         {% else %}
@@ -233,8 +233,8 @@
                 <span class="rpg-reply-ornament">❦</span>
                 <h3 class="rpg-reply-title">Répondre à la quête</h3>
                 <span class="rpg-reply-ornament">❦</span>
-                {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
-                <a href="{% url 'lock_topic' topic.id %}" class="btn btn-danger rpg-reply-lock">Fermer le topic</a>
+                {% if is_forum_moderator %}
+                <form method="post" action="{% url 'lock_topic' topic.id %}" class="inline-form">{% csrf_token %}<button type="submit" class="btn btn-danger rpg-reply-lock">Fermer le topic</button></form>
                 {% endif %}
             </div>
             <form method="post" class="rpg-form">
@@ -275,7 +275,7 @@
                                 <ul>
                                     <li>Groupe :
                                         {% for group in post.author.groups.all %}
-                                            {% if group.name == "Administrateurs" %}
+                                            {% if group.name == "Administrateur" %}
                                                 <span class="text-admin">{{ group.name }}</span>
                                             {% elif group.name == "Super Admin" %}
                                                 <span class="text-sadmin">{{ group.name }}</span>
@@ -296,20 +296,20 @@
                                 </ul>
                             </small>
                             {% include 'components/member_retro_badge.html' with person=post.author %}
-                            {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
-                                <a href="{% url 'deactivate_post' post.id %}" class="btn btn-warning">Désactiver le message</a>
+                            {% if is_forum_moderator %}
+                                <form method="post" action="{% url 'deactivate_post' post.id %}" class="inline-form">{% csrf_token %}<button type="submit" class="btn btn-warning">Désactiver le message</button></form>
                             {% endif %}
                         </div>
                         <div class="forum-column-detail">
-                            <span id="post-{{ post.id }}">{{ post.content|bbcode|safe|linebreaksbr }}</span>
+                            <span id="post-{{ post.id }}">{{ post.content|bbcode_by:post.author|safe|linebreaksbr }}</span>
                             <div class="footer-post" style="margin-top:50px;">
                                 <hr>
-                                <p style="padding: 10px;">{{ post.author.biography|bbcode|safe|linebreaksbr }}</p>
+                                <p style="padding: 10px;">{{ post.author.biography|bbcode_by:post.author|safe|linebreaksbr }}</p>
                                 {% if post.created|date:"Y-m-d H:i:s" != post.updated|date:"Y-m-d H:i:s" %}
                                     <span style="font-style:italic;font-size: 0.8rem;">modifié le {{ post.updated }}</span>
                                 {% endif %}
                                 <a style="float:right" id="quote" target="{{ post.id }}" class="btn btn-small">Citer</a>
-                                {% if request.user == post.author or request.user.is_staff %}
+                                {% if request.user == post.author or is_forum_moderator %}
                                     <a href="{% url 'forum_edit_post' post.id %}" style="float:right" id="edit" class="btn btn-small">Modifier</a>
                                 {% endif %}
                             </div>
@@ -321,13 +321,13 @@
             {% if user.is_authenticated %}
             {% if topic.state == "closed" %}
                 <h2>Topic fermé</h2>
-                {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
-                    <a href="{% url 'unlock_topic' topic.id %}" class="btn btn-add">Ouvrir le topic</a>
+                {% if is_forum_moderator %}
+                    <form method="post" action="{% url 'unlock_topic' topic.id %}" class="inline-form">{% csrf_token %}<button type="submit" class="btn btn-add">Ouvrir le topic</button></form>
                 {% endif %}
             {% else %}
-                {% if user|has_group:"Administrateurs" or user|has_group:"Super Admin" %}
+                {% if is_forum_moderator %}
                     <h2>Répondre</h2>
-                        <a href="{% url 'lock_topic' topic.id %}" class="btn btn-danger">Fermer le topic</a>
+                        <form method="post" action="{% url 'lock_topic' topic.id %}" class="inline-form">{% csrf_token %}<button type="submit" class="btn btn-danger">Fermer le topic</button></form>
                     {% endif %}
                     <form method="post">
                         {% csrf_token %}

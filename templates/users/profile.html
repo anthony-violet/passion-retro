@@ -45,7 +45,7 @@
                 <div class="profile-card">
                     <h3>Biographie</h3>
                     <div class="bio-content">
-                        {{ user.biography|bbcode|safe|linebreaksbr|default:"Aucune biographie disponible" }}
+                        {{ user.biography|bbcode_by:user|safe|linebreaksbr|default:"Aucune biographie disponible" }}
                     </div>
                 </div>
 

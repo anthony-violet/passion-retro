@@ -1,11 +1,12 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import PrivateMessage, PrivateMessageSubject
 from django.db import models
 from django.db.models import Max
 from .forms import PrivateMessageForm, PrivateMessageSubjectForm
 from django.contrib import messages
 from django.conf import settings
+from django.views.decorators.http import require_POST
 
 @login_required
 def home(request):
@@ -17,7 +18,7 @@ def home(request):
 
 @login_required
 def view_message(request, message_id):
-    pm_message = PrivateMessageSubject.objects.get(pk=message_id)
+    pm_message = get_object_or_404(PrivateMessageSubject, pk=message_id)
     if (pm_message.receiver != request.user and pm_message.sender != request.user) or not pm_message.is_active:
         return redirect('pm_home')
 
@@ -63,12 +64,14 @@ def new_message(request):
         message.subject = subject
         message.save()
 
-        return redirect('pm_view', message_id=message.id)
+        return redirect('pm_view', message_id=subject.id)
 
     return render(request, 'messagerie/new_message.html', {'form_subject': form_subject, 'form_message': form_message})
 
+@require_POST
+@login_required
 def delete_subject(request, message_id):
-    pm_message = PrivateMessageSubject.objects.get(pk=message_id)
+    pm_message = get_object_or_404(PrivateMessageSubject, pk=message_id)
     if pm_message.receiver != request.user and pm_message.sender != request.user:
         return redirect('pm_home')
     
@@ -80,21 +83,24 @@ def delete_subject(request, message_id):
 
     return redirect('pm_home')
 
-@login_required
+@user_passes_test(lambda user: user.is_superuser)
 def send_all_users(request):
     from users.models import User
     all_users = User.objects.all()
-    sender = User.objects.get(username='RetroBot')
+    sender = User.objects.filter(username='RetroBot').first()
+    if sender is None:
+        messages.error(request, "Le compte RetroBot est introuvable.")
+        return redirect('pm_home')
     for user in all_users:
         subject = PrivateMessageSubject.objects.create(
             receiver=user,
-            sender=User.objects.get(username='RetroBot'),
+            sender=sender,
             subject=f"Bienvenue sur {settings.SITE_NAME} !"
         )
 
         PrivateMessage.objects.create(
             subject=subject,
-            author=User.objects.get(username='RetroBot'),
+            author=sender,
             message=f"""[b]Bienvenue sur {settings.SITE_NAME} ![/b]
 
 Salut [b]{user.username}[/b] !,

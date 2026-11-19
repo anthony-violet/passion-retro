@@ -21,7 +21,7 @@
                         <a href="{% url 'profile' message.sender.id %}">{{ message.sender }}</a>
                     </div>
                     <div class="col"><a href="{% url 'pm_view' message.id %}">{{ message.subject }}</a></div>
-                    <div class="col"><a href="{% url 'pm_delete' message.id %}">Supprimer</a></div>
+                    <div class="col"><form method="post" action="{% url 'pm_delete' message.id %}" class="inline-form" onsubmit="return confirm('Supprimer cette conversation ?')">{% csrf_token %}<button type="submit" class="btn btn-small">Supprimer</button></form></div>
                 </div>
             {% endfor %}
         </div>

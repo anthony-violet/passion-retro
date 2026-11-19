@@ -138,7 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
     /* Fonction pour gérer la fin de la partie */
     const stopGame = async () => {
         try {
-            const response = await fetch(`/games/api/bac/${gameId}/end_game`);
+            const response = await fetch(`/games/api/bac/${gameId}/end_game`, {
+                method: "POST",
+                headers: { "X-CSRFToken": csrfToken },
+            });
             
             if (response.ok) {
                 console.log('Partie terminée.');

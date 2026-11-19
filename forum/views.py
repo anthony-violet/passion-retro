@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, HttpResponseForbidden
 from django.utils import timezone
 from django.urls import reverse
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from .models import Category, Forum, Topic, Post, TopicRead, TopicSubscription
 from .forms import CreateTopic, CreatePost, EditPost
 from .notifications import notify_topic_subscribers, update_subscription
@@ -16,14 +16,11 @@ from users.leveling import GOLD_BIG_ACTION, GOLD_SMALL_ACTION, grant_experience
 from passion_retro.seo import absolute_url, breadcrumb_jsonld, discussion_jsonld, plain_text
 from posts.models import Post as Article
 
-MODERATOR_GROUPS = ('Modérateur', 'Admininistrateur', 'Super Admin')
+from users.groups import FORUM_MODERATOR_GROUPS as MODERATOR_GROUPS, is_in_groups
 
 
 def _is_moderator(user):
-    return bool(
-        user.is_authenticated
-        and user.groups.filter(name__in=MODERATOR_GROUPS).exists()
-    )
+    return is_in_groups(user, MODERATOR_GROUPS)
 
 def _unread_topics_qs(user):
     """Sujets actifs contenant au moins un message que l'utilisateur n'a pas lu."""
@@ -212,36 +209,29 @@ def create_topic(request, forum_id):
 
     forum = get_object_or_404(Forum, id=forum_id)
 
-    if request.method == 'POST':
-        topic_form = request.POST
-        # On créer le topic via le model Topic
-        topic = Topic(
+    topic_form = CreateTopic(request.POST or None)
+    if request.method == 'POST' and topic_form.is_valid():
+        # On crée le topic puis son premier message
+        topic = Topic.objects.create(
             forum=forum,
             author=request.user,
-            title=topic_form['title'],
+            title=topic_form.cleaned_data['title'],
         )
-
-        # Puis le premier post du topic
-        post = Post(
+        post = Post.objects.create(
             topic=topic,
             author=request.user,
-            content=topic_form['content'],
+            content=topic_form.cleaned_data['content'],
         )
-
-        topic.save()
-        post.save()
         update_subscription(
             request.user,
             topic,
-            request.POST.get('subscribe') == 'on',
+            topic_form.cleaned_data.get('subscribe', False),
         )
         notify_topic_subscribers(post)
-        messages.success(request, 'Topic créer avec succès.')
+        messages.success(request, 'Sujet créé avec succès.')
         grant_experience(request.user, 15, gold=GOLD_BIG_ACTION)
-        # on renvoie l'utilisateur sur la page du topic contenu l'id du forum et du topic créer
         return redirect('post_list', forum_id=forum_id, topic_id=topic.id)
-    
-    topic_form = CreateTopic()
+
     context = {
         'forum': forum,
         'topic_form': topic_form,
@@ -280,6 +270,8 @@ def topic_detail(request, topic_id, forum_id):
     if request.method == 'POST':
         if not request.user.is_active or not request.user.is_authenticated:
             return HttpResponseForbidden("Vous n'êtes pas autorisé à poster un message.")
+        if topic.state == 'closed' and not _is_moderator(request.user):
+            return HttpResponseForbidden("Ce sujet est verrouillé.")
 
         post_form = CreatePost(request.POST)
         if post_form.is_valid():
@@ -330,6 +322,7 @@ def topic_detail(request, topic_id, forum_id):
         'posts': posts,
         'count_posts': count_posts,
         'post_form': post_form,
+        'is_forum_moderator': _is_moderator(request.user),
         'is_paginated': posts.has_other_pages(),
         'page_obj': posts,
         'paginator': paginator,
@@ -383,7 +376,8 @@ def unsubscribe_topic(request, token):
     }
     return render(request, 'forum/unsubscribe.html', context)
 
-@groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
+@require_POST
+@groups_required(*MODERATOR_GROUPS)
 def lock_topic(request, topic_id):
     topic = get_object_or_404(Topic, id=topic_id)
     topic.state = 'closed'
@@ -391,7 +385,8 @@ def lock_topic(request, topic_id):
     messages.success(request, 'Sujet verrouillé avec succès.')
     return redirect('post_list', forum_id=topic.forum.id, topic_id=topic_id)
 
-@groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
+@require_POST
+@groups_required(*MODERATOR_GROUPS)
 def unlock_topic(request, topic_id):
     topic = get_object_or_404(Topic, id=topic_id)
     topic.state = 'open'
@@ -399,7 +394,8 @@ def unlock_topic(request, topic_id):
     messages.success(request, 'Sujet déverrouillé avec succès.')
     return redirect('post_list', forum_id=topic.forum.id, topic_id=topic_id)
 
-@groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
+@require_POST
+@groups_required(*MODERATOR_GROUPS)
 def deactivate_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     post.active = False
@@ -407,7 +403,8 @@ def deactivate_post(request, post_id):
     messages.success(request, 'Message désactivé avec succès.')
     return redirect('post_list', forum_id=post.topic.forum.id, topic_id=post.topic.id)
 
-@groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
+@require_POST
+@groups_required(*MODERATOR_GROUPS)
 def activate_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     post.active = True
@@ -415,7 +412,8 @@ def activate_post(request, post_id):
     messages.success(request, 'Message activé avec succès.')
     return redirect('post_list', forum_id=post.topic.forum.id, topic_id=post.topic.id)
 
-@groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
+@require_POST
+@groups_required(*MODERATOR_GROUPS)
 def deactivate_topic(request, topic_id, forum_id=None):
     topic = get_object_or_404(Topic, id=topic_id)
     topic.active = False
@@ -423,7 +421,8 @@ def deactivate_topic(request, topic_id, forum_id=None):
     messages.success(request, 'Sujet désactivé avec succès.')
     return redirect('topic_list', forum_id=topic.forum.id)
 
-@groups_required('Modérateur', 'Admininistrateur', 'Super Admin')
+@require_POST
+@groups_required(*MODERATOR_GROUPS)
 def activate_topic(request, topic_id, forum_id=None):
     topic = get_object_or_404(Topic, id=topic_id)
     topic.active = True
@@ -436,7 +435,7 @@ def edit_post(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     
     # Vérifier si l'utilisateur a le droit d'éditer
-    if not (request.user == post.author or request.user.groups.filter(name__in=['Administrateur', 'Super Admin']).exists()):
+    if not (request.user == post.author or _is_moderator(request.user)):
         return HttpResponseForbidden("Vous n'êtes pas autorisé à éditer ce message.")
     
     if request.method == 'POST':
