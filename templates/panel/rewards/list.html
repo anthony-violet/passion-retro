@@ -1,0 +1,86 @@
+{% extends 'panel/layout.html' %}
+
+{% block panel_content %}
+<div class="panel-page-header">
+    <h2>Récompenses</h2>
+</div>
+
+<div class="panel-section">
+    <h3>Récompenser des membres</h3>
+    <p class="panel-hint">Pour un concours, un événement… L'XP compte pour les niveaux (avec leurs bonus habituels), l'or et l'objet arrivent directement dans l'inventaire.</p>
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <div class="panel-form-grid">
+            <div class="panel-form-group panel-form-full">
+                <label>Membres *</label>
+                <input type="text" name="usernames" value="{{ form.usernames }}" placeholder="Pseudo1, Pseudo2…" required>
+                <small>Un ou plusieurs pseudos, séparés par des virgules ou des espaces.</small>
+            </div>
+            <div class="panel-form-group panel-form-full">
+                <label>Motif *</label>
+                <input type="text" name="reason" maxlength="150" value="{{ form.reason }}" placeholder="Gagnant du concours de Noël" required>
+                <small>Repris dans le message envoyé au membre et dans l'historique.</small>
+            </div>
+            <div class="panel-form-group">
+                <label>XP</label>
+                <input type="number" name="experience" min="0" max="100000" value="{{ form.experience }}">
+            </div>
+            <div class="panel-form-group">
+                <label>Pièces d'or</label>
+                <input type="number" name="gold" min="0" max="100000" value="{{ form.gold }}">
+            </div>
+            <div class="panel-form-group">
+                <label>Objet de la boutique</label>
+                <select name="item">
+                    <option value="">— Aucun —</option>
+                    {% for item in items %}
+                    <option value="{{ item.id }}" {% if form.item == item.id|stringformat:"s" %}selected{% endif %}>{{ item.name }}{% if not item.is_active %} (hors boutique){% endif %}</option>
+                    {% endfor %}
+                </select>
+                <small>Non redonné à un membre qui le possède déjà.</small>
+            </div>
+        </div>
+        <div class="panel-form-checkboxes">
+            <label class="panel-checkbox">
+                <input type="checkbox" name="notify" {% if form.notify %}checked{% endif %}>
+                Prévenir le membre par message privé (RetroBot)
+            </label>
+        </div>
+        <div class="panel-form-actions">
+            <button type="submit" class="btn btn-add">Donner la récompense</button>
+        </div>
+    </form>
+</div>
+
+<div class="panel-section">
+    <h3>Dernières récompenses</h3>
+    <table class="panel-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Membre</th>
+                <th>Motif</th>
+                <th>XP</th>
+                <th>Or</th>
+                <th>Objet</th>
+                <th>Par</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for reward in rewards %}
+            <tr>
+                <td>{{ reward.created|date:"d/m/Y H:i" }}</td>
+                <td><strong>{{ reward.user.username }}</strong></td>
+                <td>{{ reward.reason }}</td>
+                <td>{% if reward.experience %}+{{ reward.experience }}{% endif %}</td>
+                <td>{% if reward.gold %}+{{ reward.gold }}{% endif %}</td>
+                <td>{{ reward.item.name|default:"" }}</td>
+                <td>{{ reward.given_by.username|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="panel-empty">Aucune récompense attribuée pour l'instant.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

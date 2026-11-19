@@ -17,6 +17,9 @@
             <a href="{% url 'panel_user_list' %}" class="panel-nav-item {% if 'panel_user' in request.resolver_match.url_name %}active{% endif %}">
                 👤 Utilisateurs
             </a>
+            <a href="{% url 'panel_rewards' %}" class="panel-nav-item {% if 'panel_rewards' in request.resolver_match.url_name %}active{% endif %}">
+                🎁 Récompenses
+            </a>
             <a href="{% url 'panel_forum' %}" class="panel-nav-item {% if 'panel_forum' in request.resolver_match.url_name %}active{% endif %}">
                 💬 Forum
             </a>

@@ -253,3 +253,25 @@ class UtmLink(models.Model):
         if self.term:
             visits = visits.filter(utm_term=self.term)
         return visits
+
+
+class StaffReward(models.Model):
+    """Récompense attribuée à la main par l'équipe (concours, événement…)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='staff_rewards')
+    given_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name='staff_rewards_given')
+    reason = models.CharField("Motif", max_length=150)
+    experience = models.PositiveIntegerField("XP", default=0)
+    gold = models.PositiveIntegerField("Or", default=0)
+    item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True,
+                             related_name='staff_rewards')
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Récompense du staff'
+        verbose_name_plural = 'Récompenses du staff'
+        ordering = ['-created']
+
+    def __str__(self):
+        return f"{self.user} - {self.reason}"

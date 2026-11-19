@@ -1,5 +1,5 @@
 from django.urls import path
-from panel.views import stats, dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation, wall_memories, seasonal
+from panel.views import stats, dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation, wall_memories, seasonal, rewards
 
 urlpatterns = [
     # Dashboard
@@ -15,6 +15,9 @@ urlpatterns = [
     path('users/<int:user_id>/edit/', users.user_edit, name='panel_user_edit'),
     path('users/<int:user_id>/toggle/', users.user_toggle_active, name='panel_user_toggle'),
     path('users/<int:user_id>/delete/', users.user_delete, name='panel_user_delete'),
+
+    # Récompenses (concours, événements)
+    path('recompenses/', rewards.reward_list, name='panel_rewards'),
 
     # Forum
     path('forum/', forum.forum_overview, name='panel_forum'),
