@@ -7,16 +7,27 @@ from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.text import slugify
 
 # Un objet est « nouveau » pendant ce nombre de jours après sa mise en vente.
 NEW_ITEM_DAYS = 14
 
 
+# Visuels versionnés : static/shop/items/<slug>.<ext> (les images du panel restent dans media/,
+# qui n'est pas versionné et n'est donc pas déployé).
+BUILTIN_VISUAL_EXTENSIONS = ('svg', 'webp', 'png', 'jpg')
+
+
 @lru_cache(maxsize=None)
 def _builtin_visual(slug):
-    path = f'shop/items/{slug}.svg'
-    return path if slug and finders.find(path) else ''
+    if not slug:
+        return ''
+    for ext in BUILTIN_VISUAL_EXTENSIONS:
+        path = f'shop/items/{slug}.{ext}'
+        if finders.find(path):
+            return path
+    return ''
 
 
 class ItemQuerySet(models.QuerySet):
@@ -115,13 +126,21 @@ class Item(models.Model):
 
     @property
     def builtin_visual(self):
-        """Illustration versionnée ``static/shop/items/<slug>.svg``, utilisée quand l'objet n'a pas d'image."""
+        """Illustration versionnée ``static/shop/items/<slug>.<ext>``, utilisée quand l'objet n'a pas d'image."""
         return _builtin_visual(self.slug)
+
+    @cached_property
+    def has_image(self):
+        """Image envoyée depuis le panel ET présente sur le disque (media/ n'est pas déployé)."""
+        try:
+            return bool(self.image) and self.image.storage.exists(self.image.name)
+        except Exception:  # stockage indisponible : on se rabat sur le visuel versionné
+            return False
 
     @property
     def visual_url(self):
         """Image envoyée depuis le panel, sinon illustration versionnée, sinon ''."""
-        if self.image:
+        if self.has_image:
             return self.image.url
         if self.builtin_visual:
             from django.templatetags.static import static

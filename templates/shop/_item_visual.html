@@ -5,7 +5,7 @@
         <div class="{{ item.slug }}"><img src="{% if viewer.is_authenticated and viewer.avatar %}{{ viewer.avatar.url }}{% else %}/media/avatars/default.gif{% endif %}" alt="Aperçu du cadre {{ item.name }}" class="sh-visual__avatar"></div>
     {% elif item.kind == 'username' %}
         <span class="{{ item.slug }} sh-visual__username">{% if viewer.is_authenticated %}{{ viewer.username }}{% else %}Pseudo{% endif %}</span>
-    {% elif item.image %}
+    {% elif item.has_image %}
         <img src="{{ item.image.url }}" alt="" class="sh-visual__image">
     {% elif item.builtin_visual %}
         <img src="{% static item.builtin_visual %}" alt="" class="sh-visual__image sh-visual__image--builtin">

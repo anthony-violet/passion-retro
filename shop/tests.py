@@ -148,3 +148,19 @@ class ViceNightsCollectionTest(TestCase):
         self.assertEqual(Item.objects.get(css_class='cadre-vice-beach').builtin_visual, '')
         response = self.client.get(reverse('shop_home'))
         self.assertContains(response, 'shop/items/cles-decapotable.svg')
+
+
+class ThemeVisualTest(TestCase):
+    """Les visuels des thèmes payants sont versionnés : ils s'affichent même si media/ est vide."""
+
+    def test_paid_themes_use_versioned_preview_when_upload_is_missing(self):
+        category = Category.objects.create(name='Thèmes test')
+        for code in ('rpg', 'modern', '80s'):
+            item = Item.objects.create(category=category, name=f'Thème {code}', kind=Item.KIND_THEME,
+                                       css_class=code, image='shop/items/fichier-absent.jpg')
+            self.assertFalse(item.has_image)
+            self.assertEqual(item.builtin_visual, f'shop/items/{code}.jpg')
+            self.assertTrue(item.visual_url.endswith(f'shop/items/{code}.jpg'))
+        response = self.client.get(reverse('shop_home') + '?filtre=themes')
+        self.assertContains(response, 'shop/items/rpg.jpg')
+        self.assertNotContains(response, 'fichier-absent.jpg')
