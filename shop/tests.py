@@ -119,3 +119,25 @@ class ShopPageTest(TestCase):
 
     def test_inventory_requires_login(self):
         self.assertEqual(self.client.get(reverse('shop_inventory')).status_code, 302)
+
+
+class ViceNightsCollectionTest(TestCase):
+    """La migration 0006 met en vente la collection Vice Nights, avec un style pour chaque objet visuel."""
+
+    def test_items_on_sale_with_css(self):
+        from pathlib import Path
+
+        from django.conf import settings
+
+        items = Item.objects.filter(category__name='Vice Nights')
+        self.assertEqual(items.count(), 10)
+        self.assertEqual(Item.objects.on_sale().filter(category__name='Vice Nights').count(), 10)
+        self.assertEqual(items.get(css_class='cocktail-vice-beach').effect, Item.EFFECT_XP_BOOST)
+        self.assertEqual(items.get(css_class='cadre-wanted').stock, 30)
+
+        css = ''.join(
+            (Path(settings.BASE_DIR) / 'static/themes' / name).read_text()
+            for name in ('border-avatars.css', 'decoration-username.css')
+        )
+        for item in items.filter(kind__in=[Item.KIND_FRAME, Item.KIND_USERNAME]):
+            self.assertIn(f'.{item.css_class} {{', css)

@@ -492,3 +492,125 @@
         text-shadow: 0 0 10px #f4d03f, 0 0 20px #ffaa00;
     }
 }
+/* =============================================================
+   Collection « Vice Nights » (inspiration GTA 6, aucun visuel officiel)
+   ============================================================= */
+
+/* VICE BEACH : coucher de soleil sur l'océan */
+.cadre-vice-beach {
+    display: inline-block;
+    position: relative;
+    margin: 5px;
+    padding: 3px;
+    border: 4px solid transparent;
+    border-radius: 6px;
+    background:
+        linear-gradient(#160d33, #160d33) padding-box,
+        linear-gradient(180deg, #ffd166 0%, #ff8a3d 30%, #ff2e88 60%, #6a2bd8 80%, #21e6c1 100%) border-box;
+    box-shadow: 0 0 14px rgba(255, 138, 61, 0.55), 0 6px 18px rgba(255, 46, 136, 0.35);
+    animation: viceBeachGlow 4s ease-in-out infinite;
+}
+
+.cadre-vice-beach img {
+    display: block;
+    border-radius: 3px;
+}
+
+@keyframes viceBeachGlow {
+    0%, 100% { box-shadow: 0 0 14px rgba(255, 138, 61, 0.55), 0 6px 18px rgba(255, 46, 136, 0.35); }
+    50% { box-shadow: 0 0 20px rgba(255, 46, 136, 0.7), 0 6px 26px rgba(33, 230, 193, 0.45); }
+}
+
+/* NÉONS DE LEONIDA : double néon rose/turquoise qui grésille */
+.cadre-leonida-neon {
+    display: inline-block;
+    position: relative;
+    margin: 12px 8px 8px;
+    padding: 4px;
+    border: 2px solid #ff2e88;
+    border-radius: 8px;
+    background: #0b0620;
+    box-shadow:
+        0 0 6px #ff2e88,
+        0 0 16px rgba(255, 46, 136, 0.6),
+        inset 0 0 8px rgba(255, 46, 136, 0.35);
+    animation: leonidaFlicker 5s linear infinite;
+}
+
+.cadre-leonida-neon::before {
+    content: '';
+    position: absolute;
+    inset: -7px;
+    border: 2px solid #21e6c1;
+    border-radius: 12px;
+    box-shadow: 0 0 8px #21e6c1, 0 0 18px rgba(33, 230, 193, 0.5);
+    pointer-events: none;
+}
+
+.cadre-leonida-neon::after {
+    content: '🌴';
+    position: absolute;
+    top: -18px;
+    right: -14px;
+    font-size: 22px;
+    filter: drop-shadow(0 0 4px #21e6c1);
+    transform: rotate(12deg);
+    z-index: 2;
+}
+
+.cadre-leonida-neon img {
+    display: block;
+    position: relative;
+    z-index: 1;
+    border-radius: 4px;
+}
+
+@keyframes leonidaFlicker {
+    0%, 18%, 22%, 62%, 64%, 100% { border-color: #ff2e88; box-shadow: 0 0 6px #ff2e88, 0 0 16px rgba(255, 46, 136, 0.6), inset 0 0 8px rgba(255, 46, 136, 0.35); }
+    20%, 63% { border-color: #7a1f4a; box-shadow: none; }
+}
+
+/* AVIS DE RECHERCHE : cinq étoiles et gyrophares */
+.cadre-wanted {
+    display: inline-block;
+    position: relative;
+    margin: 22px 8px 8px;
+    padding: 4px;
+    border: 3px solid #1a1a1a;
+    border-radius: 6px;
+    background: #111;
+    animation: wantedSiren 1s steps(1, end) infinite;
+}
+
+.cadre-wanted::before {
+    content: '★★★★★';
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 15px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    color: #ffd166;
+    text-shadow: 0 0 4px #000, 0 0 8px rgba(255, 209, 102, 0.9);
+    animation: wantedStars 0.8s ease-in-out infinite alternate;
+}
+
+.cadre-wanted img {
+    display: block;
+    border-radius: 3px;
+}
+
+@keyframes wantedSiren {
+    0% { border-color: #ff2a2a; box-shadow: -8px 0 18px rgba(255, 42, 42, 0.85), 8px 0 18px rgba(30, 90, 255, 0.15); }
+    50% { border-color: #2a6bff; box-shadow: -8px 0 18px rgba(255, 42, 42, 0.15), 8px 0 18px rgba(30, 90, 255, 0.85); }
+}
+
+@keyframes wantedStars {
+    from { opacity: 0.55; }
+    to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cadre-vice-beach, .cadre-leonida-neon, .cadre-wanted, .cadre-wanted::before { animation: none; }
+}

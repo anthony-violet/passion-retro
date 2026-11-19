@@ -1141,3 +1141,68 @@
         transform: translateY(-50%) scaleX(1);
     }
 }
+/* =============================================================
+   Collection « Vice Nights » (inspiration GTA 6, aucun visuel officiel)
+   ============================================================= */
+
+/* VICE NIGHTS : dégradé coucher de soleil */
+.vice-nights-username {
+    display: inline-block;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #ff2e88;
+    background: linear-gradient(90deg, #ffd166, #ff8a3d, #ff2e88, #6a2bd8, #21e6c1, #ff2e88, #ffd166);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 4px rgba(255, 46, 136, 0.55));
+    animation: viceNightsShift 6s linear infinite;
+}
+
+@keyframes viceNightsShift {
+    from { background-position: 0% 50%; }
+    to { background-position: 300% 50%; }
+}
+
+/* GYROPHARE : rouge / bleu */
+.gyrophare-username {
+    display: inline-block;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: gyrophareFlash 1s steps(1, end) infinite;
+}
+
+.gyrophare-username::before {
+    content: '🚨 ';
+}
+
+@keyframes gyrophareFlash {
+    0% { color: #ff3b3b; text-shadow: 0 0 6px rgba(255, 59, 59, 0.9), 0 0 14px rgba(255, 59, 59, 0.5); }
+    50% { color: #3b7bff; text-shadow: 0 0 6px rgba(59, 123, 255, 0.9), 0 0 14px rgba(59, 123, 255, 0.5); }
+}
+
+/* LIASSE DE BILLETS : vert dollar */
+.cash-username {
+    display: inline-block;
+    font-weight: 700;
+    color: #2ecc71;
+    text-shadow: 0 0 6px rgba(46, 204, 113, 0.6), 0 1px 0 #145a32;
+}
+
+.cash-username::after {
+    content: ' 💵';
+    display: inline-block;
+    animation: cashBounce 1.6s ease-in-out infinite;
+}
+
+@keyframes cashBounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-3px) rotate(-8deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vice-nights-username, .gyrophare-username, .cash-username::after { animation: none; }
+    .gyrophare-username { color: #ff3b3b; }
+}
