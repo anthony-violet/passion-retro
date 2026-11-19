@@ -344,3 +344,31 @@ a.logout-link:focus-visible {
     color: var(--text-danger, #c62828) !important;
     text-decoration: underline;
 }
+
+/* Inventaire du profil : objets cliquables (formulaire POST) et objet équipé */
+.inventory-use-form { display: contents; }
+.inventory-use {
+    all: unset;
+    cursor: pointer;
+    display: block;
+}
+.inventory-use:focus-visible .inventory-item { outline: 2px solid var(--text-link, #1464b4); outline-offset: 2px; }
+.inventory-item { position: relative; }
+.inventory-item.is-equipped {
+    border-color: var(--text-link, #1464b4);
+    box-shadow: 0 0 0 2px var(--text-link, #1464b4);
+}
+.item-equipped {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 1;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: bold;
+    line-height: 1.4;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--text-link, #1464b4);
+}

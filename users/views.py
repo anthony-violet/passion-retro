@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib.auth import update_session_auth_hash
 from . import accounts
 from .forms import PostForm, ResendActivationForm, UserRegistrationForm, UserLoginForm, UserUpdateForm, ProfileUpdateForm, PasswordUpdateForm
@@ -282,8 +283,17 @@ def new_feature_user(request):
             request.user.inventory.get_or_create(item=gold_item, defaults={'quantity': STARTING_GOLD})
     return render(request, "features/new_feature_user_inventory.html")
 
+# Catégorie d'objet de la boutique -> champ du membre où l'objet est équipé.
+EQUIPMENT_FIELDS = {
+    'cadres': 'border_avatar',
+    'Décoration pseudo': 'username_decoration',
+}
+
+
 @login_required
+@require_POST
 def use_item(request, item_id):
+    """Équipe un objet de l'inventaire, ou le retire s'il est déjà équipé."""
     item = request.user.inventory.filter(item_id=item_id).select_related('item__category').first()
     if item is None:
         messages.error(request, "Cet objet n'est pas dans votre inventaire.")
@@ -292,21 +302,26 @@ def use_item(request, item_id):
     # On slugify le nom de l'item pour l'utiliser dans les conditions
     item_name = slugify(item.item.name)
 
-    if item.quantity > 0:
-        if item.item.category.name == 'cadres':
-            request.user.border_avatar = item_name
-        
-        if item.item.category.name == 'themes':
-            request.user.theme_active = item_name
-
-        if item.item.category.name == 'Décoration pseudo':
-            request.user.username_decoration = item_name
-        
-        request.user.save()
-        
-        messages.success(request, f"Vous avez utilisé {item.item.name}.")
-    else:
+    if item.quantity <= 0:
         messages.error(request, f"Vous n'avez pas de {item.item.name}.")
+        return redirect('profile')
+
+    category = item.item.category.name
+    field = EQUIPMENT_FIELDS.get(category)
+    if field:
+        if getattr(request.user, field) == item_name:
+            setattr(request.user, field, None)
+            messages.success(request, f"Vous avez retiré {item.item.name}.")
+        else:
+            setattr(request.user, field, item_name)
+            messages.success(request, f"Vous avez équipé {item.item.name}.")
+        request.user.save(update_fields=[field])
+        return redirect('profile')
+
+    if category == 'themes':
+        request.user.theme_active = item_name
+        request.user.save()
+    messages.success(request, f"Vous avez utilisé {item.item.name}.")
     return redirect('profile')
 
 @login_required

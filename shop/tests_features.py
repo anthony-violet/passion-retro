@@ -57,13 +57,45 @@ class ShopPurchaseTest(TestCase):
 
     def test_use_owned_frame(self):
         self.buy(self.frame)
-        response = self.client.get(reverse('use_item', args=[self.frame.id]))
+        response = self.client.post(reverse('use_item', args=[self.frame.id]))
         self.assertRedirects(response, reverse('profile'), fetch_redirect_response=False)
         self.user.refresh_from_db()
         self.assertEqual(self.user.border_avatar, 'cadre-dore')
 
     def test_use_item_not_owned(self):
-        response = self.client.get(reverse('use_item', args=[self.frame.id]))
+        response = self.client.post(reverse('use_item', args=[self.frame.id]))
         self.assertEqual(response.status_code, 302)
         self.user.refresh_from_db()
         self.assertNotEqual(self.user.border_avatar, 'cadre-dore')
+
+    def test_use_item_requires_post(self):
+        self.buy(self.frame)
+        response = self.client.get(reverse('use_item', args=[self.frame.id]))
+        self.assertEqual(response.status_code, 405)
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.border_avatar)
+
+    def test_using_equipped_frame_removes_it(self):
+        self.buy(self.frame)
+        url = reverse('use_item', args=[self.frame.id])
+        self.client.post(url)
+        self.client.post(url)
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.border_avatar)
+        self.client.post(url)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.border_avatar, 'cadre-dore')
+
+    def test_profile_inventory_shows_equipped_and_hides_unique_quantity(self):
+        self.buy(self.frame)
+        response = self.client.get(reverse('profile'))
+        self.assertNotContains(response, 'class="item-equipped"')
+        self.assertContains(response, 'title="Équiper Cadre Doré"')
+        # L'or garde sa quantité, l'objet unique non.
+        self.assertContains(response, '<span class="item-quantity">50</span>', html=False)
+        self.assertNotContains(response, '<span class="item-quantity">1</span>', html=False)
+
+        self.client.post(reverse('use_item', args=[self.frame.id]))
+        response = self.client.get(reverse('profile'))
+        self.assertContains(response, 'class="item-equipped"')
+        self.assertContains(response, 'title="Retirer Cadre Doré"')
