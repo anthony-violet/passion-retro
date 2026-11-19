@@ -679,3 +679,37 @@ class UtmTest(VisitTestMixin, TestCase):
             'name': 'x', 'destination': 'https://ailleurs.example', 'source': 'a', 'medium': 'b', 'campaign': 'c',
         }, HTTP_USER_AGENT=self.BROWSER)
         self.assertFalse(UtmLink.objects.exists())
+
+
+class GeoipTest(TestCase):
+    def test_country_from_local_base_uses_forwarded_ip(self):
+        from unittest import mock
+
+        from django.test import RequestFactory
+
+        from users import visits
+
+        class FakeReader:
+            def get(self, ip):
+                return {'country': {'iso_code': 'fr'}} if ip == '90.84.0.1' else None
+
+        request = RequestFactory().get('/', HTTP_X_FORWARDED_FOR='90.84.0.1, 10.0.0.2', REMOTE_ADDR='10.0.0.1')
+        with mock.patch.object(visits, '_geoip_reader', return_value=FakeReader()):
+            self.assertEqual(visits.country_for(request), 'FR')
+            self.assertEqual(visits.country_for(RequestFactory().get('/', REMOTE_ADDR='10.0.0.1')), '')
+
+    def test_cloudflare_header_wins(self):
+        from django.test import RequestFactory
+
+        from users import visits
+
+        self.assertEqual(visits.country_for(RequestFactory().get('/', HTTP_CF_IPCOUNTRY='be')), 'BE')
+        self.assertEqual(visits.country_for(RequestFactory().get('/', HTTP_CF_IPCOUNTRY='XX')), '')
+
+    def test_update_command_falls_back_to_previous_month(self):
+        from datetime import date
+
+        from users.management.commands.update_geoip import _months_to_try
+
+        self.assertEqual(_months_to_try(date(2027, 1, 3)), [date(2027, 1, 3), date(2026, 12, 1)])
+        self.assertEqual(_months_to_try(date(2026, 11, 19))[1], date(2026, 10, 1))

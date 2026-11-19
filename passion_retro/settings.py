@@ -308,4 +308,8 @@ LOGGING = {
 # Statistiques internes : base IP → pays au format .mmdb (MaxMind ou DB-IP
 # « IP to Country Lite »). Facultatif : sans elle, le pays n'est connu que
 # derrière Cloudflare.
-GEOIP_COUNTRY_DB = os.getenv('GEOIP_COUNTRY_DB', '')
+# Mise à jour : python manage.py update_geoip (une fois par mois).
+GEOIP_DEFAULT_PATH = BASE_DIR / 'geoip' / 'dbip-country-lite.mmdb'
+GEOIP_COUNTRY_DB = os.getenv('GEOIP_COUNTRY_DB', '') or (
+    str(GEOIP_DEFAULT_PATH) if GEOIP_DEFAULT_PATH.exists() else ''
+)

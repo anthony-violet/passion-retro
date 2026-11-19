@@ -75,7 +75,9 @@
     <div class="panel-section">
         <div class="panel-section-header"><h3>Pays des visiteurs</h3></div>
         {% if not geoip_enabled %}
-        <p class="panel-hint">⚠️ Aucune base de géolocalisation n'est installée : le pays n'est connu que si le site passe par Cloudflare. Voir le réglage <code>GEOIP_COUNTRY_DB</code>.</p>
+        <p class="panel-hint">⚠️ Aucune base de géolocalisation n'est installée : le pays n'est connu que si le site passe par Cloudflare. Lance <code>python manage.py update_geoip</code> sur le serveur, puis redémarre-le.</p>
+        {% else %}
+        <p class="panel-hint"><a href="https://db-ip.com" target="_blank" rel="noopener">IP Geolocation by DB-IP</a> — base mise à jour avec <code>python manage.py update_geoip</code> (une fois par mois).</p>
         {% endif %}
         <table class="panel-table">
             <thead><tr><th>Pays</th><th>Visiteurs</th><th>Part</th></tr></thead>

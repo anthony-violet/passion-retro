@@ -13,3 +13,4 @@ convert_mariadb_to_fixture.py
 Dockerfile
 docker-compose.yml
 *.sql
+geoip/
