@@ -123,6 +123,7 @@
 .sh-visual__avatar { width: 88px; height: 88px; object-fit: cover; display: block; }
 .sh-visual__username { font-size: 1.4rem; font-weight: bold; }
 .sh-visual__image { max-width: 96px; max-height: 96px; object-fit: contain; }
+.sh-visual__image--builtin { max-width: 132px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35)); }
 .sh-visual__icon { font-size: 2.8rem; color: var(--sh-rarity, var(--text-link, #1464b4)); }
 
 .sh-card__body { padding: 0 0.85rem; flex: 1; }

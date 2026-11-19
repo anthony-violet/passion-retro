@@ -1,4 +1,5 @@
 {% comment %}Aperçu d'un objet. Variables : item, viewer (membre connecté ou None).{% endcomment %}
+{% load static %}
 <div class="sh-visual sh-visual--{{ item.kind }}">
     {% if item.kind == 'frame' %}
         <div class="{{ item.slug }}"><img src="{% if viewer.is_authenticated and viewer.avatar %}{{ viewer.avatar.url }}{% else %}/media/avatars/default.gif{% endif %}" alt="Aperçu du cadre {{ item.name }}" class="sh-visual__avatar"></div>
@@ -6,6 +7,8 @@
         <span class="{{ item.slug }} sh-visual__username">{% if viewer.is_authenticated %}{{ viewer.username }}{% else %}Pseudo{% endif %}</span>
     {% elif item.image %}
         <img src="{{ item.image.url }}" alt="" class="sh-visual__image">
+    {% elif item.builtin_visual %}
+        <img src="{% static item.builtin_visual %}" alt="" class="sh-visual__image sh-visual__image--builtin">
     {% elif item.kind == 'theme' %}
         <span class="sh-visual__icon" aria-hidden="true">🎨</span>
     {% elif item.kind == 'consumable' %}

@@ -141,3 +141,10 @@ class ViceNightsCollectionTest(TestCase):
         )
         for item in items.filter(kind__in=[Item.KIND_FRAME, Item.KIND_USERNAME]):
             self.assertIn(f'.{item.css_class} {{', css)
+
+    def test_collectibles_have_builtin_visual(self):
+        for css_class in ('cassette-vice-nights-fm', 'carte-postale-leonida', 'cles-decapotable', 'cocktail-vice-beach'):
+            self.assertEqual(Item.objects.get(css_class=css_class).builtin_visual, f'shop/items/{css_class}.svg')
+        self.assertEqual(Item.objects.get(css_class='cadre-vice-beach').builtin_visual, '')
+        response = self.client.get(reverse('shop_home'))
+        self.assertContains(response, 'shop/items/cles-decapotable.svg')

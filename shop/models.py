@@ -1,4 +1,7 @@
 from datetime import timedelta
+from functools import lru_cache
+
+from django.contrib.staticfiles import finders
 
 from django.core.validators import MaxValueValidator
 from django.db import models
@@ -8,6 +11,12 @@ from django.utils.text import slugify
 
 # Un objet est « nouveau » pendant ce nombre de jours après sa mise en vente.
 NEW_ITEM_DAYS = 14
+
+
+@lru_cache(maxsize=None)
+def _builtin_visual(slug):
+    path = f'shop/items/{slug}.svg'
+    return path if slug and finders.find(path) else ''
 
 
 class ItemQuerySet(models.QuerySet):
@@ -103,6 +112,11 @@ class Item(models.Model):
     def slug(self):
         """Valeur stockée sur le membre quand l'objet est équipé."""
         return self.css_class or slugify(self.name)
+
+    @property
+    def builtin_visual(self):
+        """Illustration versionnée ``static/shop/items/<slug>.svg``, utilisée quand l'objet n'a pas d'image."""
+        return _builtin_visual(self.slug)
 
     @property
     def rarity_rank(self):
