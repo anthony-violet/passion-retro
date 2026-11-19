@@ -1,58 +1,141 @@
 {% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/shop.css' %}">{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h2>Boutique</h2>
-        <div class="retrobot-float"><img src="/static/img/retrobot.png" class="img-accent" alt="RetroBot"></div>
-        <p>
-            Salut, voyageur temporel ! Moi, RetroBot, j’ai ouvert ma boutique rien que pour toi sur {{ site_name }} ! 🎉 
-        </p>
-        <p>
-            Ici, tu trouveras tout un tas de trésors exclusifs pour personnaliser ton expérience sur le site.
-            Envie d’un avatar unique qui claque ? D’une déco pour ton pseudo qui en jette ? Ou peut-être d’un cadre d’avatar rétro pour te démarquer dans la communauté ? Je propose aussi des thèmes originaux pour que ton espace perso soit à ton image : vintage, chic, ou carrément décalé.
-            Alors, qu’attends-tu pour venir découvrir mes trouvailles ? Allez, fonce, et fais briller ton style rétro comme jamais ! ✨
-        </p>
-        <p>
-            — RetroBot, ton fidèle marchand venu de Retronia 🛠️
-        </p>
-        {% if user.is_authenticated %}
-        <h3>Mon argent : <span class="bag">{{ request.user.money }}</span></h3>
-        <div class="shop">
-            {% for item in items %}
-                {% if item.name != 'Or' %}
-                    <div class="card-shop">
-                        {% if item.category.name == 'Décoration pseudo' %}
-                            <center><span class="{{ item.name|slugify }} pseudo-preview">Pseudo</span></center>
-                        {% else %}
-                            <center><div class="card-img {% if item.category.name == 'cadres' %}{{ item.name|slugify }}{% endif %}"><img src="/media/{{ item.image }}" alt="{{ item.name }}"></div></center>
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">{{ item.name }}</h5>
-                            <p class="card-text">{{ item.description }}</p>
-                            <p class="card-text">Prix : <span class="money">{{ item.price }}</span> <i class="fas fa-coins"></i></p>
-                            <a onclick="modal('{{ item.id }}', '{{ item.price }}')" class="btn-shop btn-shop-primary">Acheter</a>
-                        </div>
-                    </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-        {% else %}
-        <p>Connecte-toi pour découvrir les articles disponibles dans la boutique.</p>
-        <p><a href="{% url 'login' %}">Se connecter</a></p>
-        {% endif %}
-    </div>
-    {% if user.is_authenticated %}
-    <div class="modal">
-        <div class="modal-item">
-            <div class="modal-close">&times;</div>
-            <div class="modal-header">Achat d'un item</div>
-            <div class="modal-body">
-                <p>Payer et obtenir cet item ?</p>
-                <a class="btn-shop btn-shop-primary btn-shop-large" id="accept"></a>
-                <a class="btn-shop btn-shop-secondary" id="decline">Annuler</a>
+<div class="container sh-page">
+    <header class="sh-header">
+        <div class="sh-header__intro">
+            <img src="/static/img/retrobot.png" class="sh-header__bot" alt="RetroBot">
+            <div>
+                <h2>Boutique de RetroBot</h2>
+                <p>Salut, voyageur temporel ! Cadres d'avatar, décorations de pseudo, thèmes et potions de boost :
+                    dépense ici l'or gagné en participant à la vie de {{ site_name }}.</p>
             </div>
-            <div class="modal-footer"></div>
         </div>
-    </div>
+        {% if user.is_authenticated %}
+        <div class="sh-wallet">
+            <span class="sh-wallet__label">Mon or</span>
+            <span class="sh-wallet__amount"><span aria-hidden="true">🪙</span> {{ user.gold }}</span>
+            <a href="{% url 'shop_inventory' %}" class="btn btn-small">Mon inventaire</a>
+        </div>
+        {% endif %}
+    </header>
+
+    {% if not user.is_authenticated %}
+    <p class="sh-notice">Connecte-toi pour acheter des objets et voir les aperçus sur ton avatar.
+        <a href="{% url 'login' %}">Se connecter</a></p>
     {% endif %}
+
+    <nav class="sh-tabs" aria-label="Catégories de la boutique">
+        <a href="?tri={{ current_sort }}" class="sh-tab{% if not current_category and not current_filter %} is-active{% endif %}">Tout</a>
+        {% for category in categories %}
+        <a href="?categorie={{ category.pk }}&tri={{ current_sort }}" class="sh-tab{% if current_category == category %} is-active{% endif %}">{{ category.name }}</a>
+        {% endfor %}
+        {% if has_promos %}
+        <a href="?filtre=promos&tri={{ current_sort }}" class="sh-tab sh-tab--promo{% if current_filter == 'promos' %} is-active{% endif %}">Promos</a>
+        {% endif %}
+        <a href="?filtre=limites&tri={{ current_sort }}" class="sh-tab{% if current_filter == 'limites' %} is-active{% endif %}">Éditions limitées</a>
+    </nav>
+
+    <form method="get" class="sh-sort">
+        {% if current_category %}<input type="hidden" name="categorie" value="{{ current_category.pk }}">{% endif %}
+        {% if current_filter %}<input type="hidden" name="filtre" value="{{ current_filter }}">{% endif %}
+        <label for="sh-sort">Trier par</label>
+        <select id="sh-sort" name="tri" onchange="this.form.submit()">
+            {% for key, label in sorts %}<option value="{{ key }}"{% if key == current_sort %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <noscript><button type="submit" class="btn btn-small">OK</button></noscript>
+    </form>
+
+    <div class="sh-grid">
+        {% for item in items %}
+        <article class="sh-card sh-rarity--{{ item.rarity }}{% if item.is_sold_out %} is-sold-out{% endif %}">
+            <div class="sh-card__badges">
+                <span class="sh-badge sh-badge--rarity">{{ item.get_rarity_display }}</span>
+                {% if item.on_discount %}<span class="sh-badge sh-badge--promo">-{{ item.discount_percent }} %</span>{% endif %}
+                {% if item.is_new %}<span class="sh-badge sh-badge--new">Nouveau</span>{% endif %}
+            </div>
+            {% include "shop/_item_visual.html" with viewer=user %}
+            <div class="sh-card__body">
+                <h3 class="sh-card__title">{{ item.name }}</h3>
+                <p class="sh-card__kind">{{ item.get_kind_display }}{% if item.effect %} · {{ item.effect_hours }} h{% endif %}</p>
+                {% if item.description %}<p class="sh-card__desc" tabindex="0" data-full="{{ item.description }}" aria-label="{{ item.description }}"><span class="sh-card__desc-text">{{ item.description }}</span></p>{% endif %}
+                {% if item.is_limited %}
+                <p class="sh-card__limited">
+                    {% if item.stock is not None %}{% if item.is_sold_out %}Épuisé{% else %}Plus que {{ item.stock }} en stock{% endif %}{% endif %}
+                    {% if item.stock is not None and item.available_until %} · {% endif %}
+                    {% if item.available_until %}Jusqu'au {{ item.available_until|date:"d/m/Y" }}{% endif %}
+                </p>
+                {% endif %}
+            </div>
+            <footer class="sh-card__footer">
+                <span class="sh-price">
+                    {% if item.on_discount %}<del>{{ item.price }}</del>{% endif %}
+                    <strong>{{ item.sale_price }}</strong> <span aria-hidden="true">🪙</span>
+                </span>
+                {% if item.equipped %}
+                    <span class="sh-status sh-status--equipped">Équipé</span>
+                {% elif item.owned_quantity and not item.is_stackable %}
+                    <span class="sh-status">Possédé</span>
+                {% endif %}
+                {% if item.can_buy %}
+                <form method="post" action="{% url 'shop_buy' item.pk %}" class="sh-buy"
+                      data-name="{{ item.name }}" data-price="{{ item.sale_price }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn btn-add btn-small"{% if not item.affordable %} disabled title="Pas assez d'or"{% endif %}>
+                        {% if item.owned_quantity %}Racheter ({{ item.owned_quantity }}){% else %}Acheter{% endif %}
+                    </button>
+                </form>
+                {% endif %}
+            </footer>
+        </article>
+        {% empty %}
+        <p class="sh-empty">Aucun objet ici pour le moment. RetroBot fouille ses cartons !</p>
+        {% endfor %}
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+<dialog class="sh-dialog" id="sh-confirm">
+    <form method="dialog">
+        <h3>Confirmer l'achat</h3>
+        <p>Acheter <strong data-field="name"></strong> pour <strong data-field="price"></strong> <span aria-hidden="true">🪙</span> ?</p>
+        <p class="sh-dialog__balance">Il te restera <strong data-field="rest"></strong> pièces d'or.</p>
+        <div class="sh-dialog__actions">
+            <button value="ok" class="btn btn-add">Acheter</button>
+            <button value="cancel" class="btn btn-danger">Annuler</button>
+        </div>
+    </form>
+</dialog>
+<script>
+(function () {
+    const dialog = document.getElementById('sh-confirm');
+    if (!dialog || typeof dialog.showModal !== 'function') return;
+    const balance = {{ user.gold }};
+    let pending = null;
+    document.querySelectorAll('form.sh-buy').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (form.dataset.confirmed) return;
+            event.preventDefault();
+            pending = form;
+            const price = parseInt(form.dataset.price, 10);
+            dialog.querySelector('[data-field="name"]').textContent = form.dataset.name;
+            dialog.querySelector('[data-field="price"]').textContent = price;
+            dialog.querySelector('[data-field="rest"]').textContent = balance - price;
+            dialog.showModal();
+        });
+    });
+    dialog.addEventListener('close', function () {
+        if (dialog.returnValue === 'ok' && pending) {
+            pending.dataset.confirmed = '1';
+            pending.requestSubmit();
+        }
+        pending = null;
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

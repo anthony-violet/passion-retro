@@ -9,6 +9,7 @@
         {% csrf_token %}
         <div class="panel-form-group"><label>Nom</label><input type="text" name="name" value="{{ category.name|default:'' }}" required></div>
         <div class="panel-form-group"><label>Description</label><textarea name="description" rows="2">{{ category.description|default:'' }}</textarea></div>
+        <div class="panel-form-group"><label>Ordre d'affichage (onglets de la boutique)</label><input type="number" name="position" min="0" value="{{ category.position|default:0 }}"></div>
         <div class="panel-form-checkboxes">
             <label class="panel-checkbox"><input type="checkbox" name="is_active" {% if category.is_active|default:True %}checked{% endif %}> Active</label>
         </div>

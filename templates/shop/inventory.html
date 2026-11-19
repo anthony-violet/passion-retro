@@ -1,0 +1,97 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/shop.css' %}">{% endblock %}
+
+{% block content %}
+<div class="container sh-page">
+    <header class="sh-header">
+        <div class="sh-header__intro">
+            <div>
+                <h2>Mon inventaire</h2>
+                <p>{{ total }} objet{{ total|pluralize }} dans ton sac. Clique sur un objet pour l'équiper, le retirer ou l'utiliser.</p>
+            </div>
+        </div>
+        <div class="sh-wallet">
+            <span class="sh-wallet__label">Mon or</span>
+            <span class="sh-wallet__amount"><span aria-hidden="true">🪙</span> {{ user.gold }}</span>
+            <a href="{% url 'shop_home' %}" class="btn btn-small">Aller à la boutique</a>
+        </div>
+    </header>
+
+    <section class="sh-equipped" aria-label="Objets équipés">
+        <h3>Équipé</h3>
+        <div class="sh-slots">
+            {% for kind, label, entry in slots %}
+            <div class="sh-slot{% if entry %} is-filled{% endif %}">
+                <span class="sh-slot__label">{{ label }}</span>
+                {% if entry %}
+                    {% include "shop/_item_visual.html" with item=entry.item viewer=user %}
+                    <span class="sh-slot__name">{{ entry.item.name }}</span>
+                {% else %}
+                    <span class="sh-slot__empty">Aucun</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <div class="sh-slot{% if user.has_xp_boost %} is-filled is-boost{% endif %}">
+                <span class="sh-slot__label">Boost d'XP</span>
+                {% if user.has_xp_boost %}
+                    <span class="sh-visual__icon" aria-hidden="true">⚡</span>
+                    <span class="sh-slot__name">x2 jusqu'au {{ user.xp_boost_until|date:"d/m à H:i" }}</span>
+                {% else %}
+                    <span class="sh-slot__empty">Inactif</span>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    {% if kinds|length > 1 %}
+    <nav class="sh-tabs" aria-label="Types d'objets">
+        <a href="?" class="sh-tab{% if not current_kind %} is-active{% endif %}">Tout</a>
+        {% for code, label in kinds %}
+        <a href="?type={{ code }}" class="sh-tab{% if current_kind == code %} is-active{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </nav>
+    {% endif %}
+
+    <div class="sh-grid">
+        {% for entry in entries %}
+        {% with item=entry.item %}
+        <article class="sh-card sh-rarity--{{ item.rarity }}{% if entry.equipped %} is-equipped{% endif %}">
+            <div class="sh-card__badges">
+                <span class="sh-badge sh-badge--rarity">{{ item.get_rarity_display }}</span>
+                {% if entry.quantity > 1 %}<span class="sh-badge">x{{ entry.quantity }}</span>{% endif %}
+            </div>
+            {% include "shop/_item_visual.html" with viewer=user %}
+            <div class="sh-card__body">
+                <h3 class="sh-card__title">{{ item.name }}</h3>
+                <p class="sh-card__kind">{{ item.get_kind_display }}</p>
+                {% if item.description %}<p class="sh-card__desc" tabindex="0" data-full="{{ item.description }}" aria-label="{{ item.description }}"><span class="sh-card__desc-text">{{ item.description }}</span></p>{% endif %}
+                <p class="sh-card__meta">Obtenu le {{ entry.acquired_at|date:"d/m/Y" }}</p>
+            </div>
+            <footer class="sh-card__footer">
+                {% if item.is_equippable or item.effect %}
+                <form method="post" action="{% url 'use_item' item.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    {% if entry.equipped %}
+                        <span class="sh-status sh-status--equipped">Équipé</span>
+                        <button type="submit" class="btn btn-small btn-danger">Retirer</button>
+                    {% elif item.is_equippable %}
+                        <button type="submit" class="btn btn-small btn-add">Équiper</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-small btn-add">Utiliser</button>
+                    {% endif %}
+                </form>
+                {% else %}
+                    <span class="sh-status">Collection</span>
+                {% endif %}
+            </footer>
+        </article>
+        {% endwith %}
+        {% empty %}
+        <p class="sh-empty">Ton inventaire est vide. <a href="{% url 'shop_home' %}">Fais un tour à la boutique</a> !</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

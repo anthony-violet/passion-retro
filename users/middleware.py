@@ -19,7 +19,7 @@ class UserLevelMiddleware(MiddlewareMixin):
         if not request.user.levels.exists():
             return redirect('new_feature_user')
 
-        if not request.user.inventory.exists():
+        if not request.user.starting_gold_given:
             return redirect('new_feature_user')
 
 

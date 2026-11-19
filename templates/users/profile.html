@@ -145,49 +145,15 @@
         {% if user.id == request.user.id %}
             <div class="profile-card profile-inventory">
                 <h3>Inventaire</h3>
-                <div id="tooltip-bubble" style="display:none; position:fixed; background:rgba(0,0,0,0.7); color:white; padding:8px 12px; border-radius:5px; z-index:9999; pointer-events:none; max-width:250px;"></div>
-                <div class="inventory-grid">
-                    {% for inventory in request.user.inventory.all %}
-                        {% with slug=inventory.item.name|slugify category=inventory.item.category.name %}
-                        {% if category == 'cadres' and request.user.border_avatar == slug or category == 'Décoration pseudo' and request.user.username_decoration == slug %}
-                            {% firstof 'oui' as equipped %}
-                        {% else %}
-                            {% firstof '' as equipped %}
-                        {% endif %}
-                        {% if inventory.item.name != 'Or' %}
-                            <form method="post" action="{% url 'use_item' inventory.item.id %}" class="inventory-use-form">
-                                {% csrf_token %}
-                                <button type="submit" class="inventory-use"
-                                        title="{% if equipped %}Retirer{% elif category == 'cadres' or category == 'Décoration pseudo' %}Équiper{% else %}Utiliser{% endif %} {{ inventory.item.name }}">
-                        {% endif %}
-                            <div class="inventory-item{% if equipped %} is-equipped{% endif %}">
-                                {% if equipped %}<span class="item-equipped">Équipé</span>{% endif %}
-                                <span class="item-name">
-                                    {% if category == 'Décoration pseudo' %}
-                                        <div style="text-align:center">
-                                            <span data-info="{{ inventory.item }} : {{ inventory.item.description }}" class="{{ slug }}" style="font-size: 1.5rem">{{ request.user }}</span>
-                                        </div>
-                                    {% elif category == 'cadres' %}
-                                        <div style="text-align:center">
-                                            <div class="{{ slug }}"><img src="/media/{{ request.user.avatar }}" style="width:100px;" alt=""></div>
-                                        </div>
-                                    {% else %}
-                                        <img data-info="{{ inventory.item }} : {{ inventory.item.description }}" src="/media/shop/items/{{ inventory.item.image }}" alt="{{ inventory.item }} : {{ inventory.item.description }}">
-                                    {% endif %}
-                                </span>
-                                {% if inventory.item.name == 'Or' or inventory.quantity > 1 %}
-                                    <span class="item-quantity">{{ inventory.quantity }}</span>
-                                {% endif %}
-                            </div>
-                        {% if inventory.item.name != 'Or' %}
-                                </button>
-                            </form>
-                        {% endif %}
-                        {% endwith %}
-                    {% empty %}
-                        <p class="no-items">Aucun objet dans l'inventaire</p>
-                    {% endfor %}
-                </div>
+                <p>
+                    <span aria-hidden="true">🪙</span> {{ request.user.gold }} pièces d'or
+                    · {{ request.user.inventory.count }} objet{{ request.user.inventory.count|pluralize }}
+                    {% if request.user.has_xp_boost %}· <strong>Boost d'XP x2</strong> jusqu'au {{ request.user.xp_boost_until|date:"d/m à H:i" }}{% endif %}
+                </p>
+                <p>
+                    <a href="{% url 'shop_inventory' %}" class="btn btn-default">Ouvrir mon inventaire</a>
+                    <a href="{% url 'shop_home' %}" class="btn btn-add">Boutique</a>
+                </p>
             </div>
             <div class="profile-actions">
                 <a href="{% url 'profile_update' %}" class="btn btn-default">Modifier le profil</a>

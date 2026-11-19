@@ -4,8 +4,22 @@
     {
       "name": "django",
       "runtimeExecutable": ".venv/bin/python",
-      "runtimeArgs": ["manage.py", "runserver", "0.0.0.0:5500"],
+      "runtimeArgs": [
+        "manage.py",
+        "runserver",
+        "0.0.0.0:5500"
+      ],
       "port": 5500
+    },
+    {
+      "name": "django-shop",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": [
+        "manage.py",
+        "runserver",
+        "127.0.0.1:5511"
+      ],
+      "port": 5511
     }
   ]
 }

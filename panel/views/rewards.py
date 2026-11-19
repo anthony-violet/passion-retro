@@ -31,7 +31,7 @@ def _parse_int(value, label, maximum, errors):
 
 @staff_required
 def reward_list(request):
-    items = Item.objects.exclude(name='Or').order_by('name')
+    items = Item.objects.order_by('name')
     form = {
         'usernames': request.GET.get('user', ''),
         'reason': '', 'experience': '', 'gold': '', 'item': '', 'notify': True,

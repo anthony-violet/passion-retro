@@ -66,6 +66,11 @@ class User(AbstractUser):
     discord = models.CharField(max_length=100, blank=True, null=True)
     youtube = models.CharField(max_length=100, blank=True, null=True)
     last_seen = models.DateTimeField(blank=True, null=True)
+    # Porte-monnaie : pièces d'or gagnées et dépensées en boutique.
+    gold = models.PositiveIntegerField("Or", default=0)
+    starting_gold_given = models.BooleanField(default=False)
+    # Fin du boost d'XP x2 obtenu avec un consommable de la boutique.
+    xp_boost_until = models.DateTimeField(blank=True, null=True)
 
     groups = models.ManyToManyField(
         Group,
@@ -108,13 +113,12 @@ class User(AbstractUser):
         return max(0, xp_required(level.level) - level.experience)
 
     @property
-    def inventory(self):
-        return self.inventory.all()
+    def money(self):
+        return self.gold
 
     @property
-    def money(self):
-        entry = self.inventory.filter(item__name='Or').first()
-        return entry.quantity if entry else 0
+    def has_xp_boost(self):
+        return bool(self.xp_boost_until and self.xp_boost_until > timezone.now())
 
     def __str__(self):
         return self.username
@@ -179,6 +183,7 @@ class UserInventory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventory')
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
+    acquired_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.item.name
@@ -187,6 +192,9 @@ class UserInventory(models.Model):
         verbose_name = 'Inventaire utilisateur'
         verbose_name_plural = 'Inventaires utilisateurs'
         ordering = ['item']
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'item'], name='unique_user_inventory_item'),
+        ]
 
 
 class APIKey(models.Model):

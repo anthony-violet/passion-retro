@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.db.models import F
+from django.utils import timezone
 
 from .models import UserLevel, level_title, xp_required
 
@@ -28,10 +29,20 @@ def gold_for_levels(new_level, levels_gained=1):
     return sum(gold_for_level(level) for level in range(max(2, first), new_level + 1))
 
 
-def grant_experience(user, amount, gold=0):
+def xp_multiplier(user, now=None):
+    """x2 tant que le membre profite d'un boost d'XP de la boutique."""
+    from .models import User
+
+    now = now or timezone.now()
+    return 2 if User.objects.filter(pk=user.pk, xp_boost_until__gt=now).exists() else 1
+
+
+def grant_experience(user, amount, gold=0, boost=True):
     """Ajoute de l'expérience à un utilisateur et gère les passages de niveau.
 
     ``gold`` crédite en plus des pièces d'or pour l'action récompensée.
+    ``boost`` applique le boost d'XP de la boutique s'il est actif (les
+    récompenses du staff passent ``boost=False`` : le montant est voulu).
 
     Le calcul repose sur une expérience cumulée : plusieurs niveaux peuvent être
     franchis d'un seul coup. L'opération est atomique et renvoie le nombre de
@@ -45,6 +56,8 @@ def grant_experience(user, amount, gold=0):
         return 0
     if amount <= 0:
         return 0
+    if boost:
+        amount *= xp_multiplier(user)
 
     with transaction.atomic():
         UserLevel.objects.get_or_create(
@@ -132,25 +145,31 @@ def _send_level_message(user, new_level, levels_gained=1, gold=0, experience=Non
         pass
 
 
-def _add_gold(user, amount):
-    """Crédite ``amount`` pièces d'or.
+def grant_starting_gold(user):
+    """Offre l'or de départ, une seule fois par membre. Renvoie True s'il vient d'être offert."""
+    from .models import User
 
-    Si l'utilisateur n'a pas encore d'or dans son inventaire, l'entrée est créée
-    avec l'or de départ en plus : sinon la récompense serait perdue.
-    """
-    from shop.models import Item
-
-    from .models import UserInventory
-
-    gold_item = Item.objects.filter(name='Or').first()
-    if gold_item is None:
-        return False
-    inventory_item, created = UserInventory.objects.get_or_create(
-        user=user, item=gold_item,
-        defaults={'quantity': STARTING_GOLD + amount},
+    given = User.objects.filter(pk=user.pk, starting_gold_given=False).update(
+        gold=F('gold') + STARTING_GOLD, starting_gold_given=True,
     )
-    if not created:
-        UserInventory.objects.filter(pk=inventory_item.pk).update(
-            quantity=F('quantity') + amount
-        )
+    user.refresh_from_db(fields=['gold', 'starting_gold_given'])
+    return bool(given)
+
+
+def _add_gold(user, amount):
+    """Crédite ``amount`` pièces d'or sur le solde du membre.
+
+    Un membre qui n'a pas encore reçu l'or de départ le reçoit en plus : sinon il
+    le perdrait en ouvrant son inventaire plus tard.
+    """
+    from .models import User
+
+    amount = int(amount or 0)
+    if amount <= 0:
+        return False
+    User.objects.filter(pk=user.pk, starting_gold_given=False).update(
+        gold=F('gold') + STARTING_GOLD, starting_gold_given=True,
+    )
+    User.objects.filter(pk=user.pk).update(gold=F('gold') + amount)
+    user.refresh_from_db(fields=['gold', 'starting_gold_given'])
     return True

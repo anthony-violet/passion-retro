@@ -201,11 +201,13 @@ class LevelingTest(TestCase):
 
         self.assertEqual(grant_experience(AnonymousUser(), 10), 0)
 
-    def _gold_item(self):
-        from shop.models import Category, Item
+    def _set_gold(self, amount):
+        User.objects.filter(pk=self.user.pk).update(gold=amount, starting_gold_given=True)
+        self.user.refresh_from_db()
 
-        category = Category.objects.create(name='Monnaie', description='', image='')
-        return Item.objects.create(category=category, name='Or', description='', price=0, image='')
+    def _money(self):
+        self.user.refresh_from_db()
+        return self.user.money
 
     def test_gold_reward_grows_with_level(self):
         from users.leveling import gold_for_level, gold_for_levels
@@ -217,47 +219,42 @@ class LevelingTest(TestCase):
     def test_level_up_credits_existing_gold(self):
         from users.leveling import grant_experience
 
-        gold = self._gold_item()
-        self.user.inventory.create(item=gold, quantity=50)
+        self._set_gold(50)
         self.user.levels.create(level=1, experience=0)
         grant_experience(self.user, 100)  # niveaux 2 et 3
 
-        self.assertEqual(self.user.money, 50 + 14 + 16)
+        self.assertEqual(self._money(), 50 + 14 + 16)
 
     def test_level_up_creates_gold_entry_when_missing(self):
         from users.leveling import STARTING_GOLD, grant_experience
 
-        self._gold_item()
         self.user.levels.create(level=1, experience=0)
         grant_experience(self.user, 20)  # niveau 2
 
-        self.assertEqual(self.user.money, STARTING_GOLD + 14)
+        self.assertEqual(self._money(), STARTING_GOLD + 14)
 
     def test_action_gold_is_credited_without_level_up(self):
         from users.leveling import GOLD_SMALL_ACTION, grant_experience
 
-        gold = self._gold_item()
-        self.user.inventory.create(item=gold, quantity=50)
+        self._set_gold(50)
         self.user.levels.create(level=1, experience=0)
         grant_experience(self.user, 10, gold=GOLD_SMALL_ACTION)
 
-        self.assertEqual(self.user.money, 51)
+        self.assertEqual(self._money(), 51)
 
     def test_action_gold_adds_to_level_gold(self):
         from users.leveling import GOLD_BIG_ACTION, grant_experience
 
-        gold = self._gold_item()
-        self.user.inventory.create(item=gold, quantity=50)
+        self._set_gold(50)
         self.user.levels.create(level=1, experience=0)
         grant_experience(self.user, 20, gold=GOLD_BIG_ACTION)  # niveau 2
 
-        self.assertEqual(self.user.money, 50 + 2 + 14)
+        self.assertEqual(self._money(), 50 + 2 + 14)
 
     def test_forum_reply_gives_one_gold(self):
         from forum.models import Category as ForumCategory, Forum, Topic
 
-        gold = self._gold_item()
-        self.user.inventory.create(item=gold, quantity=50)
+        self._set_gold(50)
         forum = Forum.objects.create(
             name='Général', description='', author=self.user,
             category=ForumCategory.objects.create(name='Cat', description=''),
@@ -269,7 +266,7 @@ class LevelingTest(TestCase):
             {'content': 'Une réponse sur le forum'},
         )
 
-        self.assertEqual(self.user.money, 51)
+        self.assertEqual(self._money(), 51)
 
 
 

@@ -141,14 +141,11 @@ class MysteryAnswerMatchingTest(TestCase):
 
 class MysteryPlayTest(TestCase):
     def setUp(self):
-        from shop.models import Category, Item
 
         self.user = User.objects.create_user(
             username='joueur', email='j@test.com', password='pass12345', active=True
         )
         self.user.levels.create(level=1, experience=0)
-        category = Category.objects.create(name='Monnaie', description='', image='')
-        self.gold_item = Item.objects.create(category=category, name='Or', description='', price=0, image='')
         self.game = _make_mystery(clues=4)
         self.client.login(username='joueur', password='pass12345')
 
@@ -156,8 +153,8 @@ class MysteryPlayTest(TestCase):
         return MysteryAttempt.objects.get(user=self.user, game=self.game)
 
     def _gold(self):
-        from users.models import UserInventory
-        return UserInventory.objects.get(user=self.user, item=self.gold_item).quantity
+        self.user.refresh_from_db()
+        return self.user.gold
 
     def test_only_revealed_clues_are_sent(self):
         response = self.client.get(reverse('mystery_home'))
@@ -308,10 +305,7 @@ def _proposal_data(title='Tetris', **extra):
 
 class MysteryProposalTest(TestCase):
     def setUp(self):
-        from shop.models import Category, Item
 
-        category = Category.objects.create(name='Monnaie', description='', image='')
-        Item.objects.create(category=category, name='Or', description='', price=0, image='')
         User.objects.create_user(username='RetroBot', email='bot@test.com', password='x', active=True)
         self.member = User.objects.create_user(
             username='membre', email='m@test.com', password='pass12345', active=True

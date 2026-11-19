@@ -8,12 +8,12 @@ from django.contrib.auth import update_session_auth_hash
 from . import accounts
 from .forms import PostForm, ResendActivationForm, UserRegistrationForm, UserLoginForm, UserUpdateForm, ProfileUpdateForm, PasswordUpdateForm
 from posts.models import Post
-from django.utils.text import slugify
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import User
-from .leveling import STARTING_GOLD, grant_experience
+from .leveling import grant_experience, grant_starting_gold
 import urllib.parse
 import urllib.request
 import json
@@ -276,53 +276,24 @@ def new_feature_user(request):
         request.user.levels.create(level=1)
         return render(request, "features/new_feature_user_level.html")
 
-    if not request.user.inventory.exists():
-        from shop.models import Item
-        gold_item = Item.objects.filter(name='Or').first() or Item.objects.order_by('pk').first()
-        if gold_item is not None:
-            request.user.inventory.get_or_create(item=gold_item, defaults={'quantity': STARTING_GOLD})
+    grant_starting_gold(request.user)
     return render(request, "features/new_feature_user_inventory.html")
-
-# Catégorie d'objet de la boutique -> champ du membre où l'objet est équipé.
-EQUIPMENT_FIELDS = {
-    'cadres': 'border_avatar',
-    'Décoration pseudo': 'username_decoration',
-}
-
 
 @login_required
 @require_POST
 def use_item(request, item_id):
-    """Équipe un objet de l'inventaire, ou le retire s'il est déjà équipé."""
-    item = request.user.inventory.filter(item_id=item_id).select_related('item__category').first()
-    if item is None:
-        messages.error(request, "Cet objet n'est pas dans votre inventaire.")
-        return redirect('profile')
+    """Équipe un objet de l'inventaire, le retire s'il est déjà équipé, ou le consomme."""
+    from shop.services import ShopError, use_item as use_inventory_item
 
-    # On slugify le nom de l'item pour l'utiliser dans les conditions
-    item_name = slugify(item.item.name)
-
-    if item.quantity <= 0:
-        messages.error(request, f"Vous n'avez pas de {item.item.name}.")
-        return redirect('profile')
-
-    category = item.item.category.name
-    field = EQUIPMENT_FIELDS.get(category)
-    if field:
-        if getattr(request.user, field) == item_name:
-            setattr(request.user, field, None)
-            messages.success(request, f"Vous avez retiré {item.item.name}.")
-        else:
-            setattr(request.user, field, item_name)
-            messages.success(request, f"Vous avez équipé {item.item.name}.")
-        request.user.save(update_fields=[field])
-        return redirect('profile')
-
-    if category == 'themes':
-        request.user.theme_active = item_name
-        request.user.save()
-    messages.success(request, f"Vous avez utilisé {item.item.name}.")
-    return redirect('profile')
+    try:
+        messages.success(request, use_inventory_item(request.user, item_id))
+    except ShopError as error:
+        messages.error(request, str(error))
+    next_url = request.POST.get('next', '')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()},
+                                                   require_https=request.is_secure()):
+        return redirect(next_url)
+    return redirect('shop_inventory')
 
 @login_required
 def set_theme(request, theme_name):

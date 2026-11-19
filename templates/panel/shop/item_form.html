@@ -7,35 +7,101 @@
 <div class="panel-section">
     <form method="post" enctype="multipart/form-data" class="panel-form">
         {% csrf_token %}
+        <h3>L'objet</h3>
         <div class="panel-form-grid">
             <div class="panel-form-group">
-                <label>Nom</label>
-                <input type="text" name="name" value="{{ item.name|default:'' }}" required>
+                <label for="f-name">Nom</label>
+                <input id="f-name" type="text" name="name" value="{{ item.name|default:'' }}" required>
             </div>
             <div class="panel-form-group">
-                <label>Prix (en or)</label>
-                <input type="number" name="price" value="{{ item.price|default:0 }}" min="0">
-            </div>
-            <div class="panel-form-group">
-                <label>Catégorie</label>
-                <select name="category" required>
+                <label for="f-category">Catégorie (rayon de la boutique)</label>
+                <select id="f-category" name="category" required>
                     {% for cat in categories %}
                     <option value="{{ cat.id }}" {% if item.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="panel-form-group">
-                <label>Image</label>
-                <input type="file" name="image" accept="image/*">
+                <label for="f-kind">Type</label>
+                <select id="f-kind" name="kind">
+                    {% for code, label in kinds %}<option value="{{ code }}" {% if item.kind == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+                <small>Cadre, décoration et thème s'équipent ; un consommable s'achète plusieurs fois et se consomme.</small>
+            </div>
+            <div class="panel-form-group">
+                <label for="f-css">Classe CSS / code du thème</label>
+                <input id="f-css" type="text" name="css_class" value="{{ item.css_class|default:'' }}" placeholder="cadre-retro-tv, 00s…">
+                <small>Vide = nom de l'objet en slug. Pour un thème : le code du thème (00s, rpg…).</small>
+            </div>
+            <div class="panel-form-group">
+                <label for="f-rarity">Rareté</label>
+                <select id="f-rarity" name="rarity">
+                    {% for code, label in rarities %}<option value="{{ code }}" {% if item.rarity == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="panel-form-group">
+                <label for="f-image">Image</label>
+                <input id="f-image" type="file" name="image" accept="image/*">
                 {% if item.image %}<small>Actuelle : {{ item.image }}</small>{% endif %}
             </div>
             <div class="panel-form-group panel-form-full">
-                <label>Description</label>
-                <textarea name="description" rows="3">{{ item.description|default:'' }}</textarea>
+                <label for="f-desc">Description</label>
+                <textarea id="f-desc" name="description" rows="3">{{ item.description|default:'' }}</textarea>
             </div>
         </div>
+
+        <h3>Prix et promotion</h3>
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label for="f-price">Prix (en or)</label>
+                <input id="f-price" type="number" name="price" value="{{ item.price|default:0 }}" min="0">
+            </div>
+            <div class="panel-form-group">
+                <label for="f-discount">Réduction (%)</label>
+                <input id="f-discount" type="number" name="discount_percent" value="{{ item.discount_percent|default:0 }}" min="0" max="90">
+            </div>
+            <div class="panel-form-group">
+                <label for="f-dfrom">Promo à partir du</label>
+                <input id="f-dfrom" type="datetime-local" name="discount_from" value="{{ item.discount_from|date:'Y-m-d\TH:i' }}">
+            </div>
+            <div class="panel-form-group">
+                <label for="f-duntil">Promo jusqu'au</label>
+                <input id="f-duntil" type="datetime-local" name="discount_until" value="{{ item.discount_until|date:'Y-m-d\TH:i' }}">
+            </div>
+        </div>
+
+        <h3>Édition limitée</h3>
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label for="f-stock">Stock restant</label>
+                <input id="f-stock" type="number" name="stock" value="{{ item.stock|default_if_none:'' }}" min="0" placeholder="Illimité">
+            </div>
+            <div class="panel-form-group">
+                <label for="f-from">En vente à partir du</label>
+                <input id="f-from" type="datetime-local" name="available_from" value="{{ item.available_from|date:'Y-m-d\TH:i' }}">
+            </div>
+            <div class="panel-form-group">
+                <label for="f-until">En vente jusqu'au</label>
+                <input id="f-until" type="datetime-local" name="available_until" value="{{ item.available_until|date:'Y-m-d\TH:i' }}">
+            </div>
+        </div>
+
+        <h3>Consommable</h3>
+        <div class="panel-form-grid">
+            <div class="panel-form-group">
+                <label for="f-effect">Effet</label>
+                <select id="f-effect" name="effect">
+                    {% for code, label in effects %}<option value="{{ code }}" {% if item.effect == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="panel-form-group">
+                <label for="f-hours">Durée de l'effet (heures)</label>
+                <input id="f-hours" type="number" name="effect_hours" value="{{ item.effect_hours|default:24 }}" min="1" max="720">
+            </div>
+        </div>
+
         <div class="panel-form-checkboxes">
-            <label class="panel-checkbox"><input type="checkbox" name="is_active" {% if item.is_active|default:True %}checked{% endif %}> Actif</label>
+            <label class="panel-checkbox"><input type="checkbox" name="is_active" {% if item.is_active %}checked{% endif %}> Actif</label>
         </div>
         <div class="panel-form-actions">
             <button type="submit" class="btn btn-add">{{ action }}</button>

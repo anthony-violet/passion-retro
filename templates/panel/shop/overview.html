@@ -23,13 +23,16 @@
     </div>
     <table class="panel-table">
         <thead>
-            <tr><th>Item</th><th>Prix</th><th>Actif</th><th>Actions</th></tr>
+            <tr><th>Item</th><th>Type</th><th>Rareté</th><th>Prix</th><th>Stock</th><th>Actif</th><th>Actions</th></tr>
         </thead>
         <tbody>
             {% for item in category.items.all %}
             <tr>
-                <td>{{ item.name }}</td>
-                <td>{{ item.price }} 🪙</td>
+                <td>{{ item.name }}{% if item.is_limited %} <span class="panel-badge">Limité</span>{% endif %}</td>
+                <td>{{ item.get_kind_display }}</td>
+                <td>{{ item.get_rarity_display }}</td>
+                <td>{% if item.on_discount %}<del>{{ item.price }}</del> {{ item.sale_price }} (-{{ item.discount_percent }} %){% else %}{{ item.price }}{% endif %} 🪙</td>
+                <td>{% if item.stock is None %}∞{% else %}{{ item.stock }}{% endif %}</td>
                 <td>
                     {% if item.is_active %}
                         <span class="panel-badge panel-badge-success">Oui</span>
@@ -46,7 +49,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="4" class="panel-empty">Aucun item.</td></tr>
+            <tr><td colspan="7" class="panel-empty">Aucun item.</td></tr>
             {% endfor %}
         </tbody>
     </table>

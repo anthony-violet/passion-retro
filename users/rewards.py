@@ -37,7 +37,7 @@ def give_reward(user, given_by, reason, experience=0, gold=0, item=None, notify=
 
     # Hors transaction : un passage de niveau envoie son propre message.
     if experience:
-        grant_experience(user, experience)
+        grant_experience(user, experience, boost=False)
     if notify:
         _notify(reward)
     return reward

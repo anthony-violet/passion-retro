@@ -1,36 +1,105 @@
-from django.shortcuts import get_object_or_404, render, redirect
-from .models import *
-from users.models import UserInventory
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
-# Create your views here.
+from .models import Category, Item
+from .services import ShopError, equipped_items, purchase
+
+SORTS = {
+    'prix': ('Prix croissant', lambda item: (item.sale_price, item.name.lower())),
+    'prix-desc': ('Prix décroissant', lambda item: (-item.sale_price, item.name.lower())),
+    'rarete': ('Rareté', lambda item: (-item.rarity_rank, item.sale_price)),
+    'nouveautes': ('Nouveautés', lambda item: (-item.created_at.timestamp(), item.name.lower())),
+}
+DEFAULT_SORT = 'rarete'
+
+
+def _selected_category(request, categories):
+    try:
+        wanted = int(request.GET.get('categorie', ''))
+    except ValueError:
+        return None
+    return next((category for category in categories if category.pk == wanted), None)
+
+
 def home(request):
-    items = Item.objects.filter(is_active=True) if request.user.is_authenticated else Item.objects.none()
-    return render(request, 'shop/home.html', {'items': items})
+    now = timezone.now()
+    items = list(Item.objects.on_sale(now).select_related('category'))
+    category_ids = {item.category_id for item in items}
+    categories = [c for c in Category.objects.filter(is_active=True) if c.pk in category_ids]
+    current = _selected_category(request, categories)
+    if current:
+        items = [item for item in items if item.category_id == current.pk]
+    if request.GET.get('filtre') == 'promos':
+        items = [item for item in items if item.on_discount]
+    elif request.GET.get('filtre') == 'limites':
+        items = [item for item in items if item.is_limited]
+
+    sort = request.GET.get('tri') if request.GET.get('tri') in SORTS else DEFAULT_SORT
+    items.sort(key=SORTS[sort][1])
+
+    owned = {}
+    if request.user.is_authenticated:
+        owned = dict(request.user.inventory.values_list('item_id', 'quantity'))
+    for item in items:
+        item.owned_quantity = owned.get(item.pk, 0)
+        item.equipped = bool(item.owned_quantity) and item.is_equipped_by(request.user)
+        item.can_buy = (request.user.is_authenticated and not item.is_sold_out
+                        and (item.is_stackable or not item.owned_quantity))
+        item.affordable = item.can_buy and request.user.gold >= item.sale_price
+
+    return render(request, 'shop/home.html', {
+        'items': items,
+        'categories': categories,
+        'current_category': current,
+        'sorts': [(key, label) for key, (label, _) in SORTS.items()],
+        'current_sort': sort,
+        'current_filter': request.GET.get('filtre', ''),
+        'has_promos': any(i.on_discount for i in Item.objects.on_sale(now)),
+    })
+
 
 @login_required
+@require_POST
 def buy(request, item_id):
-    item = get_object_or_404(Item, id=item_id, is_active=True)
-    # ON vérifie si l'utilisateur a assez d'argent pour acheter l'item
-    if request.user.money >= item.price:
-        # On vérifie que l'utilisateur n'a pas déjà acheté l'item
-        if not request.user.inventory.filter(item=item).exists():
-            # On déduit le prix de l'item de l'argent de l'utilisateur
-            gold = UserInventory.objects.filter(user=request.user, item__name='Or').first()
-            if gold is not None:
-                gold.quantity -= item.price
-                gold.save()
-
-            # On ajoute l'item dans l'inventaire de l'utilisateur
-            user_inventory = UserInventory.objects.create(user=request.user, item=item)
-            user_inventory.quantity = 1
-            user_inventory.save()
-            messages.success(request, f"Vous avez acheté {item.name} pour {item.price} pièces d'or.")
-        else:
-            messages.error(request, f"Vous avez déjà acheté {item.name}.")
+    try:
+        item, price = purchase(request.user, item_id)
+    except ShopError as error:
+        messages.error(request, str(error))
     else:
-        messages.error(request, f"Vous n'avez pas assez d'argent pour acheter {item.name}.")
+        messages.success(request, f"Tu as acheté {item.name} pour {price} pièces d'or. "
+                                  f"Retrouve-le dans ton inventaire !")
+    next_url = request.POST.get('next', '')
+    if next_url.startswith('/shop/') and not next_url.startswith('//'):
+        return redirect(next_url)
     return redirect('shop_home')
 
-    
+
+@login_required
+def inventory(request):
+    entries = list(request.user.inventory.filter(quantity__gt=0)
+                   .select_related('item__category').order_by('item__kind', '-acquired_at'))
+    for entry in entries:
+        entry.equipped = entry.item.is_equipped_by(request.user)
+
+    kinds = [(code, label) for code, label in Item.KIND_CHOICES
+             if any(entry.item.kind == code for entry in entries)]
+    current_kind = request.GET.get('type', '')
+    if current_kind not in dict(kinds):
+        current_kind = ''
+    shown = [e for e in entries if not current_kind or e.item.kind == current_kind]
+
+    slots = equipped_items(request.user, entries)
+    return render(request, 'shop/inventory.html', {
+        'entries': shown,
+        'total': len(entries),
+        'kinds': kinds,
+        'current_kind': current_kind,
+        'slots': [
+            (Item.KIND_FRAME, "Cadre d'avatar", slots[Item.KIND_FRAME]),
+            (Item.KIND_USERNAME, 'Décoration de pseudo', slots[Item.KIND_USERNAME]),
+            (Item.KIND_THEME, 'Thème', slots[Item.KIND_THEME]),
+        ],
+    })

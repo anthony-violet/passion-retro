@@ -21,7 +21,7 @@ class Command(BaseCommand):
             {"name": "cadres", "description": "Cadres pour avatar"},
             {"name": "themes", "description": "Thèmes pour le site"},
             {"name": "Décoration pseudo", "description": "Décorations pour le pseudo"},
-            {"name": "Monnaie", "description": "Monnaie du site"},
+            {"name": "Consommables", "description": "Potions et bonus à usage unique"},
         ]
         for data in categories:
             obj, created = Category.objects.get_or_create(name=data["name"], defaults={"description": data["description"], "image": ""})
@@ -31,11 +31,11 @@ class Command(BaseCommand):
     def _create_shop_items(self):
         from shop.models import Category, Item
         items = [
-            {"category": "cadres", "name": "Cadre défaut", "description": "Cadre de base", "price": "0.00"},
-            {"category": "themes", "name": "Thème 00s", "description": "Thème années 2000", "price": "100.00"},
-            {"category": "themes", "name": "Thème RPG", "description": "Thème RPG", "price": "150.00"},
-            {"category": "Décoration pseudo", "name": "Décoration défaut", "description": "Décoration de base pour le pseudo", "price": "0.00"},
-            {"category": "Monnaie", "name": "Or", "description": "Monnaie utilisée sur le site", "price": "0.00"},
+            {"category": "cadres", "name": "Cadre défaut", "description": "Cadre de base", "price": 0, "kind": "frame"},
+            {"category": "themes", "name": "Thème 00s", "description": "Thème années 2000", "price": 100, "kind": "theme", "css_class": "00s"},
+            {"category": "themes", "name": "Thème RPG", "description": "Thème RPG", "price": 150, "kind": "theme", "css_class": "rpg"},
+            {"category": "Décoration pseudo", "name": "Décoration défaut", "description": "Décoration de base pour le pseudo", "price": 0, "kind": "username"},
+            {"category": "Consommables", "name": "Potion d'XP", "description": "Double l'XP gagnée pendant 24 heures.", "price": 80, "kind": "consumable", "effect": "xp_boost", "rarity": "rare"},
         ]
         for data in items:
             try:
@@ -46,6 +46,10 @@ class Command(BaseCommand):
                         "category": category,
                         "description": data["description"],
                         "price": data["price"],
+                        "kind": data.get("kind", "collectible"),
+                        "css_class": data.get("css_class", ""),
+                        "effect": data.get("effect", ""),
+                        "rarity": data.get("rarity", "common"),
                         "image": "",
                     }
                 )

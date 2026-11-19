@@ -15,8 +15,6 @@ class StaffRewardPanelTest(TestCase):
         self.bot = User.objects.create_user('RetroBot', 'r@test.com', 'pass12345')
         category = Category.objects.create(name='Cat', description='d',
                                            image=SimpleUploadedFile('c.gif', b'GIF89a'))
-        self.gold = Item.objects.create(category=category, name='Or', description='d', price=0,
-                                        image=SimpleUploadedFile('o.gif', b'GIF89a'))
         self.trophy = Item.objects.create(category=category, name='Trophée', description='d', price=50,
                                           image=SimpleUploadedFile('t.gif', b'GIF89a'))
         self.url = reverse('panel_rewards')
@@ -38,7 +36,6 @@ class StaffRewardPanelTest(TestCase):
         response = self.client.get(self.url + '?user=Alice')
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Trophée')
-        self.assertNotContains(response, '<option value="%d"' % self.gold.pk)
 
     def test_give_xp_gold_and_item_to_several_members(self):
         response = self.post(usernames='alice, BOB', experience='40', gold='25', item=self.trophy.pk)
@@ -47,6 +44,7 @@ class StaffRewardPanelTest(TestCase):
             self.assertGreaterEqual(user.experience, 40)
             self.assertTrue(UserInventory.objects.filter(user=user, item=self.trophy).exists())
             # Or de départ (100) + 25 + bonus de passage de niveau éventuel
+            user.refresh_from_db()
             self.assertGreaterEqual(user.money, 125)
             self.assertTrue(PrivateMessageSubject.objects.filter(
                 receiver=user, subject__contains='Concours de Noël').exists())
@@ -55,8 +53,9 @@ class StaffRewardPanelTest(TestCase):
                          (40, 25, self.trophy, self.staff))
 
     def test_gold_added_to_existing_balance(self):
-        UserInventory.objects.create(user=self.alice, item=self.gold, quantity=10)
+        User.objects.filter(pk=self.alice.pk).update(gold=10, starting_gold_given=True)
         self.post(gold='5')
+        self.alice.refresh_from_db()
         self.assertEqual(self.alice.money, 15)
 
     def test_item_already_owned_is_not_given_twice(self):
