@@ -1,28 +1,10 @@
-"""Duels amicaux entre héros : manches à choix secrets et simultanés, attaques en opposition.
+"""Duels amicaux entre héros : manches à choix secrets et simultanés.
 
-Validé : chaque jet est 2D6 + ⌊caractéristique ÷ 3⌋.
-
-PROVISOIRE (les oppositions entre personnages ne sont pas encore définies par les règles, voir REGLES.md) :
-- à chaque manche, les deux héros choisissent une action en secret ; la manche se résout quand
-  les deux ont choisi ;
-- une attaque est une opposition : chacun lance 2D6 + ⌊carac ÷ 3⌋, l'attaquant doit faire strictement
-  plus que le défenseur ; l'écart donne le degré (1-2 : effleure, 3-5 : touche, 6+ : coup appuyé) ;
-- dégâts : 1D6 + ⌊Force ÷ 3⌋ + bonus d'arme − armure (minimum 1) ; moitié si effleure, +1D6 si appuyé ;
-- les PV du duel sont à part : aucune blessure, aucun KO, aucune perte.
-
-Les six actions et ce qu'elles battent (triangle Feinte > Garde > Coup puissant) :
-
-  Frappe         Dextérité contre Dextérité. Fiable ; contre une Garde, ne passe qu'à moitié.
-  Coup puissant  Force contre Dextérité, +1D6 de dégâts. Contre une Garde : bloqué, et le gardien riposte.
-  Garde          Ne fait rien seule ; amortit la Frappe, punit le Coup puissant, mais tombe dans la Feinte.
-  Feinte         Intelligence contre Perception. Ouvre une Garde (ou un adversaire qui n'attaque pas) ;
-                 trop lente contre une attaque : sans effet.
-  Intimidation   Charisme contre Mental. Réussie, l'adversaire est ébranlé : à la manche suivante, il ne
-                 peut que Frapper ou se mettre en Garde.
-  Observer       Perception contre Intelligence. Réussi, à la manche suivante tu vois l'action de
-                 l'adversaire dès qu'il l'a choisie.
+Les actions, les oppositions et les dégâts sont ceux de ``clash`` (voir ce module).
+PROVISOIRE (voir REGLES.md) : à chaque manche, les deux héros choisissent une action en secret ; la
+manche se résout quand les deux ont choisi ; les PV du duel sont à part : aucune blessure, aucun KO,
+aucune perte.
 """
-import math
 from datetime import timedelta
 
 from django.db import transaction
@@ -33,29 +15,16 @@ from django.utils import timezone
 from ..models import Character, Duel
 from . import RpgError
 from .character import add_log, sheet, stat_values
+from .clash import (  # noqa: F401  (ré-exportés pour les vues et les tests)
+    ACTIONS, ATTACKS, FEINT, GUARD, INTIMIDATE, OBSERVE, POWER, SHAKEN_ALLOWED, STRIKE, Fighter, log_entry,
+    resolve_action,
+)
 from .dice import get_rng
 from .notifications import notify
-from .rules import bonus
 
 FORFEIT_DELAY = timedelta(hours=24)
 OPEN_STATUSES = (Duel.STATUS_PENDING, Duel.STATUS_ACTIVE)
 LOG_SIZE = 300  # tout le duel reste lisible
-
-STRIKE, POWER, GUARD, FEINT, INTIMIDATE, OBSERVE = 'strike', 'power', 'guard', 'feint', 'intimidate', 'observe'
-ATTACKS = (STRIKE, POWER, FEINT)
-SHAKEN_ALLOWED = (STRIKE, GUARD)
-
-# code -> (nom, icône, caractéristique utilisée, aide affichée au joueur)
-ACTIONS = {
-    STRIKE: ("Frappe", "⚔️", "Dextérité", "Attaque fiable. Contre une Garde, ne passe qu'à moitié."),
-    POWER: ("Coup puissant", "🔨", "Force", "+1D6 de dégâts. Contre une Garde : bloqué, et l'adversaire riposte."),
-    GUARD: ("Garde", "🛡️", "Dextérité", "Amortit la Frappe et punit le Coup puissant… mais tombe dans la Feinte."),
-    FEINT: ("Feinte", "🎭", "Intelligence", "Ouvre une Garde. Trop lente si l'adversaire attaque."),
-    INTIMIDATE: ("Intimidation", "😠", "Charisme",
-                 "Ébranle l'adversaire : à la manche suivante, il ne pourra que Frapper ou se garder."),
-    OBSERVE: ("Observer", "👁️", "Perception",
-              "À la manche suivante, tu verras l'action de l'adversaire dès qu'il l'aura choisie."),
-}
 
 
 # ---------------------------------------------------------------------------
@@ -135,18 +104,7 @@ def _locked(duel_id):
 
 
 def _log(duel, *parts, kind='info', detail=''):
-    """Ajoute une ligne au journal, découpée en segments typés pour un affichage lisible.
-
-    Chaque segment est un texte simple ou un couple ``(type, texte)`` : ``c``/``o`` (nom du provocateur /
-    du défié), ``act`` (action), ``roll`` (résultat d'un jet), ``dmg`` (PV perdus), ``hp`` (PV restants),
-    ``state`` (état), ``note`` (précision secondaire). ``detail`` garde le calcul complet des dés.
-    """
-    segments = [list(part) if isinstance(part, tuple) else ['', part] for part in parts]
-    segments = [[k, str(t)] for k, t in segments]
-    entry = {'round': duel.round, 'text': ''.join(t for _, t in segments), 'parts': segments, 'kind': kind}
-    if detail:
-        entry['detail'] = detail
-    duel.log = (list(duel.log or []) + [entry])[-LOG_SIZE:]
+    duel.log = (list(duel.log or []) + [log_entry(duel.round, parts, kind, detail)])[-LOG_SIZE:]
 
 
 def _who(duel, hero):
@@ -240,131 +198,35 @@ def choose(character, duel_id, action, rng=None):
     return duel
 
 
-class _Fighter:
-    def __init__(self, duel, name):
-        self.name = name
-        self.hero = getattr(duel, name)
-        self.action = getattr(duel, f'{name}_action')
-        self.stats = stat_values(self.hero)
-        self.sheet = sheet(self.hero)
-        self.damage_taken = 0
-        self.shaken_next = False
-        self.insight_next = False
-        self.tag = ('c' if name == 'challenger' else 'o', self.hero.name)
-
-    def roll(self, code, rng):
-        dice = (rng.randint(1, 6), rng.randint(1, 6))
-        value = self.stats.get(code, 0)
-        return sum(dice) + bonus(value), f"({dice[0]}+{dice[1]})", value
-
-
-def _oppose(attacker, a_code, a_label, defender, d_code, d_label, rng, duel):
-    """Opposition : renvoie l'écart (positif si l'attaquant l'emporte, égalité = défenseur)."""
-    a_total, a_dice, a_value = attacker.roll(a_code, rng)
-    d_total, d_dice, d_value = defender.roll(d_code, rng)
-    label = a_label if a_label == d_label else f"{a_label} contre {d_label}"
-    _log(duel, ('note', f"Jet ({label}) : "), attacker.tag, " ", ('roll', a_total), " contre ", ('roll', d_total),
-         " ", defender.tag, kind='roll',
-         detail=f"{attacker.hero.name} : 2D6 {a_dice} + ⌊{a_label} {a_value} ÷ 3⌋ ({bonus(a_value)}) = {a_total} · "
-                f"{defender.hero.name} : 2D6 {d_dice} + ⌊{d_label} {d_value} ÷ 3⌋ ({bonus(d_value)}) = {d_total}"
-                f"{' · égalité : avantage au défenseur' if a_total == d_total else ''}")
-    return a_total - d_total
-
-
-def _damage(attacker, defender, margin, rng, heavy=False, halved=False):
-    """Dégâts selon le degré de réussite. Renvoie (dégâts, qualificatif)."""
-    amount = rng.randint(1, 6) + attacker.sheet['damage_bonus']
-    if heavy:
-        amount += rng.randint(1, 6)
-    if margin >= 6:
-        amount += rng.randint(1, 6)
-        quality = "coup appuyé"
-    elif margin >= 3:
-        quality = "coup net"
-    else:
-        amount = math.ceil(amount / 2)
-        quality = "effleure"
-    if halved:
-        amount = math.ceil(amount / 2)
-    return max(1, amount - defender.sheet['armor']), quality
-
-
-def _hit(duel, attacker, defender, margin, rng, heavy=False, halved=False, how=''):
-    amount, quality = _damage(attacker, defender, margin, rng, heavy=heavy, halved=halved)
-    defender.damage_taken += amount
-    note = f" ({how}, {quality})" if how else f" ({quality})"
-    _log(duel, defender.tag, " perd ", ('dmg', amount), " PV.", ('note', note), kind='hit')
-
-
-def _resolve_action(duel, me, them, rng):
-    """Effet de l'action de ``me`` sur ``them`` (connaissant l'action de ``them``)."""
-    a, b = me.action, them.action
-    if a == STRIKE:
-        margin = _oppose(me, 'dexterite', "Dextérité", them, 'dexterite', "Dextérité", rng, duel)
-        if margin > 0:
-            _hit(duel, me, them, margin, rng, halved=(b == GUARD), how="garde percée à moitié" if b == GUARD else '')
-        else:
-            _log(duel, them.tag, " pare la Frappe." if b == GUARD else " esquive la Frappe.")
-    elif a == POWER:
-        if b == GUARD:
-            _log(duel, them.tag, " bloque le Coup puissant et riposte !")
-            margin = _oppose(them, 'dexterite', "Dextérité", me, 'dexterite', "Dextérité", rng, duel)
-            if margin > 0:
-                _hit(duel, them, me, margin, rng, how="riposte")
-            else:
-                _log(duel, me.tag, " se dégage de la riposte.")
-        else:
-            margin = _oppose(me, 'force', "Force", them, 'dexterite', "Dextérité", rng, duel)
-            if margin > 0:
-                _hit(duel, me, them, margin, rng, heavy=True, how="Coup puissant")
-            else:
-                _log(duel, them.tag, " esquive le Coup puissant.")
-    elif a == FEINT:
-        if b in (STRIKE, POWER):
-            _log(duel, me.tag, " : Feinte trop lente, sans effet.")
-        else:
-            margin = _oppose(me, 'intelligence', "Intelligence", them, 'perception', "Perception", rng, duel)
-            if margin > 0:
-                _hit(duel, me, them, margin, rng, how="garde ouverte par la Feinte" if b == GUARD else "pris au dépourvu")
-            else:
-                _log(duel, them.tag, " ne mord pas à la Feinte.")
-    elif a == INTIMIDATE:
-        margin = _oppose(me, 'charisme', "Charisme", them, 'mental', "Mental", rng, duel)
-        if margin > 0:
-            them.shaken_next = True
-            _log(duel, them.tag, " est ", ('state', "ébranlé"), ".",
-                 ('note', " (manche suivante : Frappe ou Garde seulement)"))
-        else:
-            _log(duel, them.tag, " résiste à l'Intimidation.")
-    elif a == OBSERVE:
-        margin = _oppose(me, 'perception', "Perception", them, 'intelligence', "Intelligence", rng, duel)
-        if margin > 0:
-            me.insight_next = True
-            _log(duel, me.tag, " perce le jeu de ", them.tag, ".",
-                 ('note', " (verra son action à la manche suivante)"))
-        else:
-            _log(duel, them.tag, " ne laisse rien deviner.")
+def _fighter(duel, side_name):
+    hero = getattr(duel, side_name)
+    stats = sheet(hero)
+    fighter = Fighter(('c' if side_name == 'challenger' else 'o', hero.name), stat_values(hero),
+                      getattr(duel, f'{side_name}_action'), armor=stats['armor'],
+                      damage_bonus=stats['damage_bonus'])
+    fighter.side, fighter.hero = side_name, hero
+    return fighter
 
 
 def _resolve_round(duel, rng):
-    fighters = {name: _Fighter(duel, name) for name in ('challenger', 'opponent')}
-    c, o = fighters['challenger'], fighters['opponent']
+    c, o = _fighter(duel, 'challenger'), _fighter(duel, 'opponent')
+    log = lambda *parts, **kw: _log(duel, *parts, **kw)  # noqa: E731
     for f in (c, o):
         name, icon = ACTIONS[f.action][:2]
         _log(duel, f.tag, " lance ", ('act', f"{icon} {name}"), ".", kind='cast')
-    _resolve_action(duel, c, o, rng)
-    _resolve_action(duel, o, c, rng)
+    resolve_action(log, c, o, rng)
+    resolve_action(log, o, c, rng)
 
     duel.challenger_hp = max(0, duel.challenger_hp - c.damage_taken)
     duel.opponent_hp = max(0, duel.opponent_hp - o.damage_taken)
     _log(duel, ('note', "Fin de manche : "), c.tag, " ", ('hp', f"{duel.challenger_hp}/{duel.challenger_max_hp} PV"),
          ('note', " · "), o.tag, " ", ('hp', f"{duel.opponent_hp}/{duel.opponent_max_hp} PV"), kind='summary')
     for f in (c, o):
-        setattr(duel, f'{f.name}_action', '')
-        setattr(duel, f'{f.name}_shaken', f.shaken_next)
-        setattr(duel, f'{f.name}_insight', f.insight_next)
+        setattr(duel, f'{f.side}_action', '')
+        setattr(duel, f'{f.side}_shaken', f.shaken_next)
+        setattr(duel, f'{f.side}_insight', f.insight_next)
 
-    down = [f for f in (c, o) if getattr(duel, f'{f.name}_hp') == 0]
+    down = [f for f in (c, o) if getattr(duel, f'{f.side}_hp') == 0]
     if len(down) == 2:
         _finish(duel, None, None, ("Les deux duellistes s'effondrent en même temps : match nul !",))
     elif down:

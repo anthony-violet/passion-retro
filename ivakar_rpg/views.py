@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from .decorators import rpg_access, rpg_player
 from .engine import RpgError
 from .engine import character as hero
+from .engine import clash, progress
 from .engine import combat as fight
 from .engine import economy, rewards as site_rewards, scenes, world
 from .engine import duel as duel_engine
@@ -58,8 +59,12 @@ def player_view(view_func):
 
 
 def _hud(character):
+    if progress.update(character):
+        character.refresh_from_db()
+    daily_done, daily_total = progress.counts(character)
     return {
         'character': character,
+        'daily_left': daily_total - daily_done,
         'sheet': hero.sheet(character),
         'wounds': list(Wound.objects.filter(character=character)),
         'difficulty_labels': DIFFICULTY_LABELS,
@@ -128,6 +133,10 @@ def play(request, character):
         context.update({
             'mode': 'combat',
             'combat': combat,
+            'intention': fight.intention(combat),
+            'combat_actions': [{'code': code, 'name': name, 'icon': icon, 'stat': stat, 'help': help_text}
+                               for code, (name, icon, stat, help_text) in clash.ACTIONS.items()],
+            'rounds': clash.group_rounds(combat.log),
             'consumables': InventoryItem.objects.filter(
                 inventory__character=character, item__kind='consumable', quantity__gt=0,
             ).select_related('item'),
@@ -310,6 +319,20 @@ def exchange(request, character):
         **_meta("Bureau de change"), **_hud(character),
         'packs': [{'index': i, 'gold': g, 'coins': c, 'affordable': request.user.gold >= g}
                   for i, (g, c) in enumerate(economy.EXCHANGE_PACKS)],
+    })
+
+
+@player_view
+def objectives(request, character):
+    hud = _hud(character)
+    achievements = progress.achievements_view(character)
+    return render(request, 'rpg/progress.html', {
+        **_meta("Objectifs"), **hud,
+        'daily': progress.daily_view(character),
+        'daily_bonus': (progress.DAILY_BONUS_XP, progress.DAILY_BONUS_COINS),
+        'daily_complete_today': character.daily_bonus_day == progress.today(),
+        'achievements': achievements,
+        'unlocked_count': sum(1 for a in achievements if a['unlocked_at']),
     })
 
 

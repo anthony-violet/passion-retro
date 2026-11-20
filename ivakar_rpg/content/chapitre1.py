@@ -107,27 +107,28 @@ EXITS = [
 
 # Seuils (10 facile, 13 moyen, 16 difficile) que le héros doit atteindre avec sa Dextérité.
 MONSTERS = [
-    # slug, nom, niveau, pv, toucher, esquiver, fuir, dégâts min, max, armure, xp, écus min, max, boss,
-    # description, [(objet, %)]
-    ('gobelin-chapardeur', "Gobelin chapardeur", 1, 10, 10, 10, 10, 1, 3, 0, 10, 2, 6, False,
+    # slug, nom, niveau, pv, comportement, (force, dextérité, perception, intelligence, mental),
+    # dégâts min, max, armure, xp, écus min, max, boss, description, [(objet, %)]
+    # Repère : un héros de niveau 1 a de 9 à 15 en Dextérité ; environ 15 + 2 × (niveau − 1) dans sa spécialité.
+    ('gobelin-chapardeur', "Gobelin chapardeur", 1, 10, 'ruse', (5, 9, 8, 8, 5), 1, 3, 0, 10, 2, 6, False,
      "Petit, vif, et ses poches tintent de pièces volées.", [('potion-soin', 20)]),
-    ('loup-gris', "Loup gris", 1, 12, 10, 10, 13, 2, 4, 0, 12, 0, 2, False,
+    ('loup-gris', "Loup gris", 1, 12, 'brute', (8, 9, 10, 3, 6), 2, 4, 0, 12, 0, 2, False,
      "Le poil hérissé, les crocs découverts.", []),
-    ('loup-alpha', "Loup alpha", 2, 24, 10, 13, 13, 3, 5, 1, 40, 3, 8, False,
+    ('loup-alpha', "Loup alpha", 2, 24, 'brute', (12, 11, 11, 4, 10), 3, 5, 1, 40, 3, 8, False,
      "Le chef de la meute. Une cicatrice blanche lui barre le museau.", []),
-    ('araignee-murmures', "Araignée des murmures", 2, 18, 13, 10, 13, 2, 5, 1, 18, 0, 3, False,
+    ('araignee-murmures', "Araignée des murmures", 2, 18, 'ruse', (7, 13, 12, 6, 8), 2, 5, 1, 18, 0, 3, False,
      "Grande comme un chien, elle tisse en silence entre les troncs.", [('soie-araignee', 60)]),
-    ('sanglier-furieux', "Sanglier furieux", 2, 26, 10, 13, 10, 3, 6, 2, 22, 0, 0, False,
+    ('sanglier-furieux', "Sanglier furieux", 2, 26, 'brute', (15, 7, 6, 3, 12), 3, 6, 2, 22, 0, 0, False,
      "Une masse de muscles et de défenses qui charge sans hésiter.", [('pain', 40)]),
-    ('rat-geant', "Rat géant", 3, 20, 10, 13, 13, 2, 5, 1, 20, 1, 4, False,
+    ('rat-geant', "Rat géant", 3, 20, 'equilibre', (9, 13, 10, 4, 6), 2, 5, 1, 20, 1, 4, False,
      "Les galeries lui appartiennent depuis que les mineurs sont partis.", []),
-    ('kobold-mineur', "Kobold mineur", 3, 28, 13, 13, 13, 3, 6, 2, 28, 5, 12, False,
+    ('kobold-mineur', "Kobold mineur", 3, 28, 'ruse', (12, 12, 10, 12, 10), 3, 6, 2, 28, 5, 12, False,
      "Il a gardé sa pioche. Et sa rancune.", [('potion-soin', 30)]),
-    ('squelette-garde', "Squelette de la garde", 4, 34, 13, 13, 13, 4, 7, 3, 35, 4, 10, False,
+    ('squelette-garde', "Squelette de la garde", 4, 34, 'prudent', (14, 14, 10, 6, 20), 4, 7, 3, 35, 4, 10, False,
      "Il monte encore la garde pour un roi disparu depuis des siècles.", [('grande-potion', 15)]),
-    ('spectre-brume', "Spectre de brume", 4, 30, 16, 13, 16, 4, 8, 2, 45, 6, 14, False,
+    ('spectre-brume', "Spectre de brume", 4, 30, 'ruse', (10, 18, 16, 14, 18), 4, 8, 2, 45, 6, 14, False,
      "On ne le distingue qu'en le regardant de biais.", [('grande-potion', 20)]),
-    ('roi-brume', "Le Roi-Brume", 6, 80, 13, 16, 16, 6, 10, 4, 150, 60, 100, True,
+    ('roi-brume', "Le Roi-Brume", 6, 80, 'equilibre', (20, 17, 16, 16, 22), 6, 10, 4, 150, 60, 100, True,
      "L'ancien souverain de Vel-Ithar, qui refusa la mort et devint brouillard.", [('epee-vel-ithar', 100)]),
 ]
 

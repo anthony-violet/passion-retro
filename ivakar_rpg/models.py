@@ -174,6 +174,11 @@ class Character(models.Model):
     last_seen_at = models.DateTimeField("Vu pour la dernière fois", null=True, blank=True)
     # Voyages effectués : sert à rythmer le risque d'aggravation lié au temps sans soins.
     travel_count = models.PositiveIntegerField("Voyages", default=0)
+    # Compteurs d'activité : servent aux succès et aux tâches quotidiennes (voir ``engine.progress``).
+    explorations = models.PositiveIntegerField("Explorations", default=0)
+    choices_made = models.PositiveIntegerField("Choix faits", default=0)
+    daily_tasks_done = models.PositiveIntegerField("Tâches quotidiennes accomplies", default=0)
+    daily_bonus_day = models.DateField("Dernier bonus « journée complète »", null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -355,21 +360,46 @@ class LocationExit(models.Model):
         return self.label or f"Vers {self.to_location}"
 
 
+STAT_MAX = 100
+
+BEHAVIOR_BRUTE, BEHAVIOR_CAUTIOUS, BEHAVIOR_CUNNING, BEHAVIOR_BALANCED = 'brute', 'prudent', 'ruse', 'equilibre'
+BEHAVIOR_CHOICES = [
+    (BEHAVIOR_BRUTE, "Brute : frappe fort et souvent"),
+    (BEHAVIOR_CAUTIOUS, "Prudent : se garde volontiers"),
+    (BEHAVIOR_CUNNING, "Rusé : aime feinter"),
+    (BEHAVIOR_BALANCED, "Équilibré"),
+]
+
+
 class Monster(Illustrated):
     VISUAL_FOLDER = 'monstres'
+
+    # Valeurs des caractéristiques pour une opposition, par code (voir ``engine.clash``).
+    STAT_FIELDS = ('force', 'dexterite', 'perception', 'intelligence', 'mental')
 
     slug = models.SlugField(max_length=60, unique=True)
     name = models.CharField("Nom", max_length=60)
     description = models.TextField(blank=True)
     level = models.PositiveSmallIntegerField("Niveau", default=1)
     hp = models.PositiveIntegerField("PV", default=10)
-    # Le monstre est décrit par les seuils que le héros doit atteindre (2D6 + ⌊Dextérité ÷ 3⌋).
-    hit_difficulty = models.PositiveSmallIntegerField("Seuil pour le toucher", choices=DIFFICULTY_CHOICES,
-                                                      default=DIFFICULTY_EASY)
-    dodge_difficulty = models.PositiveSmallIntegerField("Seuil pour esquiver ses attaques",
-                                                        choices=DIFFICULTY_CHOICES, default=DIFFICULTY_EASY)
-    flee_difficulty = models.PositiveSmallIntegerField("Seuil pour le fuir", choices=DIFFICULTY_CHOICES,
-                                                       default=DIFFICULTY_MEDIUM)
+    # Le monstre a ses propres caractéristiques : chaque échange est une opposition avec le héros.
+    force = models.PositiveSmallIntegerField(
+        "Force", default=6, validators=[MinValueValidator(1), MaxValueValidator(STAT_MAX)],
+        help_text="Coup puissant. Repère : un héros a environ 15 + 2 × (niveau − 1) dans sa spécialité.")
+    dexterite = models.PositiveSmallIntegerField(
+        "Dextérité", default=6, validators=[MinValueValidator(1), MaxValueValidator(STAT_MAX)],
+        help_text="Frapper, parer, esquiver, empêcher la fuite.")
+    perception = models.PositiveSmallIntegerField(
+        "Perception", default=6, validators=[MinValueValidator(1), MaxValueValidator(STAT_MAX)],
+        help_text="Déjouer les Feintes du héros.")
+    intelligence = models.PositiveSmallIntegerField(
+        "Intelligence", default=6, validators=[MinValueValidator(1), MaxValueValidator(STAT_MAX)],
+        help_text="Feinter, cacher son jeu quand le héros l'observe.")
+    mental = models.PositiveSmallIntegerField(
+        "Mental", default=6, validators=[MinValueValidator(1), MaxValueValidator(STAT_MAX)],
+        help_text="Résister à l'Intimidation.")
+    behavior = models.CharField("Comportement", max_length=12, choices=BEHAVIOR_CHOICES, default=BEHAVIOR_BALANCED,
+                                help_text="Ses actions favorites. Le Coup puissant est toujours annoncé au joueur.")
     damage_min = models.PositiveSmallIntegerField("Dégâts min", default=1)
     damage_max = models.PositiveSmallIntegerField("Dégâts max", default=4)
     armor = models.PositiveSmallIntegerField("Armure", default=0)
@@ -388,6 +418,14 @@ class Monster(Illustrated):
     @property
     def damage_range(self):
         return f"{self.damage_min}–{self.damage_max}"
+
+    @property
+    def stat_values(self):
+        return {code: getattr(self, code) for code in self.STAT_FIELDS}
+
+    @property
+    def behavior_short(self):
+        return self.get_behavior_display().split(' :')[0]
 
 
 class MonsterLoot(models.Model):
@@ -566,7 +604,11 @@ class Combat(models.Model):
     monster = models.ForeignKey(Monster, verbose_name="Monstre", on_delete=models.CASCADE, related_name='+')
     monster_hp = models.PositiveIntegerField()
     turn = models.PositiveIntegerField(default=1)
-    defending = models.BooleanField(default=False)
+    # Action que le monstre va jouer à ce tour (décidée d'avance : le joueur la voit s'il l'a observé,
+    # ou si c'est un Coup puissant, toujours annoncé).
+    monster_action = models.CharField(max_length=12, blank=True)
+    monster_shaken = models.BooleanField(default=False)
+    hero_insight = models.BooleanField(default=False)
     log = models.JSONField(default=list, blank=True)
     then_scene = models.ForeignKey(Scene, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     started_at = models.DateTimeField(auto_now_add=True)
@@ -784,10 +826,10 @@ class WorldEvent(Illustrated):
                                 null=True, blank=True, related_name='+')
     hp_total = models.PositiveIntegerField("PV de la menace", default=500)
     hp_left = models.PositiveIntegerField("PV restants", default=500)
-    hit_difficulty = models.PositiveSmallIntegerField("Seuil pour la toucher", choices=DIFFICULTY_CHOICES,
-                                                      default=DIFFICULTY_MEDIUM)
-    dodge_difficulty = models.PositiveSmallIntegerField("Seuil pour esquiver sa riposte", choices=DIFFICULTY_CHOICES,
-                                                        default=DIFFICULTY_MEDIUM)
+    dexterite = models.PositiveSmallIntegerField(
+        "Dextérité de la menace", default=12, validators=[MinValueValidator(1), MaxValueValidator(STAT_MAX)],
+        help_text="Opposée à la Dextérité du héros pour la toucher et pour esquiver sa riposte. Repère : un héros "
+                  "a environ 15 + 2 × (niveau − 1) dans sa spécialité.")
     damage_min = models.PositiveSmallIntegerField("Dégâts de riposte min", default=2)
     damage_max = models.PositiveSmallIntegerField("Dégâts de riposte max", default=6)
     cooldown_minutes = models.PositiveSmallIntegerField("Délai entre deux assauts d'un héros (minutes)", default=30)
@@ -854,6 +896,106 @@ class EventParticipation(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['event', 'character'], name='unique_event_participation'),
         ]
+
+
+# ---------------------------------------------------------------------------
+# Objectifs : succès et tâches quotidiennes
+# ---------------------------------------------------------------------------
+# Compteurs du héros que suivent les objectifs (calculés par ``engine.progress``).
+METRIC_CHOICES = [
+    ('victories', "Victoires en combat"),
+    ('explorations', "Explorations"),
+    ('travels', "Voyages"),
+    ('choices', "Choix faits dans les scènes"),
+    ('locations', "Lieux découverts"),
+    ('quests', "Quêtes accomplies"),
+    ('duels_fought', "Duels livrés"),
+    ('duels_won', "Duels gagnés"),
+    ('event_attacks', "Assauts contre une menace de serveur"),
+    ('trades', "Échanges conclus"),
+    ('tavern', "Messages à la taverne"),
+    ('knockouts', "KO subis"),
+    ('daily_done', "Tâches quotidiennes accomplies"),
+    ('level', "Niveau atteint"),
+    ('flag', "Marqueur d'histoire obtenu"),
+]
+# Seuls les compteurs qui progressent par actions ont un sens pour une tâche du jour.
+DAILY_METRIC_CHOICES = [c for c in METRIC_CHOICES if c[0] not in ('level', 'flag', 'daily_done', 'knockouts')]
+
+
+class Achievement(models.Model):
+    slug = models.SlugField(max_length=60, unique=True)
+    name = models.CharField("Nom", max_length=80)
+    description = models.CharField("Description", max_length=200, blank=True,
+                                   help_text="Ce qu'il faut faire, tel que le joueur le lit.")
+    icon = models.CharField("Icône (émoji)", max_length=8, default="🏆")
+    metric = models.CharField("Compteur suivi", max_length=20, choices=METRIC_CHOICES)
+    goal = models.PositiveIntegerField("Objectif", default=1, validators=[MinValueValidator(1)],
+                                       help_text="Valeur à atteindre (ignorée pour un marqueur).")
+    flag = models.CharField("Marqueur", max_length=60, blank=True,
+                            help_text="Seulement pour « Marqueur d'histoire obtenu ».")
+    hidden = models.BooleanField("Secret", default=False, help_text="Affiché « ??? » tant qu'il n'est pas obtenu.")
+    reward_xp = models.PositiveIntegerField("XP", default=0)
+    reward_coins = models.PositiveIntegerField("Écus", default=0)
+    order = models.PositiveSmallIntegerField("Ordre", default=0)
+    is_active = models.BooleanField("Actif", default=True)
+
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name = "Succès"
+        verbose_name_plural = "Succès"
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def goal_display(self):
+        return "—" if self.metric == 'flag' else self.goal
+
+
+class CharacterAchievement(models.Model):
+    character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='achievements')
+    achievement = models.ForeignKey(Achievement, on_delete=models.CASCADE, related_name='+')
+    unlocked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['character', 'achievement'], name='ivk_unique_achievement')]
+
+
+class DailyTask(models.Model):
+    """Modèle de tâche quotidienne : chaque jour, quelques-unes sont tirées pour chaque héros."""
+
+    slug = models.SlugField(max_length=60, unique=True)
+    name = models.CharField("Nom", max_length=80, help_text="Ex. « Chasser 3 monstres ».")
+    metric = models.CharField("Compteur suivi", max_length=20, choices=DAILY_METRIC_CHOICES)
+    goal = models.PositiveIntegerField("Objectif du jour", default=1, validators=[MinValueValidator(1)])
+    reward_xp = models.PositiveIntegerField("XP", default=0)
+    reward_coins = models.PositiveIntegerField("Écus", default=0)
+    min_level = models.PositiveSmallIntegerField("Niveau minimum", default=1)
+    weight = models.PositiveSmallIntegerField("Poids", default=1, help_text="Chance relative d'être tirée.")
+    is_active = models.BooleanField("Active", default=True)
+
+    class Meta:
+        ordering = ['min_level', 'name']
+        verbose_name = "Tâche quotidienne"
+        verbose_name_plural = "Tâches quotidiennes"
+
+    def __str__(self):
+        return self.name
+
+
+class CharacterDailyTask(models.Model):
+    """Tâche du jour d'un héros : la progression part de la valeur du compteur au moment du tirage."""
+
+    character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='daily_tasks')
+    task = models.ForeignKey(DailyTask, on_delete=models.CASCADE, related_name='+')
+    day = models.DateField()
+    baseline = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['pk']
+        constraints = [models.UniqueConstraint(fields=['character', 'task', 'day'], name='ivk_unique_daily_task')]
 
 
 class Notification(models.Model):

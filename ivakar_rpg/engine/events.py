@@ -1,10 +1,11 @@
 """Événements de serveur : une menace commune que tous les héros affaiblissent, chacun à son rythme.
 
-Validé : chaque assaut se résout en 2D6 + ⌊Dextérité ÷ 3⌋ contre le seuil de la menace ; la riposte
-s'esquive de la même façon ; 0 PV mène au KO (et non à la mort), comme partout dans le jeu.
+Validé : chaque jet est 2D6 + ⌊caractéristique ÷ 3⌋ ; 0 PV mène au KO (et non à la mort), comme partout.
 
-PROVISOIRE (voir REGLES.md) : délai entre deux assauts, dégâts (1D6 + ⌊Force ÷ 3⌋ + arme), riposte
-après chaque assaut, récompenses (XP et écus pour tout participant, un objet pour le meilleur).
+PROVISOIRE (voir REGLES.md) : l'assaut et l'esquive de la riposte sont des oppositions Dextérité du héros
+contre Dextérité de la menace (égalité : avantage au défenseur) ; délai entre deux assauts, dégâts
+(1D6 + ⌊Force ÷ 3⌋ + arme), riposte après chaque assaut, récompenses (XP et écus pour tout participant,
+un objet pour le meilleur).
 """
 from datetime import timedelta
 
@@ -17,7 +18,7 @@ from . import RpgError
 from .character import add_item, add_log, change_coins, gain_xp, lock, sheet
 from .dice import get_rng
 from .notifications import notify
-from .rules import resolve
+from .rules import bonus
 
 LOG_SIZE = 20
 
@@ -54,6 +55,21 @@ def next_attack_at(event, character):
     return participation.last_attack_at + timedelta(minutes=event.cooldown_minutes)
 
 
+def _roll(value, rng):
+    dice = (rng.randint(1, 6), rng.randint(1, 6))
+    return sum(dice) + bonus(value), f"2D6 ({dice[0]}+{dice[1]}) + ⌊{value} ÷ 3⌋ ({bonus(value)})"
+
+
+def _oppose(character, label, hero_value, threat_value, rng, hero_attacks):
+    """Opposition entre le héros et la menace ; renvoie ``True`` si le héros l'emporte."""
+    hero_total, hero_detail = _roll(hero_value, rng)
+    threat_total, _ = _roll(threat_value, rng)
+    success = hero_total > threat_total if hero_attacks else hero_total >= threat_total
+    add_log(character, f"{label} : {hero_detail} = {hero_total} contre {threat_total}"
+                       f"{' — réussite' if success else ' — échec'}.", 'good' if success else 'bad')
+    return success
+
+
 def attack(character, event_id, rng=None, now=None):
     """Un assaut contre la menace, puis sa riposte (si elle tient encore debout)."""
     from .wounds import knock_out
@@ -78,9 +94,8 @@ def attack(character, event_id, rng=None, now=None):
         stats = sheet(character)
         participation.attacks += 1
         participation.last_attack_at = now
-        test = resolve(stats['dexterity'], event.hit_difficulty, rng)
-        add_log(character, test.describe(f"Assaut contre {event.name} (Dextérité)"), 'good' if test.success else 'bad')
-        if test.success:
+        if _oppose(character, f"Assaut contre {event.name} (Dextérité)", stats['dexterity'], event.dexterite, rng,
+                   hero_attacks=True):
             damage = max(1, rng.randint(1, 6) + stats['damage_bonus'])
             damage = min(damage, event.hp_left)
             event.hp_left -= damage
@@ -97,9 +112,8 @@ def attack(character, event_id, rng=None, now=None):
             distribute_rewards(event)
             return event
 
-        dodge = resolve(stats['dexterity'], event.dodge_difficulty, rng)
-        add_log(character, dodge.describe("Esquive (Dextérité)"), 'good' if dodge.success else 'bad')
-        if not dodge.success:
+        if not _oppose(character, "Esquive de la riposte (Dextérité)", stats['dexterity'], event.dexterite, rng,
+                       hero_attacks=False):
             hit = max(1, rng.randint(event.damage_min, max(event.damage_min, event.damage_max)) - stats['armor'])
             character.hp = max(0, character.hp - hit)
             add_log(character, f"{event.name} riposte : −{hit} PV.", 'bad')

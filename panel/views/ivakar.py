@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from ivakar_rpg import scenario_tree
 from ivakar_rpg.checks import content_problems
 from ivakar_rpg.engine import character as hero
 from ivakar_rpg.engine.rules import CHARACTERISTICS
@@ -71,6 +72,26 @@ def overview(request):
         'problems': problems,
         'top_heroes': Character.objects.select_related('user').order_by('-level', '-xp')[:5],
         'world_event': current_event(),
+    })
+
+
+# ---------------------------------------------------------------------------
+# Arbre des scénarios
+# ---------------------------------------------------------------------------
+@staff_required
+def scenario_tree_view(request):
+    try:
+        location_id = int(request.GET.get('lieu') or 0) or None
+    except ValueError:
+        location_id = None
+    groups, orphans = scenario_tree.build(location_id)
+    return _render(request, 'panel/ivakar/tree.html', {
+        'section': 'arbre',
+        'groups': groups,
+        'orphans': orphans,
+        'flags': scenario_tree.flag_index() if not location_id else [],
+        'locations': Location.objects.all(),
+        'location_id': location_id,
     })
 
 

@@ -19,30 +19,39 @@
     {% if combat.monster.visual_url %}<figure class="rpg-art rpg-art--sprite"><img src="{{ combat.monster.visual_url }}" alt="{{ combat.monster.name }}"></figure>{% endif %}
     <h2>⚔️ {{ combat.monster.name }}{% if combat.monster.is_boss %} <span class="rpg-pill rpg-pill--boss">Boss</span>{% endif %}</h2>
     {% if combat.monster.description %}<p class="rpg-muted">{{ combat.monster.description }}</p>{% endif %}
-    <p class="rpg-muted">Toucher : {{ combat.monster.get_hit_difficulty_display }} · Esquiver : {{ combat.monster.get_dodge_difficulty_display }}{% if not combat.monster.is_boss %} · Fuir : {{ combat.monster.get_flee_difficulty_display }}{% endif %}</p>
+    <p class="rpg-muted">{{ combat.monster.get_behavior_display }} · Force {{ combat.monster.force }} · Dextérité {{ combat.monster.dexterite }}{% if combat.monster.armor %} · Armure {{ combat.monster.armor }}{% endif %}</p>
     <div class="rpg-bar rpg-bar--enemy">
         <span class="rpg-bar__fill" style="width: {{ combat.monster_hp|hp_percent:combat.monster.hp }}%"></span>
         <span class="rpg-bar__label">PV {{ combat.monster_hp }} / {{ combat.monster.hp }}</span>
     </div>
-    <ol class="rpg-combat-log">
-        {% for entry in combat.log %}<li class="rpg-log__entry--{{ entry.kind }}">{{ entry.text }}</li>{% endfor %}
-    </ol>
-    <p class="rpg-muted">Tour {{ combat.turn }}</p>
-    <form method="post" action="{% url 'rpg_combat' %}" class="rpg-actions">
+
+    <div class="rpg-duel-status">
+        <strong>Manche {{ combat.turn }}</strong>
+        <span>{% if intention.1 %}👁️ {{ intention.1 }}{% else %}Tu ne devines pas encore ce qu'il prépare.{% endif %}</span>
+        {% if combat.monster_shaken %}<span class="rpg-pill">ébranlé : Frappe ou Garde seulement</span>{% endif %}
+    </div>
+
+    <form method="post" action="{% url 'rpg_combat' %}" class="rpg-duel-actions">
         {% csrf_token %}
-        <button type="submit" name="action" value="attack" class="btn btn-add">Attaquer</button>
-        <button type="submit" name="action" value="defend" class="btn">Se défendre</button>
-        {% if not combat.monster.is_boss %}<button type="submit" name="action" value="flee" class="btn">Fuir</button>{% endif %}
+        {% for a in combat_actions %}
+        <button type="submit" name="action" value="{{ a.code }}" class="rpg-duel-action{% if intention.0 == 'power' and a.code == 'guard' or intention.0 == 'guard' and a.code == 'feint' or intention.0 == 'feint' and a.code == 'strike' %} rpg-duel-action--hint{% endif %}">
+            <span class="rpg-duel-action__name">{{ a.icon }} {{ a.name }}</span>
+            <span class="rpg-duel-action__stat">{{ a.stat }}</span>
+            <span class="rpg-duel-action__help">{{ a.help }}</span>
+        </button>
+        {% endfor %}
     </form>
-    {% if consumables %}
+    <p class="rpg-muted">Le monstre agit en même temps que toi. Retiens : la Feinte trompe la Garde, la Garde punit le Coup puissant, et une attaque rend la Feinte inutile.</p>
     <form method="post" action="{% url 'rpg_combat' %}" class="rpg-actions">
         {% csrf_token %}
-        <input type="hidden" name="action" value="item">
         {% for entry in consumables %}
         <button type="submit" name="item" value="{{ entry.item.id }}" class="btn btn-small">🧪 {{ entry.item.name }} ×{{ entry.quantity }}</button>
         {% endfor %}
+        <input type="hidden" name="action" value="item">
+        {% if not combat.monster.is_boss %}<button type="submit" class="btn btn-small" onclick="this.form.querySelector('[name=action]').value='flee'">🏃 Fuir</button>{% endif %}
     </form>
-    {% endif %}
+
+    {% include 'rpg/partials/clash_log.html' %}
 </section>
 
 {% elif mode == 'scene' %}

@@ -8,7 +8,7 @@ from django.forms import inlineformset_factory
 from django.utils.text import slugify
 
 from ivakar_rpg.models import (
-    Characteristic, Choice, Item, LevelReward, Location, LocationEncounter, LocationExit, Monster, MonsterLoot,
+    Achievement, Characteristic, Choice, DailyTask, Item, LevelReward, Location, LocationEncounter, LocationExit, Monster, MonsterLoot,
     Origin, OriginCharacteristic, Outcome, Quest, Scene, WorldEvent,
 )
 
@@ -103,13 +103,15 @@ SECTIONS = {
     },
     'monstres': {
         'model': Monster, 'title': "Monstres", 'singular': "un monstre", 'icon': "👹",
-        'help': "Chaque monstre est décrit par les seuils (10 / 13 / 16) que le héros doit atteindre avec sa "
-                "Dextérité pour le toucher, esquiver ses attaques ou le fuir.",
-        'form': form_for(Monster, ['name', 'slug', 'description', 'image', 'level', 'hp', 'hit_difficulty',
-                                   'dodge_difficulty', 'flee_difficulty', 'damage_min', 'damage_max', 'armor', 'xp',
-                                   'coins_min', 'coins_max', 'is_boss']),
-        'columns': [("Nom", 'name'), ("Niv.", 'level'), ("PV", 'hp'), ("Toucher", 'hit_difficulty'),
-                    ("Esquiver", 'dodge_difficulty'), ("Dégâts", 'damage_range'), ("XP", 'xp'), ("Boss", 'is_boss')],
+        'help': "Chaque monstre a ses caractéristiques : en combat, chaque échange l'oppose au héros (2D6 + "
+                "⌊caractéristique ÷ 3⌋ de chaque côté). Repère : un héros a environ 15 + 2 × (niveau − 1) dans sa "
+                "spécialité ; un monstre du même niveau à peu près autant en Dextérité.",
+        'form': form_for(Monster, ['name', 'slug', 'description', 'image', 'level', 'hp', 'behavior', 'force',
+                                   'dexterite', 'perception', 'intelligence', 'mental', 'damage_min', 'damage_max',
+                                   'armor', 'xp', 'coins_min', 'coins_max', 'is_boss']),
+        'columns': [("Nom", 'name'), ("Niv.", 'level'), ("PV", 'hp'), ("Comportement", 'behavior_short'),
+                    ("For.", 'force'), ("Dex.", 'dexterite'), ("Dégâts", 'damage_range'), ("XP", 'xp'),
+                    ("Boss", 'is_boss')],
         'search': ['name', 'slug'],
         'inlines': [inline(Monster, MonsterLoot, ['item', 'chance'], title="Butin")],
     },
@@ -155,12 +157,36 @@ SECTIONS = {
     },
 }
 
+SECTIONS['succes'] = {
+    'model': Achievement, 'title': "Succès", 'singular': "un succès", 'icon': "🏆",
+    'help': "Objectifs à vie, débloqués dès que le compteur suivi atteint l'objectif (vérifié à chaque page du "
+            "jeu). « Marqueur d'histoire obtenu » relie un succès à un moment du scénario.",
+    'form': form_for(Achievement, ['name', 'slug', 'icon', 'description', 'metric', 'goal', 'flag', 'hidden',
+                                   'reward_xp', 'reward_coins', 'order', 'is_active']),
+    'columns': [("", 'icon'), ("Nom", 'name'), ("Compteur", 'metric'), ("Objectif", 'goal_display'),
+                ("Secret", 'hidden'), ("XP", 'reward_xp'), ("Écus", 'reward_coins'), ("Actif", 'is_active')],
+    'search': ['name', 'slug', 'flag'],
+    'inlines': [],
+}
+
+SECTIONS['quotidiennes'] = {
+    'model': DailyTask, 'title': "Tâches du jour", 'singular': "une tâche quotidienne", 'icon': "🎯",
+    'help': "Chaque jour à minuit, 3 tâches sont tirées pour chaque héros parmi les tâches actives de son niveau "
+            "(selon leur poids). La progression compte ce qui est fait depuis le tirage.",
+    'form': form_for(DailyTask, ['name', 'slug', 'metric', 'goal', 'reward_xp', 'reward_coins', 'min_level',
+                                 'weight', 'is_active']),
+    'columns': [("Nom", 'name'), ("Compteur", 'metric'), ("Objectif", 'goal'), ("Niv. min", 'min_level'),
+                ("Poids", 'weight'), ("XP", 'reward_xp'), ("Écus", 'reward_coins'), ("Active", 'is_active')],
+    'search': ['name', 'slug'],
+    'inlines': [],
+}
+
 SECTIONS['evenements'] = {
     'model': WorldEvent, 'title': "Événements", 'singular': "un événement", 'icon': "🌍",
     'help': "Une menace commune que tous les héros affaiblissent, chacun à son rythme, entre le début et la fin. "
             "Vaincue, elle récompense chaque participant. Sans illustration, elle reprend celle de sa créature.",
     'form': form_for(WorldEvent, ['name', 'slug', 'description', 'image', 'monster', 'location', 'starts_at',
-                                  'ends_at', 'hp_total', 'hp_left', 'hit_difficulty', 'dodge_difficulty',
+                                  'ends_at', 'hp_total', 'hp_left', 'dexterite',
                                   'damage_min', 'damage_max', 'cooldown_minutes', 'reward_xp', 'reward_coins',
                                   'top_reward_item']),
     'columns': [("Nom", 'name'), ("État", 'status_label'), ("PV", 'hp_display'), ("Lieu", 'location'),

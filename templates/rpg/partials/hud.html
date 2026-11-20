@@ -29,6 +29,7 @@
         <a href="{% url 'rpg_sheet' %}">📜 Héros{% if character.unspent_points %} <span class="rpg-pill">+{{ character.unspent_points }}</span>{% endif %}</a>
         <a href="{% url 'rpg_inventory' %}">🎒 Inventaire</a>
         <a href="{% url 'rpg_quests' %}">📖 Quêtes</a>
+        <a href="{% url 'rpg_progress' %}">🎯 Objectifs{% if daily_left %} <span class="rpg-pill">{{ daily_left }}</span>{% endif %}</a>
         <a href="{% url 'rpg_trades' %}">🤝 Échanges{% if pending_trades %} <span class="rpg-pill">{{ pending_trades }}</span>{% endif %}</a>
         <a href="{% url 'rpg_duels' %}">🤺 Duels{% if duels_waiting %} <span class="rpg-pill">{{ duels_waiting }}</span>{% endif %}</a>
         <a href="{% url 'rpg_event' %}">🌍 Événement{% if world_event %} <span class="rpg-pill rpg-pill--live">en cours</span>{% endif %}</a>

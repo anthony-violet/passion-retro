@@ -9,6 +9,7 @@ from django.utils.formats import date_format
 from django.views.decorators.http import require_POST
 
 from .engine import RpgError
+from .engine import clash
 from .engine import duel as duel_engine
 from .engine import events, notifications, social, trade as trade_engine
 from .models import Character, Duel, InventoryItem, Item, Trade, WorldEvent
@@ -165,14 +166,6 @@ def _duel_for(character, duel_id):
     return duel
 
 
-def _rounds(duel):
-    """Journal regroupé par manche, de la plus récente à la plus ancienne."""
-    rounds = {}
-    for entry in duel.log or []:
-        rounds.setdefault(entry.get('round', 0), []).append(entry)
-    return sorted(rounds.items(), reverse=True)
-
-
 @player_view
 def duel_view(request, character, duel_id):
     duel = _duel_for(character, duel_id)
@@ -186,7 +179,7 @@ def duel_view(request, character, duel_id):
         'state': state, 'actions': actions,
         'action_names': {code: f"{icon} {name}" for code, (name, icon, _, _) in duel_engine.ACTIONS.items()},
         'can_claim': duel_engine.can_claim(duel, character),
-        'rounds': _rounds(duel),
+        'rounds': clash.group_rounds(duel.log),
     })
 
 

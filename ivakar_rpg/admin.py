@@ -97,7 +97,7 @@ class MonsterLootInline(admin.TabularInline):
 
 @admin.register(Monster)
 class MonsterAdmin(admin.ModelAdmin):
-    list_display = ['name', 'level', 'hp', 'hit_difficulty', 'dodge_difficulty', 'damage_min', 'damage_max',
+    list_display = ['name', 'level', 'hp', 'behavior', 'force', 'dexterite', 'damage_min', 'damage_max',
                     'armor', 'xp', 'is_boss']
     list_filter = ['is_boss', 'level']
     search_fields = ['name', 'slug']

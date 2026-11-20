@@ -1,37 +1,71 @@
-"""Combats au tour par tour : attaquer, se défendre, utiliser un objet, fuir.
+"""Combats contre les monstres : des manches à actions, comme les duels, face à un monstre qui a ses
+propres caractéristiques et dont on peut lire les intentions.
 
-Toutes les actions du héros se résolvent avec la formule validée
-(2D6 + ⌊caractéristique ÷ 3⌋ contre un seuil de 10, 13 ou 16).
+Validé : chaque jet est 2D6 + ⌊caractéristique ÷ 3⌋ ; 0 PV mène au KO (et non à la mort).
 
 PROVISOIRE (le combat n'est pas encore défini par les règles, voir REGLES.md) :
-- toucher : Dextérité contre le « seuil pour le toucher » du monstre ;
-- dégâts : 1D6 + ⌊Force ÷ 3⌋ + bonus de l'arme − armure du monstre (minimum 1) ;
-- esquive : à chaque attaque du monstre, Dextérité contre son « seuil d'esquive » ;
-  en cas d'échec, dégâts du monstre − armure du héros (minimum 1) ;
-- se défendre : renonce à attaquer, le seuil d'esquive baisse d'un cran ce tour-ci ;
-- fuir : Dextérité contre le « seuil pour le fuir » (impossible face à un boss).
+- chaque manche, le héros choisit une action (Frappe, Coup puissant, Garde, Feinte, Intimidation, Observer)
+  pendant que le monstre joue l'action qu'il a décidée d'avance ; les deux se résolvent comme en duel
+  (voir ``clash``) : oppositions, degrés de réussite, triangle Feinte > Garde > Coup puissant ;
+- le monstre choisit selon son comportement (brute, prudent, rusé, équilibré) ; son Coup puissant est
+  toujours annoncé (« il prend son élan »), le reste n'est visible qu'après l'avoir Observé ;
+- boire une potion ou tenter de fuir prend la manche : le monstre joue son action contre un héros qui ne
+  riposte pas ; la fuite est une opposition Dextérité contre Dextérité (impossible face à un boss) ;
+- si le monstre et le héros tombent dans la même manche, le héros l'emporte de justesse et garde 1 PV.
 """
 from django.db import transaction
 
-from ..models import DIFFICULTY_EASY, DIFFICULTY_HARD, DIFFICULTY_MEDIUM, Combat
+from ..models import BEHAVIOR_BALANCED, BEHAVIOR_BRUTE, BEHAVIOR_CAUTIOUS, BEHAVIOR_CUNNING, Combat
 from . import RpgError
-from .character import add_item, add_log, change_coins, consume, gain_xp, lock, sheet
-from .dice import get_rng
-from .rules import resolve
+from .character import add_item, add_log, change_coins, consume, gain_xp, lock, sheet, stat_values
+from .clash import (
+    ACTIONS, FEINT, GUARD, POWER, SHAKEN_ALLOWED, STRIKE, Fighter, action_label, log_entry, oppose,
+    resolve_action,
+)
+from .dice import get_rng, weighted_pick
 from .world import enter_scene
 
-COMBAT_LOG_SIZE = 12
-# Un cran plus facile quand le héros se met en garde.
-EASIER = {DIFFICULTY_HARD: DIFFICULTY_MEDIUM, DIFFICULTY_MEDIUM: DIFFICULTY_EASY, DIFFICULTY_EASY: DIFFICULTY_EASY}
+COMBAT_LOG_SIZE = 120
+HERO_ACTIONS = tuple(ACTIONS)
+ITEM, FLEE = 'item', 'flee'
+
+# Actions favorites de chaque comportement : (Frappe, Coup puissant, Garde, Feinte).
+BEHAVIOR_WEIGHTS = {
+    BEHAVIOR_BRUTE: {STRIKE: 3, POWER: 4, GUARD: 1, FEINT: 0},
+    BEHAVIOR_CAUTIOUS: {STRIKE: 3, POWER: 1, GUARD: 4, FEINT: 0},
+    BEHAVIOR_CUNNING: {STRIKE: 3, POWER: 1, GUARD: 2, FEINT: 4},
+    BEHAVIOR_BALANCED: {STRIKE: 3, POWER: 2, GUARD: 2, FEINT: 2},
+}
+# Ce que le joueur devine de chaque action quand elle est annoncée.
+TELEGRAPHS = {
+    STRIKE: "s'apprête à frapper",
+    POWER: "prend son élan pour un coup puissant",
+    GUARD: "se ramasse derrière sa garde",
+    FEINT: "prépare une feinte",
+}
 
 
-def start_combat(character, monster, then_scene=None):
+def next_monster_action(monster, shaken=False, rng=None):
+    weights = BEHAVIOR_WEIGHTS.get(monster.behavior, BEHAVIOR_WEIGHTS[BEHAVIOR_BALANCED])
+    allowed = SHAKEN_ALLOWED if shaken else tuple(weights)
+    return weighted_pick([(weights[code], code) for code in allowed], rng) or STRIKE
+
+
+def intention(combat):
+    """Ce que le héros sait de la prochaine action du monstre : ``(code, texte)`` ou ``('', '')``."""
+    action = combat.monster_action
+    if action and (combat.hero_insight or action == POWER):
+        return action, f"{combat.monster.name} {TELEGRAPHS[action]}."
+    return '', ''
+
+
+def start_combat(character, monster, then_scene=None, rng=None):
     """Engage le combat (personnage verrouillé, non sauvegardé)."""
     Combat.objects.filter(character=character).delete()
-    combat = Combat.objects.create(character=character, monster=monster, monster_hp=monster.hp,
-                                   then_scene=then_scene)
-    _log(combat, f"{monster.name} surgit !", 'bad')
-    combat.save(update_fields=['log'])
+    combat = Combat(character=character, monster=monster, monster_hp=monster.hp, then_scene=then_scene,
+                    monster_action=next_monster_action(monster, rng=rng))
+    _log(combat, _tag_monster(combat), " surgit ! ", ('note', f"({monster.get_behavior_display()})"), kind='story')
+    combat.save()
     add_log(character, f"Combat contre {monster.name} !", 'bad')
     return combat
 
@@ -40,10 +74,16 @@ def current_combat(character):
     return Combat.objects.select_related('monster', 'then_scene').filter(character=character).first()
 
 
-def _log(combat, text, kind='info'):
-    entries = list(combat.log or [])
-    entries.append({'text': text, 'kind': kind})
-    combat.log = entries[-COMBAT_LOG_SIZE:]
+def _log(combat, *parts, kind='info', detail=''):
+    combat.log = (list(combat.log or []) + [log_entry(combat.turn, parts, kind, detail)])[-COMBAT_LOG_SIZE:]
+
+
+def _tag_hero(character):
+    return ('c', character.name)
+
+
+def _tag_monster(combat):
+    return ('o', combat.monster.name)
 
 
 def _locked_combat(character):
@@ -54,32 +94,14 @@ def _locked_combat(character):
     return combat
 
 
-def _hero_attack(combat, stats, rng):
+def _fighters(character, combat, hero_action):
+    stats = sheet(character)
+    hero = Fighter(_tag_hero(character), stat_values(character), hero_action, armor=stats['armor'],
+                   damage_bonus=stats['damage_bonus'])
     monster = combat.monster
-    test = resolve(stats['dexterity'], monster.hit_difficulty, rng)
-    _log(combat, test.describe("Attaque (Dextérité)"), 'good' if test.success else 'info')
-    if not test.success:
-        _log(combat, f"{monster.name} évite ton coup.")
-        return
-    damage = max(1, rng.randint(1, 6) + stats['damage_bonus'] - monster.armor)
-    combat.monster_hp = max(0, combat.monster_hp - damage)
-    _log(combat, f"Tu touches {monster.name} : −{damage} PV.", 'good')
-
-
-def _monster_attack(character, combat, stats, rng):
-    """Tour du monstre : le héros tente d'esquiver. Renvoie ``True`` si le héros tombe à 0 PV."""
-    monster = combat.monster
-    threshold = EASIER[monster.dodge_difficulty] if combat.defending else monster.dodge_difficulty
-    combat.defending = False
-    test = resolve(stats['dexterity'], threshold, rng)
-    _log(combat, test.describe("Esquive (Dextérité)"), 'good' if test.success else 'bad')
-    if test.success:
-        _log(combat, f"Tu esquives l'attaque de {monster.name}.")
-        return False
-    damage = max(1, rng.randint(monster.damage_min, max(monster.damage_min, monster.damage_max)) - stats['armor'])
-    character.hp = max(0, character.hp - damage)
-    _log(combat, f"{monster.name} te frappe : −{damage} PV.", 'bad')
-    return character.hp == 0
+    beast = Fighter(_tag_monster(combat), monster.stat_values, combat.monster_action, armor=monster.armor,
+                    damage_range=(monster.damage_min, monster.damage_max))
+    return hero, beast
 
 
 def _victory(character, combat, rng):
@@ -100,51 +122,67 @@ def _victory(character, combat, rng):
     enter_scene(character, then_scene)
 
 
-def _finish_turn(character, combat, rng):
-    """Après l'action du héros : victoire, ou riposte du monstre."""
+def _resolve_round(character, combat, hero_action, rng):
+    """Joue la manche : l'action du héros contre celle du monstre, puis l'issue."""
     from .wounds import knock_out
 
+    if not combat.monster_action:  # combat engagé avant les manches à actions
+        combat.monster_action = next_monster_action(combat.monster, combat.monster_shaken, rng)
+    hero, beast = _fighters(character, combat, hero_action)
+    log = lambda *parts, **kw: _log(combat, *parts, **kw)  # noqa: E731
+    if hero_action in ACTIONS:
+        log(hero.tag, " lance ", ('act', action_label(hero_action)), ".", kind='cast')
+    log(beast.tag, " lance ", ('act', action_label(beast.action)), ".", kind='cast')
+    resolve_action(log, hero, beast, rng)
+    resolve_action(log, beast, hero, rng)
+
+    combat.monster_hp = max(0, combat.monster_hp - beast.damage_taken)
+    character.hp = max(0, character.hp - hero.damage_taken)
     if combat.monster_hp == 0:
+        if character.hp == 0:
+            character.hp = 1
+            add_log(character, "Tu t'effondres… juste après ton adversaire.", 'bad')
         _victory(character, combat, rng)
         return
-    if _monster_attack(character, combat, sheet(character), rng):
+    log(('note', "Fin de manche : "), hero.tag, " ", ('hp', f"{character.hp}/{sheet(character)['max_hp']} PV"),
+        ('note', " · "), beast.tag, " ", ('hp', f"{combat.monster_hp}/{combat.monster.hp} PV"), kind='summary')
+    if character.hp == 0:
+        combat.save()
         knock_out(character, rng)
         return
+    combat.hero_insight = hero.insight_next
+    combat.monster_shaken = beast.shaken_next
     combat.turn += 1
+    combat.monster_action = next_monster_action(combat.monster, combat.monster_shaken, rng)
     combat.save()
 
 
 def act(character, action, item_id=None, rng=None):
-    """Action de combat : ``attack``, ``defend``, ``item`` ou ``flee``."""
+    """Action de combat : une action de ``clash.ACTIONS``, ``item`` (boire) ou ``flee`` (fuir)."""
     rng = get_rng(rng)
     with transaction.atomic():
         character = lock(character)
         combat = _locked_combat(character)
-        stats = sheet(character)
         monster = combat.monster
 
-        if action == 'attack':
-            _hero_attack(combat, stats, rng)
-            _finish_turn(character, combat, rng)
-        elif action == 'defend':
-            combat.defending = True
-            _log(combat, "Tu te mets en garde.")
-            _finish_turn(character, combat, rng)
-        elif action == 'item':
+        if action in HERO_ACTIONS:
+            _resolve_round(character, combat, action, rng)
+        elif action == ITEM:
             restored = consume(character, item_id)
-            _log(combat, f"Tu reprends des forces : +{restored} PV.", 'good')
-            _finish_turn(character, combat, rng)
-        elif action == 'flee':
+            _log(combat, _tag_hero(character), " boit une potion : ", ('hp', f"+{restored} PV"), ".", kind='cast')
+            _resolve_round(character, combat, ITEM, rng)
+        elif action == FLEE:
             if monster.is_boss:
                 raise RpgError(f"Impossible de fuir face à {monster.name} !")
-            test = resolve(stats['dexterity'], monster.flee_difficulty, rng)
-            if test.success:
-                add_log(character, test.describe("Fuite (Dextérité)"), 'good')
+            hero, beast = _fighters(character, combat, FLEE)
+            log = lambda *parts, **kw: _log(combat, *parts, **kw)  # noqa: E731
+            log(hero.tag, " tente de fuir.", kind='cast')
+            if oppose(log, hero, 'dexterite', "Dextérité", beast, 'dexterite', "Dextérité", rng) > 0:
                 combat.delete()
                 add_log(character, f"Tu prends la fuite, {monster.name} ne te suit pas.")
             else:
-                _log(combat, test.describe("Fuite (Dextérité)"), 'bad')
-                _finish_turn(character, combat, rng)
+                log(beast.tag, " te barre la route.")
+                _resolve_round(character, combat, FLEE, rng)
         else:
             raise RpgError("Action inconnue.")
         character.save()

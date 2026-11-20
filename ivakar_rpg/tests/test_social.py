@@ -333,8 +333,8 @@ class WorldEventTests(SocialTestCase):
     def test_attack_damage_and_cooldown(self):
         event = self.make_event()
         self.set_stat('dexterite', 9)
-        # assaut 6+6+3 ≥ 13, dégâts 4 + 5 + 1 = 10 ; esquive 6+6+3 réussie
-        events.attack(self.character, event.pk, rng=FixedRng(6, 6, 4, 6, 6))
+        # assaut 6+6+3 contre 1+1+4, dégâts 4 + 5 + 1 = 10 ; esquive 6+6+3 contre 1+1+4 réussie
+        events.attack(self.character, event.pk, rng=FixedRng(6, 6, 1, 1, 4, 6, 6, 1, 1))
         event.refresh_from_db()
         self.assertEqual(event.hp_left, 10)
         self.assertEqual(EventParticipation.objects.get().damage, 10)
@@ -344,8 +344,8 @@ class WorldEventTests(SocialTestCase):
     def test_victory_rewards_everyone_once(self):
         event = self.make_event()
         self.set_stat('dexterite', 9)
-        events.attack(self.character, event.pk, rng=FixedRng(6, 6, 4, 6, 6))  # 10 dégâts
-        events.attack(self.other, event.pk, rng=FixedRng(6, 6, 6))  # coup décisif
+        events.attack(self.character, event.pk, rng=FixedRng(6, 6, 1, 1, 4, 6, 6, 1, 1))  # 10 dégâts
+        events.attack(self.other, event.pk, rng=FixedRng(6, 6, 1, 1, 6))  # coup décisif
         event.refresh_from_db()
         self.assertTrue(event.is_defeated and event.rewards_given)
         c = self.reload()
@@ -369,7 +369,7 @@ class WorldEventTests(SocialTestCase):
     def test_riposte_can_knock_out(self):
         event = self.make_event(damage_min=50, damage_max=50)
         self.set_stat('dexterite', 0)
-        events.attack(self.character, event.pk, rng=FixedRng(1, 1, 1, 1, 50, 1, 1))
+        events.attack(self.character, event.pk, rng=FixedRng(1, 1, 6, 6, 1, 1, 6, 6, 50, 1, 1))
         self.assertEqual(self.reload().state, Character.STATE_KO)
 
     def test_event_page(self):

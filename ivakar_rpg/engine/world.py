@@ -95,11 +95,12 @@ def explore(character, rng=None):
             entries += [(encounter.weight, ('monster', encounter.monster))
                         for encounter in location.encounters.select_related('monster')]
 
+        character.explorations += 1
         kind, value = weighted_pick(entries, rng) or ('calm', None)
         if kind == 'scene':
             enter_scene(character, value)
         elif kind == 'monster':
-            start_combat(character, value)
+            start_combat(character, value, rng=rng)
         else:
             add_log(character, "Tu fouilles les environs… rien à signaler.")
         character.save()

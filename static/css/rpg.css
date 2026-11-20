@@ -216,3 +216,21 @@
 @media (prefers-reduced-motion: reduce) { .ivk-toast { transition: none; } }
 .rpg-duel-pending { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .rpg-duel-pending p { flex-basis: 100%; margin: 0 0 4px; }
+
+/* Combat tactique : l'action qui contre l'intention annoncée du monstre */
+.rpg-duel-action--hint { border-width: 2px; border-color: var(--rpg-xp); box-shadow: 0 0 0 2px rgba(217, 169, 43, .25); }
+
+/* Objectifs : tâches du jour et succès */
+.rpg-objectives, .rpg-achievements { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 8px; }
+.rpg-achievements { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.rpg-objective, .rpg-achievement { display: flex; gap: 10px; align-items: center; padding: 8px 10px;
+    border: 1px solid currentColor; border-radius: var(--rpg-radius); }
+.rpg-objective__icon, .rpg-achievement__icon { font-size: 1.5em; line-height: 1; }
+.rpg-objective__body, .rpg-achievement__body { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.rpg-objective__reward { font-size: .85em; white-space: nowrap; opacity: .85; }
+.rpg-objective.is-done { opacity: .7; }
+.rpg-achievement { opacity: .6; border-style: dashed; }
+.rpg-achievement.is-unlocked { opacity: 1; border-style: solid; border-color: var(--rpg-xp); }
+.rpg-achievement__date { font-size: .8em; color: var(--rpg-xp); }
+.rpg-bar--small { height: 16px; }
+.rpg-bar--small .rpg-bar__label { font-size: .75em; line-height: 14px; }

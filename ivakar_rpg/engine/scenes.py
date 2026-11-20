@@ -58,6 +58,7 @@ def choose(character, choice_id, rng=None):
         if reason:
             raise RpgError(reason)
 
+        character.choices_made += 1
         result = Outcome.RESULT_SUCCESS
         if choice.test_characteristic_id:
             value = stat_values(character).get(choice.test_characteristic.code, 0)
@@ -123,7 +124,7 @@ def apply_outcome(character, outcome, rng=None):
         add_log(character, f"Tu arrives : {outcome.move_to.name}.")
     if outcome.combat_id:
         enter_scene(character, None)
-        start_combat(character, outcome.combat, then_scene=outcome.next_scene)
+        start_combat(character, outcome.combat, then_scene=outcome.next_scene, rng=rng)
     else:
         enter_scene(character, outcome.next_scene)
 

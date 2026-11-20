@@ -26,6 +26,7 @@ urlpatterns = [
     path("marchand/vendre/<int:item_id>", views.sell, name="rpg_sell"),
     path("change", views.exchange, name="rpg_exchange"),
     path("recompenses", views.rewards, name="rpg_rewards"),
+    path("objectifs", views.objectives, name="rpg_progress"),
     # Multijoueur
     path("jouer/taverne", views_social.tavern_say, name="rpg_tavern_say"),
     path("jouer/taverne/fil", views_social.tavern_feed, name="rpg_tavern_feed"),

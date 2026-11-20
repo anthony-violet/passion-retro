@@ -36,7 +36,7 @@ class WorldTests(IvakarTestCase):
         lisiere.save()
         self.character.location = lisiere
         self.character.save()
-        world.explore(self.character, FixedRng(1))
+        world.explore(self.character, FixedRng(1, 1))  # tirage du lieu, puis première action du monstre
         self.assertTrue(Combat.objects.filter(character=self.character).exists())
 
     def test_busy_hero_cannot_move(self):
@@ -74,7 +74,7 @@ class SceneTests(IvakarTestCase):
         self.enter('taniere-loups')
         choice = Choice.objects.get(scene__slug='taniere-loups', label__startswith="Le contourner")
         self.set_stat('dexterite', 3)
-        scenes.choose(self.character, choice.pk, FixedRng(1, 1))
+        scenes.choose(self.character, choice.pk, FixedRng(1, 1, 1))  # test raté, puis action du monstre
         c = self.reload()
         self.assertEqual(Wound.objects.get(character=c).severity, Wound.SEVERITY_LIGHT)
         combat = Combat.objects.get(character=c)
@@ -94,39 +94,82 @@ class SceneTests(IvakarTestCase):
 
 
 class CombatTests(IvakarTestCase):
-    def fight(self, slug='loup-gris', then_scene=None):
-        fight.start_combat(self.character, Monster.objects.get(slug=slug), then_scene)
-        return Combat.objects.get(character=self.character)
+    """Loup gris : brute, Force 8, Dextérité 9, Perception 10, Intelligence 3, Mental 6, 12 PV, dégâts 2–4.
+    Aldric (soldat) : Force 15 + bâton → dégâts 1D6 + 6."""
+
+    def fight(self, slug='loup-gris', then_scene=None, monster_action='strike'):
+        fight.start_combat(self.character, Monster.objects.get(slug=slug), then_scene, rng=FixedRng(1))
+        combat = Combat.objects.get(character=self.character)
+        combat.monster_action = monster_action
+        combat.save()
+        return combat
 
     def test_hit_and_damage(self):
-        combat = self.fight()
+        combat = self.fight(monster_action='feint')
         self.set_stat('dexterite', 9)
-        # attaque 5+5+3 ≥ 10, dégâts 6 + ⌊15/3⌋ + 1 (bâton) = 12 → loup (12 PV) vaincu
-        fight.act(self.character, 'attack', rng=FixedRng(5, 5, 6, 0))
+        # Frappe 6+6+3 contre 1+1+3 : écart 10, coup appuyé : 6 + 6 + 1 = 13 → loup vaincu ;
+        # sa Feinte est trop lente contre une attaque. Écus 0.
+        fight.act(self.character, 'strike', rng=FixedRng(6, 6, 1, 1, 6, 1, 0))
         c = self.reload()
         self.assertFalse(Combat.objects.filter(pk=combat.pk).exists())
         self.assertEqual(c.victories, 1)
         self.assertEqual(c.xp, 12)
 
-    def test_failed_dodge_hurts(self):
-        self.fight()
+    def test_guard_halves_a_strike(self):
+        self.fight(monster_action='strike')
         hp = self.reload().hp
         self.set_stat('dexterite', 3)
-        # attaque ratée (1+1+1), esquive ratée (1+1+1), dégâts 4
-        fight.act(self.character, 'attack', rng=FixedRng(1, 1, 1, 1, 4))
-        self.assertEqual(self.reload().hp, hp - 4)
+        # Frappe du loup 6+6+3 contre 1+1+1 : appuyé (4 + 2 = 6), moitié contre la Garde → 3.
+        fight.act(self.character, 'guard', rng=FixedRng(6, 6, 1, 1, 4, 2, 1))
+        self.assertEqual(self.reload().hp, hp - 3)
+        combat = Combat.objects.get(character=self.character)
+        self.assertEqual(combat.turn, 2)
+        self.assertEqual(combat.monster_action, 'strike')  # nouvelle action tirée pour la manche 2
+
+    def test_guard_punishes_a_power_blow(self):
+        self.fight(monster_action='power')
+        self.set_stat('dexterite', 9)
+        # Le loup charge dans la Garde : riposte 6+6+3 contre 1+1+3, appuyée : 3 + 6 + 1 = 10.
+        fight.act(self.character, 'guard', rng=FixedRng(6, 6, 1, 1, 3, 1, 1))
+        self.assertEqual(Combat.objects.get(character=self.character).monster_hp, 2)
+
+    def test_power_blow_is_always_announced(self):
+        combat = self.fight(monster_action='power')
+        self.assertEqual(fight.intention(combat)[0], 'power')
+        combat.monster_action = 'feint'
+        self.assertEqual(fight.intention(combat), ('', ''))
+
+    def test_observe_reveals_the_next_action(self):
+        self.fight(monster_action='guard')
+        # Perception 9 (+3) 6+6 contre Intelligence 3 (+1) 1+1 : réussi ; action suivante tirée : Frappe.
+        fight.act(self.character, 'observe', rng=FixedRng(6, 6, 1, 1, 1))
+        combat = Combat.objects.get(character=self.character)
+        self.assertTrue(combat.hero_insight)
+        self.assertEqual(fight.intention(combat)[0], 'strike')
+
+    def test_intimidation_limits_the_monster(self):
+        self.fight(monster_action='guard')
+        fight.act(self.character, 'intimidate', rng=FixedRng(6, 6, 1, 1, 4))
+        combat = Combat.objects.get(character=self.character)
+        self.assertTrue(combat.monster_shaken)
+        self.assertIn(combat.monster_action, ('strike', 'guard'))
 
     def test_ko_in_combat(self):
-        self.fight()
+        self.fight(monster_action='strike')
         c = self.reload()
         c.hp = 1
         c.save()
         self.set_stat('dexterite', 3)
-        fight.act(c, 'attack', rng=FixedRng(1, 1, 1, 1, 4, 6, 6))
+        fight.act(c, 'guard', rng=FixedRng(6, 6, 1, 1, 4, 2, 6, 6))
         c = self.reload()
         self.assertEqual(c.state, Character.STATE_KO)
         self.assertFalse(Combat.objects.filter(character=c).exists())
         self.assertEqual(Wound.objects.get(character=c).severity, Wound.SEVERITY_MODERATE)
+
+    def test_flee(self):
+        self.fight()
+        fight.act(self.character, 'flee', rng=FixedRng(6, 6, 1, 1))
+        self.assertFalse(Combat.objects.filter(character=self.character).exists())
 
     def test_cannot_flee_a_boss(self):
         self.fight('roi-brume')
@@ -134,10 +177,17 @@ class CombatTests(IvakarTestCase):
             fight.act(self.character, 'flee')
 
     def test_victory_resumes_story(self):
-        self.fight(then_scene=Scene.objects.get(slug='taniere-apres'))
+        self.fight(then_scene=Scene.objects.get(slug='taniere-apres'), monster_action='feint')
         self.set_stat('dexterite', 9)
-        fight.act(self.character, 'attack', rng=FixedRng(5, 5, 6, 0))
+        fight.act(self.character, 'strike', rng=FixedRng(6, 6, 1, 1, 6, 1, 0))
         self.assertEqual(self.reload().scene.slug, 'taniere-apres')
+
+    def test_log_uses_readable_parts(self):
+        self.fight(monster_action='strike')
+        fight.act(self.character, 'guard', rng=FixedRng(6, 6, 1, 1, 4, 2, 1))
+        log = Combat.objects.get(character=self.character).log
+        self.assertIn(['act', "🛡️ Garde"], log[1]['parts'])
+        self.assertEqual(log[-1]['kind'], 'summary')
 
 
 class EconomyTests(IvakarTestCase):
@@ -222,7 +272,9 @@ class ViewTests(IvakarTestCase):
         self.character.scene = None
         self.character.save()
         fight.start_combat(self.character, Monster.objects.get(slug='loup-gris'))
-        self.assertContains(self.client.get(reverse('rpg_play')), "Attaquer")
+        page = self.client.get(reverse('rpg_play'))
+        self.assertContains(page, "Coup puissant")
+        self.assertContains(page, "Brute")
         Combat.objects.all().delete()
         Character.objects.filter(pk=self.character.pk).update(state=Character.STATE_KO)
         self.assertContains(self.client.get(reverse('rpg_play')), "Reprendre connaissance")

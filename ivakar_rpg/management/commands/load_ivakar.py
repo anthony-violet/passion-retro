@@ -68,11 +68,12 @@ class Command(BaseCommand):
             })
 
         monsters = {}
-        for (slug, name, level, hp, hit, dodge, flee, dmin, dmax, armor, xp, cmin, cmax, boss, description,
+        for (slug, name, level, hp, behavior, values, dmin, dmax, armor, xp, cmin, cmax, boss, description,
              loot) in content.MONSTERS:
             monsters[slug], created = self._save(Monster, {'slug': slug}, {
-                'name': name, 'level': level, 'hp': hp, 'hit_difficulty': hit, 'dodge_difficulty': dodge,
-                'flee_difficulty': flee, 'damage_min': dmin, 'damage_max': dmax, 'armor': armor, 'xp': xp,
+                'name': name, 'level': level, 'hp': hp, 'behavior': behavior,
+                **dict(zip(Monster.STAT_FIELDS, values)),
+                'damage_min': dmin, 'damage_max': dmax, 'armor': armor, 'xp': xp,
                 'coins_min': cmin, 'coins_max': cmax, 'is_boss': boss, 'description': description,
             })
             for item_slug, chance in loot:
@@ -141,6 +142,10 @@ class Command(BaseCommand):
             self._save(LevelReward, {'level': level, 'kind': kind, 'label': label}, {
                 'description': description, 'shop_item': site_items.get(site_item), 'site_xp': site_xp,
             })
+
+        from ivakar_rpg.content.progression import seed
+        from ivakar_rpg.models import Achievement, DailyTask
+        self.counts['Objectifs'] = seed(Achievement, DailyTask, update=self.update)
 
         created = ", ".join(f"{name} : {count}" for name, count in self.counts.items() if count) or "rien de neuf"
         if options.get('verbosity', 1):

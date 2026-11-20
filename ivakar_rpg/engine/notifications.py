@@ -26,6 +26,9 @@ KINDS = {
     'site_reward': (POPUP, "🏅"),
     'event_started': (POPUP, "🌍"),
     'event_won': (POPUP, "🌍"),
+    'achievement': (POPUP, "🏆"),
+    'daily_done': (TOAST, "✅"),
+    'daily_all': (TOAST, "🎯"),
 }
 POLL_SECONDS = 10
 MAX_DELIVERED = 10

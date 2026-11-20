@@ -1,0 +1,77 @@
+{% extends 'panel/ivakar/base.html' %}
+
+{% block ivakar_content %}
+<div class="panel-page-header">
+    <h2>🌳 Arbre des scénarios</h2>
+    <a href="{% url 'panel_ivakar_create' 'scenes' %}" class="btn btn-small btn-add">+ Nouvelle scène</a>
+</div>
+<p class="ivk-help">Chaque lieu montre les scènes qu'on y découvre en explorant, puis où mène chacun de leurs choix.
+    Une scène n'est déroulée qu'une fois : ailleurs, un lien y renvoie. ↩ signale une boucle.</p>
+
+<form method="get" class="ivk-toolbar">
+    <select name="lieu" onchange="this.form.submit()" aria-label="Lieu">
+        <option value="">Tous les lieux</option>
+        {% for loc in locations %}<option value="{{ loc.pk }}"{% if loc.pk == location_id %} selected{% endif %}>{{ loc.name }}</option>{% endfor %}
+    </select>
+    <button type="button" class="btn btn-small" data-tree-toggle="open">Tout déplier</button>
+    <button type="button" class="btn btn-small" data-tree-toggle="close">Tout replier</button>
+</form>
+
+<div class="ivk-tree" data-tree>
+    {% for group in groups %}
+    <section class="panel-section ivk-tree__group">
+        <div class="panel-section-header">
+            <h3>🗺️ <a href="{% url 'panel_ivakar_edit' 'lieux' group.location.pk %}">{{ group.location.name }}</a></h3>
+            <small>{{ group.roots|length }} scène{{ group.roots|pluralize }} en exploration</small>
+        </div>
+        <ul class="ivk-tree__list">
+            {% for node in group.roots %}{% include 'panel/ivakar/_tree_scene.html' with node=node %}{% endfor %}
+        </ul>
+    </section>
+    {% empty %}
+    <p class="ivk-help">Aucune scène n'apparaît en explorant{% if location_id %} ce lieu{% endif %}.</p>
+    {% endfor %}
+
+    {% if orphans %}
+    <section class="panel-section ivk-tree__group ivk-tree__group--orphans">
+        <div class="panel-section-header">
+            <h3>⚠️ Scènes sans entrée</h3>
+            <small>Ni en exploration, ni au bout d'un choix déroulé plus haut</small>
+        </div>
+        <ul class="ivk-tree__list">
+            {% for node in orphans %}{% include 'panel/ivakar/_tree_scene.html' with node=node %}{% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+</div>
+
+{% if flags %}
+<section class="panel-section">
+    <div class="panel-section-header"><h3>⚑ Marqueurs</h3><small>Qui les pose, qui les exige</small></div>
+    <div class="ivk-table-wrap">
+        <table class="panel-table">
+            <thead><tr><th>Marqueur</th><th>Posé par</th><th>Exigé par</th><th>Interdit par</th></tr></thead>
+            <tbody>
+            {% for flag, uses in flags %}
+            <tr{% if not uses.set_by %} class="ivk-tree__flag--orphan"{% endif %}>
+                <td><code>{{ flag }}</code></td>
+                <td>{% for u in uses.set_by %}{{ u }}{% if not forloop.last %}<br>{% endif %}{% empty %}<strong>⚠️ jamais posé</strong>{% endfor %}</td>
+                <td>{% for u in uses.required_by %}{{ u }}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td>
+                <td>{% for u in uses.forbidden_by %}{{ u }}{% if not forloop.last %}<br>{% endif %}{% empty %}—{% endfor %}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+<script>
+document.querySelectorAll('[data-tree-toggle]').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var open = button.dataset.treeToggle === 'open';
+        document.querySelectorAll('[data-tree] details').forEach(function (d) { d.open = open; });
+    });
+});
+</script>
+{% endblock %}

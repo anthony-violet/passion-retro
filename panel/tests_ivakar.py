@@ -198,7 +198,7 @@ class IvakarPanelTests(TestCase):
         response = self.client.post(reverse('panel_ivakar_create', args=['evenements']), {
             'name': "L'Ombre d'Agasur", 'slug': '', 'description': '', 'monster': Monster.objects.first().pk,
             'location': '', 'starts_at': '2026-11-21T18:00', 'ends_at': '2026-11-28T18:00', 'hp_total': 800,
-            'hp_left': '', 'hit_difficulty': 13, 'dodge_difficulty': 13, 'damage_min': 2, 'damage_max': 6,
+            'hp_left': '', 'dexterite': 12, 'damage_min': 2, 'damage_max': 6,
             'cooldown_minutes': 30, 'reward_xp': 50, 'reward_coins': 20, 'top_reward_item': '',
         })
         self.assertRedirects(response, reverse('panel_ivakar_list', args=['evenements']))
@@ -222,3 +222,52 @@ class IvakarPanelTests(TestCase):
 
     def test_menu_link(self):
         self.assertContains(self.client.get(reverse('panel_dashboard')), reverse('panel_ivakar'))
+
+
+class ScenarioTreeTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from django.core.management import call_command
+        call_command('load_ivakar', verbosity=0)
+
+    def setUp(self):
+        self.staff = User.objects.create_user(username='chef_arbre', password='pass', is_staff=True)
+        self.client.login(username='chef_arbre', password='pass')
+
+    def test_tree_unrolls_each_scene_once(self):
+        from ivakar_rpg import scenario_tree
+        from ivakar_rpg.models import Scene
+        groups, orphans = scenario_tree.build()
+        seen = []
+
+        def walk(node):
+            if node['state'] == 'full':
+                seen.append(node['scene'].pk)
+                for item in node['choices']:
+                    for branch in item['branches']:
+                        if branch['next']:
+                            walk(branch['next'])
+
+        for group in groups:
+            for node in group['roots']:
+                walk(node)
+        for node in orphans:
+            walk(node)
+        self.assertEqual(len(seen), len(set(seen)))
+        self.assertEqual(set(seen), set(Scene.objects.values_list('pk', flat=True)))
+
+    def test_tree_page(self):
+        from ivakar_rpg.models import Location
+        page = self.client.get(reverse('panel_ivakar_tree'))
+        self.assertContains(page, "Arbre des scénarios")
+        self.assertContains(page, "auberge du Pot Cassé")
+        self.assertContains(page, "quete_loups")
+        lisiere = Location.objects.get(slug='lisiere')
+        self.assertEqual(self.client.get(reverse('panel_ivakar_tree'), {'lieu': lisiere.pk}).status_code, 200)
+        self.assertEqual(self.client.get(reverse('panel_ivakar_tree'), {'lieu': 'x'}).status_code, 200)
+
+    def test_tree_is_staff_only(self):
+        self.client.logout()
+        User.objects.create_user(username='curieux', password='pass')
+        self.client.login(username='curieux', password='pass')
+        self.assertNotEqual(self.client.get(reverse('panel_ivakar_tree')).status_code, 200)

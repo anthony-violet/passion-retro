@@ -1,0 +1,48 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Objectifs</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>🎯 Tâches du jour</h2>
+    <p class="rpg-muted">De nouvelles tâches chaque jour à minuit. Les récompenses arrivent dès qu'une tâche est faite ;
+        les trois réussies, un bonus de {{ daily_bonus.0 }} XP et {{ daily_bonus.1 }} écus.</p>
+    <ul class="rpg-objectives">
+        {% for d in daily %}
+        <li class="rpg-objective{% if d.completed %} is-done{% endif %}">
+            <span class="rpg-objective__icon">{% if d.completed %}✅{% else %}🎯{% endif %}</span>
+            <span class="rpg-objective__body">
+                <strong>{{ d.task.name }}</strong>
+                <span class="rpg-bar rpg-bar--small"><span class="rpg-bar__fill" style="width: {{ d.percent }}%"></span>
+                    <span class="rpg-bar__label">{{ d.progress }} / {{ d.task.goal }}</span></span>
+            </span>
+            <span class="rpg-objective__reward">{% if d.task.reward_xp %}+{{ d.task.reward_xp }} XP{% endif %}{% if d.task.reward_xp and d.task.reward_coins %} · {% endif %}{% if d.task.reward_coins %}+{{ d.task.reward_coins }} écus{% endif %}</span>
+        </li>
+        {% empty %}
+        <li class="rpg-muted">Aucune tâche aujourd'hui.</li>
+        {% endfor %}
+    </ul>
+    {% if daily_complete_today %}<p class="rpg-notice">🎉 Journée complète ! Reviens demain pour de nouvelles tâches.</p>{% endif %}
+</section>
+
+<section class="rpg-screen">
+    <h2>🏆 Succès <small>{{ unlocked_count }} / {{ achievements|length }}</small></h2>
+    <ul class="rpg-achievements">
+        {% for a in achievements %}
+        <li class="rpg-achievement{% if a.unlocked_at %} is-unlocked{% endif %}">
+            <span class="rpg-achievement__icon">{% if a.secret %}❔{% else %}{{ a.achievement.icon }}{% endif %}</span>
+            <span class="rpg-achievement__body">
+                <strong>{% if a.secret %}Succès secret{% else %}{{ a.achievement.name }}{% endif %}</strong>
+                <span class="rpg-muted">{% if a.secret %}???{% else %}{{ a.achievement.description }}{% endif %}</span>
+                {% if a.unlocked_at %}
+                    <span class="rpg-achievement__date">Obtenu le {{ a.unlocked_at|date:"j F Y" }}</span>
+                {% elif not a.secret and a.goal > 1 %}
+                    <span class="rpg-bar rpg-bar--small"><span class="rpg-bar__fill" style="width: {{ a.percent }}%"></span>
+                        <span class="rpg-bar__label">{{ a.progress }} / {{ a.goal }}</span></span>
+                {% endif %}
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}

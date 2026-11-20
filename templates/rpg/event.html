@@ -23,7 +23,7 @@
         <span class="rpg-bar__label">PV {{ event.hp_left }} / {{ event.hp_total }}</span>
     </div>
     {% if event.description %}<div class="rpg-text">{{ event.description|bbcode|safe }}</div>{% endif %}
-    <p class="rpg-muted">Toucher : {{ event.get_hit_difficulty_display }} · Esquiver sa riposte : {{ event.get_dodge_difficulty_display }} ·
+    <p class="rpg-muted">Dextérité de la menace : {{ event.dexterite }} (contre la tienne pour la toucher et esquiver sa riposte) ·
        un assaut toutes les {{ event.cooldown_minutes }} min. Récompense : {{ event.reward_xp }} XP et {{ event.reward_coins }} écus par participant{% if event.top_reward_item %}, {{ event.top_reward_item.name }} pour le meilleur{% endif %}.</p>
 
     {% if status == 'active' %}

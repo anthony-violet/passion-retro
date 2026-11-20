@@ -58,27 +58,7 @@
         <p class="rpg-muted">{{ duel.get_status_display }}.</p>
     {% endif %}
 
-    {% if rounds %}
-    <div class="rpg-duel-history__head">
-        <h3>Déroulé</h3>
-        <label class="rpg-muted"><input type="checkbox" data-duel-dice> Détail des dés</label>
-    </div>
-    <div class="rpg-duel-rounds" data-duel-rounds>
-        {% for number, entries in rounds %}
-        <details class="rpg-duel-round"{% if forloop.first %} open{% endif %}>
-            <summary>{% if number %}Manche {{ number }}{% else %}Début{% endif %}</summary>
-            <ol class="rpg-duel-log">
-                {% for entry in entries %}
-                <li class="rpg-duel-log__line rpg-duel-log__line--{{ entry.kind }}"{% if entry.detail %} title="{{ entry.detail }}"{% endif %}>
-                    {% if entry.parts %}{% for k, t in entry.parts %}{% if k %}<span class="ivk-l-{{ k }}">{{ t }}</span>{% else %}{{ t }}{% endif %}{% endfor %}{% else %}{{ entry.text }}{% endif %}
-                    {% if entry.detail %}<small class="rpg-duel-log__dice">🎲 {{ entry.detail }}</small>{% endif %}
-                </li>
-                {% endfor %}
-            </ol>
-        </details>
-        {% endfor %}
-    </div>
-    {% endif %}
+    {% include 'rpg/partials/clash_log.html' %}
 
     {% if duel.status == 'active' %}
     <form method="post" action="{% url 'rpg_duel_action' duel.id %}" class="rpg-actions">
@@ -88,19 +68,6 @@
     </form>
     {% endif %}
 </section>
-<script>
-(function () {
-    var toggle = document.querySelector('[data-duel-dice]'), rounds = document.querySelector('[data-duel-rounds]');
-    if (!toggle || !rounds) return;
-    try { toggle.checked = localStorage.getItem('ivakar-duel-dice') === '1'; } catch (e) {}
-    function apply() { rounds.classList.toggle('show-dice', toggle.checked); }
-    toggle.addEventListener('change', function () {
-        apply();
-        try { localStorage.setItem('ivakar-duel-dice', toggle.checked ? '1' : '0'); } catch (e) {}
-    });
-    apply();
-})();
-</script>
 {% if duel.status == 'active' or duel.status == 'pending' %}
 <script>
 (function () {

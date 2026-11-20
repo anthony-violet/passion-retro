@@ -9,6 +9,7 @@
     {% for s in ivakar_sections %}
     <a href="{% url 'panel_ivakar_list' s.slug %}" class="{% if section == s.slug %}is-active{% endif %}">{{ s.icon }} {{ s.title }}</a>
     {% endfor %}
+    <a href="{% url 'panel_ivakar_tree' %}" class="{% if section == 'arbre' %}is-active{% endif %}">🌳 Arbre des scénarios</a>
     <a href="{% url 'panel_ivakar_map' %}" class="{% if section == 'carte' %}is-active{% endif %}">🧭 Carte</a>
     <a href="{% url 'panel_ivakar_tavern' %}" class="{% if section == 'taverne' %}is-active{% endif %}">🍺 Taverne</a>
     <a href="{% url 'panel_ivakar_heroes' %}" class="{% if section == 'heros' %}is-active{% endif %}">🧙 Héros</a>

@@ -28,10 +28,10 @@ fichiers, et doit être tranchée ou remplacée lors des phases de test.
 |---|---|---|
 | Points de vie | 10 + Constitution + 2 par niveau après le 1er (+ bonus d'objet) | `character.py` (`HP_BASE`, `HP_PER_LEVEL`) |
 | Courbe d'XP | 25 × (niveau − 1) × niveau | `xp_for_level()` |
-| Toucher en combat | Dextérité contre le seuil « toucher » du monstre | `engine/combat.py` |
-| Dégâts | 1D6 + ⌊Force ÷ 3⌋ + bonus d'arme − armure (min. 1) | `combat.py` |
-| Défense | Esquive (Dextérité) contre le seuil « esquive » du monstre à chaque attaque ; « Se défendre » baisse ce seuil d'un cran | `combat.py` |
-| Fuite | Dextérité contre le seuil « fuite » ; impossible face à un boss | `combat.py` |
+| Combat contre les monstres | Manches à actions comme les duels (`engine/clash.py`) : le héros choisit parmi les 6 actions, le monstre joue l'action décidée d'avance selon son comportement (brute, prudent, rusé, équilibré). Chaque échange est une opposition entre les caractéristiques du héros et celles du monstre (Force, Dextérité, Perception, Intelligence, Mental), ce qui garde la difficulté relative à tout niveau. Le Coup puissant du monstre est toujours annoncé ; le reste ne l'est qu'après un Observer réussi | `engine/combat.py` |
+| Dégâts | Héros : 1D6 + ⌊Force ÷ 3⌋ + bonus d'arme ; monstre : sa fourchette ; − armure (min. 1) ; selon l'écart : ÷ 2 (1-2), normal (3-5), +1D6 (6+) ; Coup puissant +1D6 | `clash.py` |
+| Potion, fuite | Boire ou tenter de fuir prend la manche (le monstre agit quand même) ; fuite = Dextérité contre Dextérité, impossible face à un boss | `combat.py` |
+| Chute simultanée | Si héros et monstre tombent dans la même manche, le héros gagne et garde 1 PV | `combat.py` |
 | Blessure à 0 PV | Constitution contre 13 : réussite → modérée, échec → grave | `wounds.py` (`KO_CRITICAL_THRESHOLD`) |
 | Réveil après KO | Retour au lieu de départ à mi-PV | `wake_up()` |
 | Déclencheur « contexte » | Uniquement quand une conséquence de scène coche « Sollicite les blessures » | `Outcome.strain_wounds` |
@@ -39,8 +39,10 @@ fichiers, et doit être tranchée ou remplacée lors des phases de test.
 | Aggravation d'une blessure grave | Reste grave (rien de défini au-delà) | `wounds._check()` |
 | Effets des blessures | Aucun malus mécanique pour l'instant | — |
 | Soins | Une nuit à l'auberge : PV au max, chaque blessure perd un degré ; potions = PV seulement | `rest()`, `treat_all()` |
-| Duels (oppositions) | Manches à choix secrets et simultanés parmi 6 actions, chacune sur une caractéristique (Frappe et Garde : Dextérité, Coup puissant : Force, Feinte : Intelligence contre Perception, Intimidation : Charisme contre Mental, Observer : Perception contre Intelligence). Attaque = opposition 2D6 + ⌊carac ÷ 3⌋ des deux côtés, égalité au défenseur ; écart 1-2 effleure (dégâts ÷ 2), 3-5 touche, 6+ coup appuyé (+1D6). PV à part, sans blessure ni KO ; forfait après 24 h | `engine/duel.py` |
-| Événements de serveur | Un assaut par héros toutes les N minutes (réglable) ; riposte esquivée à la Dextérité ; récompenses égales pour tout participant, objet pour le meilleur | `engine/events.py` |
+| Duels (oppositions) | Manches à choix secrets et simultanés parmi 6 actions, chacune sur une caractéristique (Frappe et Garde : Dextérité, Coup puissant : Force, Feinte : Intelligence contre Perception, Intimidation : Charisme contre Mental, Observer : Perception contre Intelligence). Attaque = opposition 2D6 + ⌊carac ÷ 3⌋ des deux côtés, égalité au défenseur ; écart 1-2 effleure (dégâts ÷ 2), 3-5 touche, 6+ coup appuyé (+1D6). PV à part, sans blessure ni KO ; forfait après 24 h | `engine/duel.py`, `engine/clash.py` |
+| Événements de serveur | Un assaut par héros toutes les N minutes (réglable) ; assaut et esquive de la riposte = opposition Dextérité du héros contre Dextérité de la menace ; récompenses égales pour tout participant, objet pour le meilleur | `engine/events.py` |
+| Tâches quotidiennes | 3 par jour (minuit, heure de Paris), tirées selon leur poids parmi celles du niveau du héros ; progression = écart du compteur depuis le tirage ; récompense dès l'objectif atteint ; bonus « journée complète » +10 XP et +15 écus | `engine/progress.py` |
+| Succès | Débloqués quand un compteur atteint l'objectif (ou qu'un marqueur est obtenu), vérifiés à l'affichage des pages ; récompense une seule fois ; au-delà de 2 d'un coup, un seul popup | `engine/progress.py`, `content/progression.py` |
 | Origines proposées | Soldat, Éclaireur, Lettré, Héraut, Forgeron (valeurs dans `content/chapitre1.py`) | admin → Origines |
 
 ## Contenu
