@@ -145,5 +145,19 @@
     </div>
     {% endif %}
     {% if analytics_tracking %}{% include './components/consent_banner.html' %}{% endif %}
+    {% if request.visit_beacon %}
+    {# Statistiques internes : la visite n'est comptée que si la page exécute ce script (les robots, non). #}
+    <script data-visit-beacon>
+        (function () {
+            if (navigator.webdriver || !window.fetch) return;
+            var data = new URLSearchParams({
+                path: location.pathname + location.search,
+                referrer: document.referrer || ''
+            });
+            fetch("{% url 'visit_beacon' %}", {method: 'POST', body: data, credentials: 'same-origin', keepalive: true})
+                .catch(function () {});
+        })();
+    </script>
+    {% endif %}
 </body>
 </html>

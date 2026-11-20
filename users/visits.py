@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.db.models import F
+from django.http import QueryDict
 
 from .models import Visit, VisitorStats
 
@@ -93,9 +94,15 @@ def country_for(request):
 
 # --- Provenance ---------------------------------------------------------------
 
-def referrer_of(request):
-    """(URL, domaine) de la page d'où vient le visiteur, si elle est extérieure."""
-    referrer = request.META.get('HTTP_REFERER', '').strip()
+def referrer_of(request, referrer=None):
+    """(URL, domaine) de la page d'où vient le visiteur, si elle est extérieure.
+
+    ``referrer`` est celui envoyé par la page (``document.referrer``) ; à défaut,
+    l'en-tête Referer de la requête.
+    """
+    if referrer is None:
+        referrer = request.META.get('HTTP_REFERER', '')
+    referrer = referrer.strip()
     if not referrer:
         return '', ''
     host = (urlsplit(referrer).hostname or '').lower()
@@ -108,9 +115,9 @@ def referrer_of(request):
 UTM_FIELDS = ('utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term')
 
 
-def utm_of(request):
+def utm_of(params):
     """Paramètres UTM de la page d'arrivée (liens de campagne)."""
-    return {field: request.GET.get(field, '').strip()[:100] for field in UTM_FIELDS}
+    return {field: params.get(field, '').strip()[:100] for field in UTM_FIELDS}
 
 
 # --- Enregistrement -----------------------------------------------------------
@@ -136,17 +143,43 @@ def visitor_id(request):
 
 
 def record(request, now):
-    """Note l'activité du visiteur : prolonge sa visite ou en ouvre une nouvelle."""
+    """Note l'activité d'un visiteur déjà compté (appelé à chaque requête).
+
+    Rien n'est créé ici : sans visite en cours, ``request.visit_beacon`` demande
+    à la page d'envoyer le signal JavaScript qui ouvrira la visite. Les robots
+    qui ne gardent pas les cookies ou n'exécutent pas le JavaScript ne sont donc
+    jamais comptés et ne créent pas de session.
+    """
+    identifier = request.session.get(VISITOR_SESSION_KEY)
+    visit_pk = request.session.get(VISIT_SESSION_KEY)
+    if identifier and visit_pk:
+        changes = {'last_seen': now}
+        if request.user.is_authenticated:
+            changes['user'] = request.user
+        if is_page_view(request):
+            changes['current_path'] = request.get_full_path()[:255]
+        if Visit.objects.filter(
+            pk=visit_pk, visitor_id=identifier, last_seen__gte=now - VISIT_TIMEOUT
+        ).update(**changes):
+            return
+    request.visit_beacon = is_page_view(request)
+
+
+def clean_path(raw):
+    """Chemin envoyé par la page : uniquement une adresse interne au site."""
+    path = (raw or '').strip()
+    if not path.startswith('/') or path.startswith('//'):
+        return ''
+    return path[:255]
+
+
+def start(request, now, path, referrer):
+    """Signal JavaScript d'une page : ouvre une visite (ou prolonge la visite en cours)."""
     identifier = visitor_id(request)
     user = request.user if request.user.is_authenticated else None
-    page = is_page_view(request)
-    path = request.get_full_path()[:255]
-
-    changes = {'last_seen': now}
+    changes = {'last_seen': now, 'current_path': path}
     if user is not None:
         changes['user'] = user
-    if page:
-        changes['current_path'] = path
 
     visit_pk = request.session.get(VISIT_SESSION_KEY)
     if visit_pk and Visit.objects.filter(
@@ -154,15 +187,12 @@ def record(request, now):
     ).update(**changes):
         return
 
-    if not page:
-        # Une nouvelle visite commence toujours par une vraie page.
-        return
-    referrer, domain = referrer_of(request)
+    referrer, domain = referrer_of(request, referrer)
     visit = Visit.objects.create(
         visitor_id=identifier, user=user, started=now, last_seen=now,
         landing_path=path, current_path=path,
         referrer=referrer, referrer_domain=domain, country=country_for(request),
-        **utm_of(request),
+        **utm_of(QueryDict(urlsplit(path).query)),
     )
     request.session[VISIT_SESSION_KEY] = visit.pk
 
@@ -194,3 +224,44 @@ def country_label(code):
         return '🏳️ Inconnu'
     flag = ''.join(chr(0x1F1E6 + ord(c) - ord('A')) for c in code.upper())
     return f"{flag} {COUNTRY_NAMES.get(code.upper(), code.upper())}"
+
+
+# --- Nettoyage ----------------------------------------------------------------
+
+BURST_THRESHOLD = 50   # « visiteurs » d'une seule page par heure au-delà desquels c'est un robot
+
+
+def purge_bot_bursts(visit_model, stats_model, country='BE', threshold=BURST_THRESHOLD):
+    """Supprime les rafales de faux visiteurs laissées par un robot (avant le signal JS).
+
+    Signature du robot : visiteur anonyme, une seule page vue (visite jamais
+    prolongée), sans site d'origine ni campagne, et des dizaines comme lui dans
+    la même heure depuis le même pays. Le compteur historique est corrigé
+    d'autant. Renvoie le nombre de visiteurs retirés.
+    """
+    candidates = list(
+        visit_model.objects.filter(
+            country=country, user__isnull=True, last_seen=F('started'),
+            referrer_domain='', utm_source='', utm_campaign='',
+        ).values_list('pk', 'visitor_id', 'started')
+    )
+    by_hour = {}
+    for pk, visitor, started in candidates:
+        by_hour.setdefault(started.replace(minute=0, second=0, microsecond=0), []).append((pk, visitor))
+    suspects = [row for rows in by_hour.values() if len(rows) >= threshold for row in rows]
+    if not suspects:
+        return 0
+    # Un vrai visiteur revient : on garde ceux qui ont d'autres visites.
+    visitor_ids = {visitor for _, visitor in suspects}
+    returning = set(
+        visit_model.objects.filter(visitor_id__in=visitor_ids)
+        .exclude(pk__in=[pk for pk, _ in suspects])
+        .values_list('visitor_id', flat=True)
+    )
+    pks = [pk for pk, visitor in suspects if visitor not in returning]
+    removed = len({visitor for _, visitor in suspects if visitor not in returning})
+    visit_model.objects.filter(pk__in=pks).delete()
+    stats = stats_model.objects.filter(pk=1).first()
+    if stats is not None:
+        stats_model.objects.filter(pk=1).update(total_visitors=max(0, stats.total_visitors - removed))
+    return removed

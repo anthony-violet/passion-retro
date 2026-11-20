@@ -4,6 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import update_session_auth_hash
 from . import accounts
 from .forms import PostForm, ResendActivationForm, UserRegistrationForm, UserLoginForm, UserUpdateForm, ProfileUpdateForm, PasswordUpdateForm
@@ -356,3 +357,26 @@ def close_announcement_banner(request):
         max_age=60 * 60 * 24 * 180, samesite='Lax', secure=request.is_secure(),
     )
     return response
+
+
+@csrf_exempt
+@require_POST
+def visit_beacon(request):
+    """Signal envoyé en JavaScript par chaque nouvelle page : ouvre la visite.
+
+    Un robot qui ne fait que télécharger les pages n'exécute pas ce script et
+    n'est donc pas compté. Pas de jeton CSRF (un visiteur qui arrive n'en a pas
+    encore) : on refuse seulement les appels venant d'un autre site.
+    """
+    from django.http import HttpResponse
+    from django.utils import timezone
+
+    from . import visits
+
+    origin = request.headers.get('origin', '')
+    if origin and urllib.parse.urlsplit(origin).netloc != request.get_host():
+        return HttpResponse(status=403)
+    path = visits.clean_path(request.POST.get('path'))
+    if path and not visits.is_bot(request):
+        visits.start(request, timezone.now(), path, request.POST.get('referrer', ''))
+    return HttpResponse(status=204)

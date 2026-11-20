@@ -27,5 +27,6 @@ urlpatterns = [
     path("item/use/<int:item_id>/", views.use_item, name="use_item"),
     path("theme/set/", views.set_theme, name="set_theme"),
     path("theme/set/<str:theme_name>/", views.set_theme, name="set_theme_named"),
+    path("visite/", views.visit_beacon, name="visit_beacon"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 ]

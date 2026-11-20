@@ -511,10 +511,18 @@ class VisitTestMixin:
         self.addCleanup(self.middleware.disable)
         self.Client = Client
 
-    def _get(self, client, path='/', **extra):
+    def _get(self, client, path='/', js=True, **extra):
+        """Charge une page comme un navigateur : si la page contient le script de
+        statistiques et que ``js`` est vrai, envoie aussi son signal."""
         extra.setdefault('HTTP_USER_AGENT', self.BROWSER)
         extra.setdefault('HTTP_ACCEPT', 'text/html')
-        return client.get(path, **extra).wsgi_request
+        response = client.get(path, **extra)
+        if js and b'data-visit-beacon' in response.content:
+            beacon_extra = {key: value for key, value in extra.items()
+                            if key in ('HTTP_USER_AGENT', 'HTTP_CF_IPCOUNTRY', 'REMOTE_ADDR')}
+            client.post('/users/visite/', {'path': path, 'referrer': extra.get('HTTP_REFERER', '')},
+                        HTTP_ORIGIN='http://testserver', **beacon_extra)
+        return response.wsgi_request
 
 
 class VisitTrackingTest(VisitTestMixin, TestCase):
@@ -540,11 +548,15 @@ class VisitTrackingTest(VisitTestMixin, TestCase):
     def test_two_visitors_and_historic_total(self):
         from users.models import VisitorStats
 
+        from django.utils import timezone
+
+        from users import visits
+
         first, second = self.Client(), self.Client()
         self._get(first)
         self._get(first)
-        request = self._get(second)
-        self.assertEqual(request.visitor_count, 2)
+        self._get(second)
+        self.assertEqual(visits.active_visitor_count(timezone.now()), 2)
         self.assertEqual(VisitorStats.objects.get(pk=1).total_visitors, 2)
 
     def test_inactive_visitors_leave_the_live_count(self):
@@ -605,6 +617,38 @@ class VisitTrackingTest(VisitTestMixin, TestCase):
         self.assertFalse(Visit.objects.exists())
         self.assertFalse(VisitorStats.objects.filter(total_visitors__gt=0).exists())
 
+    def test_page_without_javascript_is_not_counted(self):
+        """Un robot qui se fait passer pour un navigateur mais n'exécute pas le JS
+        (et ne garde pas les cookies) ne compte pas et ne crée pas de session."""
+        from django.contrib.sessions.models import Session
+
+        from users.models import Visit, VisitorStats
+
+        for path in ('/', '/forum/', '/posts/'):
+            self._get(self.Client(), path, js=False)
+        self.assertFalse(Visit.objects.exists())
+        self.assertFalse(VisitorStats.objects.filter(total_visitors__gt=0).exists())
+        self.assertFalse(Session.objects.exists())
+
+    def test_script_only_on_pages_without_visit_in_progress(self):
+        client = self.Client()
+        response = client.get('/', HTTP_USER_AGENT=self.BROWSER, HTTP_ACCEPT='text/html')
+        self.assertContains(response, 'data-visit-beacon')
+        self._get(client)
+        response = client.get('/forum/', HTTP_USER_AGENT=self.BROWSER, HTTP_ACCEPT='text/html')
+        self.assertNotContains(response, 'data-visit-beacon')
+
+    def test_beacon_rejects_other_sites_and_external_paths(self):
+        from users.models import Visit
+
+        client = self.Client()
+        response = client.post('/users/visite/', {'path': '/'}, HTTP_USER_AGENT=self.BROWSER,
+                               HTTP_ORIGIN='https://evil.example.com')
+        self.assertEqual(response.status_code, 403)
+        client.post('/users/visite/', {'path': 'https://evil.example.com/'}, HTTP_USER_AGENT=self.BROWSER)
+        client.post('/users/visite/', {'path': '/'}, HTTP_USER_AGENT='Googlebot/2.1')
+        self.assertFalse(Visit.objects.exists())
+
     def test_panel_stats_page(self):
         staff = User.objects.create_user(username='modo', email='m@test.com', password='pass12345',
                                          active=True, is_staff=True)
@@ -621,6 +665,46 @@ class VisitTrackingTest(VisitTestMixin, TestCase):
         self.client.force_login(User.objects.create_user(
             username='membre', email='x@test.com', password='pass12345', active=True))
         self.assertEqual(self.client.get('/panel/statistiques/').status_code, 302)
+
+
+class PurgeBotBurstsTest(TestCase):
+    """Nettoyage des rafales de faux visiteurs (migration users 0032)."""
+
+    def _visit(self, visitor, started, **fields):
+        from users.models import Visit
+
+        fields.setdefault('country', 'BE')
+        return Visit.objects.create(visitor_id=visitor, started=started, last_seen=started, **fields)
+
+    def test_removes_burst_and_fixes_total_but_keeps_real_visitors(self):
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from users.models import Visit, VisitorStats
+        from users.visits import purge_bot_bursts
+
+        hour = timezone.now().replace(minute=0, second=0, microsecond=0) - timedelta(hours=3)
+        for i in range(60):
+            self._visit(f'robot{i}', hour + timedelta(seconds=i * 50))
+        VisitorStats.objects.create(pk=1, total_visitors=1000)
+        # Dans la même heure, de vrais visiteurs belges :
+        member = User.objects.create_user(username='belge', email='b@test.com', password='pass12345')
+        self._visit('membre', hour + timedelta(minutes=5), user=member)
+        self._visit('navigue', hour + timedelta(minutes=6)).__class__.objects.filter(
+            visitor_id='navigue').update(last_seen=hour + timedelta(minutes=20))
+        self._visit('google', hour + timedelta(minutes=7), referrer_domain='google.com')
+        self._visit('revient', hour + timedelta(minutes=8))
+        self._visit('revient', hour + timedelta(days=1))
+        self._visit('francais', hour + timedelta(minutes=9), country='FR')
+        # Un visiteur belge isolé, une autre heure :
+        self._visit('isole', hour - timedelta(hours=5))
+
+        self.assertEqual(purge_bot_bursts(Visit, VisitorStats), 60)
+        self.assertEqual(VisitorStats.objects.get(pk=1).total_visitors, 940)
+        self.assertEqual(set(Visit.objects.values_list('visitor_id', flat=True)),
+                         {'membre', 'navigue', 'google', 'revient', 'francais', 'isole'})
+        self.assertEqual(purge_bot_bursts(Visit, VisitorStats), 0)
 
 
 class UtmTest(VisitTestMixin, TestCase):
