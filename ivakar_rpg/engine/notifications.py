@@ -58,7 +58,7 @@ def deliver(character, now=None):
     if toasts:
         Notification.objects.filter(pk__in=toasts).update(seen_at=now)
     return [{
-        'id': n.pk, 'style': n.style, 'icon': KINDS.get(n.kind, (TOAST, ''))[1], 'title': n.title,
+        'id': n.pk, 'kind': n.kind, 'style': n.style, 'icon': KINDS.get(n.kind, (TOAST, ''))[1], 'title': n.title,
         'body': n.body, 'url': n.url,
     } for n in pending]
 

@@ -136,7 +136,7 @@ def duel_challenge(request, character, character_id):
         messages.error(request, str(error))
         return redirect('rpg_play')
     messages.success(request, f"Défi lancé à {duel.opponent.name}.")
-    return redirect('rpg_duels')
+    return redirect('rpg_duel', duel.pk)
 
 
 @require_POST

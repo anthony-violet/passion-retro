@@ -192,3 +192,5 @@
 .ivk-popup__body { margin: 0 0 16px; }
 .ivk-popup__actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
 @media (prefers-reduced-motion: reduce) { .ivk-toast { transition: none; } }
+.rpg-duel-pending { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.rpg-duel-pending p { flex-basis: 100%; margin: 0 0 4px; }

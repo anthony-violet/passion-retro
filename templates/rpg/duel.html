@@ -42,6 +42,18 @@
         {% else %}
             <p class="rpg-muted">En attente du choix de {{ other.name }}… la page se met à jour toute seule.</p>
         {% endif %}
+    {% elif duel.status == 'pending' %}
+        <form method="post" action="{% url 'rpg_duel_answer' duel.id %}" class="rpg-duel-pending">
+            {% csrf_token %}
+            {% if duel.challenger_id == character.pk %}
+                <p>⏳ En attente de la réponse de <strong>{{ duel.opponent.name }}</strong>… la page se met à jour toute seule.</p>
+                <button type="submit" name="action" value="cancel" class="btn btn-small">Retirer le défi</button>
+            {% else %}
+                <p><strong>{{ duel.challenger.name }}</strong> te défie en duel amical : aucune blessure, rien à perdre.</p>
+                <button type="submit" name="action" value="accept" class="btn btn-add">Accepter</button>
+                <button type="submit" name="action" value="decline" class="btn">Refuser</button>
+            {% endif %}
+        </form>
     {% else %}
         <p class="rpg-muted">{{ duel.get_status_display }}.</p>
     {% endif %}
@@ -68,7 +80,7 @@
     </form>
     {% endif %}
 </section>
-{% if duel.status == 'active' %}
+{% if duel.status == 'active' or duel.status == 'pending' %}
 <script>
 (function () {
     var box = document.querySelector('[data-duel]');

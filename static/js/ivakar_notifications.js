@@ -104,6 +104,8 @@
                 data.notifications.forEach(function (n) {
                     if (shown[n.id]) return;
                     shown[n.id] = true;
+                    // Les pages peuvent réagir (ex. la liste des duels se met à jour).
+                    document.dispatchEvent(new CustomEvent('ivakar:notification', {detail: n}));
                     if (n.style === 'popup') queue.push(n);
                     else toast({title: n.title, body: n.body, url: n.url, icon: n.icon});
                 });

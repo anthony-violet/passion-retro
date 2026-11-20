@@ -256,6 +256,31 @@ class DuelTests(SocialTestCase):
         self.assertEqual(duel_engine.waiting_for(self.character).count(), 0)
         self.assertEqual(duel_engine.waiting_for(self.other).count(), 1)
 
+    def test_challenger_waits_on_a_refreshing_page(self):
+        self.client.login(username='heros', password='pass')
+        response = self.client.post(reverse('rpg_duel_challenge', args=[self.other.pk]))
+        duel = Duel.objects.get()
+        self.assertRedirects(response, reverse('rpg_duel', args=[duel.pk]))
+        page = self.client.get(reverse('rpg_duel', args=[duel.pk]))
+        self.assertContains(page, "En attente de la réponse")
+        self.assertContains(page, 'data-state=')  # le script de rafraîchissement est présent
+        state_url = reverse('rpg_duel_state', args=[duel.pk])
+        self.assertEqual(self.client.get(state_url).json()['status'], Duel.STATUS_PENDING)
+        duel_engine.accept(self.other, duel.pk)
+        self.assertEqual(self.client.get(state_url).json()['status'], Duel.STATUS_ACTIVE)
+
+    def test_challenged_can_answer_from_the_duel_page(self):
+        duel = duel_engine.challenge(self.character, self.other.pk)
+        self.client.login(username='compagnon', password='pass')
+        self.assertContains(self.client.get(reverse('rpg_duel', args=[duel.pk])), "Accepter")
+        self.client.post(reverse('rpg_duel_answer', args=[duel.pk]), {'action': 'accept'})
+        duel.refresh_from_db()
+        self.assertEqual(duel.status, Duel.STATUS_ACTIVE)
+
+    def test_duel_list_reacts_to_notifications(self):
+        self.client.login(username='heros', password='pass')
+        self.assertContains(self.client.get(reverse('rpg_duels')), "ivakar:notification")
+
     def test_duel_pages(self):
         duel = self.start()
         self.client.login(username='compagnon', password='pass')

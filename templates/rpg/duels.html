@@ -43,4 +43,10 @@
     </ul>
     {% endif %}
 </section>
+<script>
+/* Un duel a bougé (défi accepté, refusé, manche jouée…) : la liste se met à jour. */
+document.addEventListener('ivakar:notification', function (event) {
+    if ((event.detail.kind || '').indexOf('duel_') === 0) setTimeout(function () { location.reload(); }, 1500);
+});
+</script>
 {% endblock %}
