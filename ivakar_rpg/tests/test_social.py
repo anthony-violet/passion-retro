@@ -193,6 +193,25 @@ class DuelTests(SocialTestCase):
         self.assertEqual(duel.opponent_hp, duel.opponent_max_hp)
         self.assertIn("trop lente", " ".join(e['text'] for e in duel.log))
 
+    def test_log_is_split_into_readable_parts(self):
+        duel = self.start()
+        # Feinte 6+6 contre Perception 1+1 : touche ; la garde ne fait rien.
+        duel = self.play(duel, 'feint', 'guard', FixedRng(6, 6, 1, 1, 1, 1))
+        lines = [e for e in duel.log if e['round'] == 1]
+        kinds = [e['kind'] for e in lines]
+        self.assertEqual(kinds[:3], ['story', 'cast', 'cast'])
+        self.assertIn('roll', kinds)
+        self.assertEqual(kinds[-1], 'summary')
+        hit = next(e for e in lines if e['kind'] == 'hit')
+        self.assertEqual(hit['parts'][0], ['o', self.other.name])
+        self.assertIn(['dmg', '8'], hit['parts'])
+        roll = next(e for e in lines if e['kind'] == 'roll')
+        self.assertIn("2D6 (6+6)", roll['detail'])
+        self.client.login(username='heros', password='pass')
+        page = self.client.get(reverse('rpg_duel', args=[duel.pk]))
+        self.assertContains(page, '<span class="ivk-l-dmg">8</span>', html=True)
+        self.assertContains(page, 'data-duel-dice')
+
     def test_intimidation_limits_next_round(self):
         duel = self.start()
         duel = self.play(duel, 'intimidate', 'guard', FixedRng(6, 6, 1, 1))

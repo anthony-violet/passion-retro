@@ -166,8 +166,30 @@
 .rpg-duel-action__help { font-size: .88em; opacity: .85; }
 .rpg-duel-rounds { display: grid; gap: 6px; }
 .rpg-duel-round summary { cursor: pointer; font-weight: bold; }
-.rpg-duel-round .rpg-combat-log { margin: 6px 0 4px; }
 .rpg-log__entry--story { font-weight: bold; }
+
+/* Déroulé du duel : une ligne courte par fait, noms et chiffres mis en avant */
+.rpg-duel-history__head { display: flex; gap: 12px; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; }
+.rpg-duel-history__head label { cursor: pointer; }
+.rpg-duel-log { list-style: none; margin: 6px 0 4px; padding: 8px 12px; display: grid; gap: 2px;
+    border-radius: 6px; background: rgba(127, 127, 127, .1); line-height: 1.45; }
+.rpg-duel-log__line--roll { opacity: .78; font-size: .92em; }
+.rpg-duel-log__line--cast { }
+.rpg-duel-log__line--summary { margin-top: 4px; padding-top: 4px; border-top: 1px dashed rgba(127, 127, 127, .5);
+    font-size: .92em; }
+.rpg-duel-log__line--story, .rpg-duel-log__line--end { font-style: italic; }
+.rpg-duel-log__line--end { font-weight: bold; }
+.rpg-duel-log__dice { display: none; margin-left: 4px; font-size: .82em; opacity: .7;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.show-dice .rpg-duel-log__dice { display: block; }
+.ivk-l-c, .ivk-l-o, .ivk-l-act, .ivk-l-roll, .ivk-l-dmg, .ivk-l-hp, .ivk-l-state { font-weight: bold; }
+.ivk-l-c { color: #2f7fd1; }
+.ivk-l-o { color: #d35c1f; }
+.ivk-l-dmg { color: var(--rpg-bad); }
+.ivk-l-hp { color: var(--rpg-good); }
+.ivk-l-state { color: #a35bd6; }
+.ivk-l-note { opacity: .7; }
 
 /* Notifications : toasts (éphémères) et popups (à fermer) */
 .ivk-toasts { position: fixed; right: 16px; bottom: 16px; z-index: 1000; display: flex; flex-direction: column;
