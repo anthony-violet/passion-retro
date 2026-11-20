@@ -519,10 +519,10 @@ body.theme-vicecity a:hover { color: var(--text-link-hover); text-shadow: 0 0 8p
     text-shadow: none;
 }
 
-/* Bouton « Contribuer » du menu : centré dans la rangée, sans la marge des .btn
-   (sinon il dépasse en bas et agrandit sa ligne). */
+/* Items du menu centrés dans la barre ; bouton « Contribuer » centré dans la
+   rangée, sans la marge des .btn (sinon il dépasse en bas et agrandit sa ligne). */
 @media (min-width: 769px) {
-    .theme-vicecity .menu-horizontal > ul { align-items: center; }
+    .theme-vicecity .menu-horizontal > ul { align-items: center; justify-content: center; }
 }
 .theme-vicecity .menu-horizontal > ul > li > a.btn {
     margin: 0 6px;
