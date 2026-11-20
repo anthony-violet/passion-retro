@@ -13,6 +13,7 @@
         <li><a href="{% url 'discover' %}">Découvrir {{ site_name }}</a></li>
         <li><a href="{% url 'wall_memories:wall' %}">Le Mur des souvenirs</a>{% if request.user.is_staff and pending_memories_count > 0 %} <span class="badge badge-warning">{{ pending_memories_count }}</span>{% endif %}</li>
         <li><a href="{% url 'news_list' %}">Actus</a></li>
+        <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
         <li class="has-dropdown">
             <a href="#" class="menu-dropdown-toggle" aria-haspopup="true" aria-expanded="false" aria-controls="nav-submenu-community">Communauté <span class="menu-caret" aria-hidden="true">▾</span></a>
             <ul class="dropdown" id="nav-submenu-community">
@@ -21,7 +22,6 @@
                 <li><a href="{% url 'guestbook_home' %}">Livre d'or</a></li>
             </ul>
         </li>
-        <li><a href="{% url 'contribute' %}" class="btn btn-add">Contribuer</a></li>
         <li><a href="{% url 'shop_home' %}">Boutique</a></li>
         <li>
             <a href="{% url 'portal_games' %}">
