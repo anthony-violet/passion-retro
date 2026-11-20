@@ -13,7 +13,7 @@ from django.db import transaction
 
 from ..models import Character, Combat, Wound
 from . import RpgError
-from .character import add_log, lock, max_hp, start_location, stat_values
+from .character import add_log, lock, max_hp, start_location, stat_values, visit
 from .dice import get_rng
 from .rules import aggravation_check, resolve
 
@@ -109,7 +109,7 @@ def wake_up(character):
         if not character.is_ko:
             raise RpgError("Tu es déjà conscient.")
         character.state = Character.STATE_OK
-        character.location = start_location()
+        visit(character, start_location())
         character.hp = max(1, max_hp(character) // 2)
         add_log(character, f"Tu reprends connaissance à {character.location.name}. Quelqu'un t'a ramené.", 'good')
         character.save()

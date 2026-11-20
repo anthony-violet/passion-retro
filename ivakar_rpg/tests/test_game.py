@@ -25,7 +25,7 @@ class WorldTests(IvakarTestCase):
             world.move(self.character, exit.pk)
 
     def test_move(self):
-        exit = LocationExit.objects.get(from_location__slug='hautcendre', to_location__slug='lisiere')
+        exit = LocationExit.objects.get(from_location__slug='precalm', to_location__slug='lisiere')
         world.move(self.character, exit.pk)
         self.assertEqual(self.reload().location.slug, 'lisiere')
 
@@ -42,7 +42,7 @@ class WorldTests(IvakarTestCase):
     def test_busy_hero_cannot_move(self):
         self.character.scene = Scene.objects.get(slug='pot-casse')
         self.character.save()
-        exit = LocationExit.objects.get(from_location__slug='hautcendre', to_location__slug='lisiere')
+        exit = LocationExit.objects.get(from_location__slug='precalm', to_location__slug='lisiere')
         with self.assertRaises(RpgError):
             world.move(self.character, exit.pk)
 

@@ -10,7 +10,8 @@
     <ul class="rpg-items">
         {% for item in wares %}
         <li class="rpg-item rpg-item--{{ item.rarity }}">
-            <div>
+            {% if item.visual_url %}<img class="rpg-item__icon" src="{{ item.visual_url }}" alt="">{% endif %}
+            <div class="rpg-item__body">
                 <strong>{{ item.name }}</strong> <span class="rpg-muted">· {{ item.get_kind_display }}</span>
                 {% if item.description %}<p class="rpg-muted">{{ item.description }}</p>{% endif %}
                 {% include "rpg/partials/item_bonuses.html" %}
@@ -28,7 +29,8 @@
     <ul class="rpg-items">
         {% for entry in sellable %}
         <li class="rpg-item">
-            <div><strong>{{ entry.item.name }}</strong>{% if entry.quantity > 1 %} ×{{ entry.quantity }}{% endif %}{% if entry.equipped %} <span class="rpg-muted">· équipé</span>{% endif %}</div>
+            {% if entry.item.visual_url %}<img class="rpg-item__icon" src="{{ entry.item.visual_url }}" alt="">{% endif %}
+            <div class="rpg-item__body"><strong>{{ entry.item.name }}</strong>{% if entry.quantity > 1 %} ×{{ entry.quantity }}{% endif %}{% if entry.equipped %} <span class="rpg-muted">· équipé</span>{% endif %}</div>
             <form method="post" action="{% url 'rpg_sell' entry.item.id %}" class="rpg-item__actions">{% csrf_token %}
                 <button type="submit" class="btn btn-small">Vendre · {{ entry.item.sell_price }} écus</button>
             </form>

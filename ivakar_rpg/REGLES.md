@@ -43,7 +43,7 @@ fichiers, et doit être tranchée ou remplacée lors des phases de test.
 
 ## Contenu
 
-`content/chapitre1.py` (« Les Brumes de Hautcendre ») est un scénario d'exemple
+`content/chapitre1.py` (« Les Brumes de Précalm ») est un scénario d'exemple
 pour tester le moteur, pas une campagne. Aucun élément du roman *Soleris –
 Chroniques d'Ivakar* n'y est repris. Chargement : `python manage.py load_ivakar`
 (`--update` pour réécrire avec les valeurs du fichier).

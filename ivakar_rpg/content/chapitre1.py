@@ -1,4 +1,4 @@
-"""Scénario d'exemple — « Les Brumes de Hautcendre ».
+"""Scénario d'exemple — « Les Brumes de Précalm » (plaines d'Agasur).
 
 Contenu de départ chargé par ``python manage.py load_ivakar`` : il sert à tester
 le moteur, il n'est pas une campagne officielle. Rien ici n'est repris du roman
@@ -6,7 +6,7 @@ Soleris – Chroniques d'Ivakar. Les références entre objets se font par slug 
 une fois chargé, tout se modifie dans l'admin.
 
 Fil rouge :
-1. Hautcendre : Maela, l'aubergiste, demande qu'on abatte le loup alpha de la lisière.
+1. Précalm : Maela, l'aubergiste, demande qu'on abatte le loup alpha de la lisière.
 2. Le croc de l'alpha convainc l'ermite Tobald (Forêt des Murmures) de révéler
    le secret des brumes : la clé runique dort au fond de la mine.
 3. La clé ouvre la crypte sous les ruines de Vel-Ithar, où attend le Roi-Brume.
@@ -36,25 +36,25 @@ ITEMS = [
 
 LOCATIONS = [
     {
-        'slug': 'hautcendre', 'name': "Hautcendre", 'order': 1, 'is_start': True, 'is_safe': True,
+        'slug': 'precalm', 'map_x': 250, 'map_y': 857, 'name': "Précalm", 'order': 1, 'is_start': True, 'is_safe': True,
         'has_inn': True, 'inn_price': 5, 'has_merchant': True, 'recommended_level': 1, 'calm_weight': 2,
         'description': (
-            "Quelques maisons serrées autour d'une place pavée, une forge qui fume et l'auberge du "
-            "[b]Pot Cassé[/b]. Au-delà des palissades, la brume avale les collines. Depuis qu'elle est "
-            "tombée, plus aucun voyageur n'est arrivé par la route du nord."
+            "Une petite bourgade des plaines d'Agasur, sans rempart ni garde : quelques maisons autour d'une "
+            "place pavée, une forge qui fume et l'auberge du [b]Pot Cassé[/b]. Depuis que la brume est tombée "
+            "sur les plaines, plus aucun voyageur n'est arrivé par la route de Haut-Chateau."
         ),
         'wares': ['epee-courte', 'hache-bucheron', 'veste-cuir', 'cotte-mailles', 'pain', 'potion-soin',
                   'grande-potion', 'lanterne'],
     },
     {
-        'slug': 'lisiere', 'name': "La Lisière brumeuse", 'order': 2, 'recommended_level': 1, 'calm_weight': 2,
+        'slug': 'lisiere', 'map_x': 400, 'map_y': 743, 'name': "La Lisière brumeuse", 'order': 2, 'recommended_level': 1, 'calm_weight': 2,
         'description': (
             "Les premiers arbres émergent du brouillard comme des sentinelles. On entend des hurlements "
             "au loin, et parfois, des rires aigus qui ne présagent rien de bon."
         ),
     },
     {
-        'slug': 'foret-murmures', 'name': "La Forêt des Murmures", 'order': 3, 'recommended_level': 2,
+        'slug': 'foret-murmures', 'map_x': 570, 'map_y': 529, 'name': "La Forêt des Murmures", 'order': 3, 'recommended_level': 2,
         'calm_weight': 2,
         'description': (
             "Les troncs sont si serrés que la lumière peine à passer. Le vent fait chuchoter les feuilles : "
@@ -62,7 +62,7 @@ LOCATIONS = [
         ),
     },
     {
-        'slug': 'mine-abandonnee', 'name': "La Mine abandonnée", 'order': 4, 'recommended_level': 3,
+        'slug': 'mine-abandonnee', 'map_x': 170, 'map_y': 471, 'name': "La Mine abandonnée", 'order': 4, 'recommended_level': 3,
         'calm_weight': 1,
         'description': (
             "Des rails rouillés s'enfoncent dans la montagne. L'air sent la poussière et l'huile froide. "
@@ -70,7 +70,7 @@ LOCATIONS = [
         ),
     },
     {
-        'slug': 'ruines-vel-ithar', 'name': "Les Ruines de Vel-Ithar", 'order': 5, 'recommended_level': 4,
+        'slug': 'ruines-vel-ithar', 'map_x': 760, 'map_y': 271, 'name': "Les Ruines de Vel-Ithar", 'order': 5, 'recommended_level': 4,
         'calm_weight': 2,
         'description': (
             "Les restes d'une cité royale, colonnes brisées et statues sans visage. Ici, la brume est si "
@@ -78,7 +78,7 @@ LOCATIONS = [
         ),
     },
     {
-        'slug': 'crypte-roi-brume', 'name': "La Crypte du Roi-Brume", 'order': 6, 'recommended_level': 5,
+        'slug': 'crypte-roi-brume', 'map_x': 820, 'map_y': 390, 'name': "La Crypte du Roi-Brume", 'order': 6, 'recommended_level': 5,
         'calm_weight': 0,
         'description': (
             "Un froid de tombeau. Au centre de la salle, un trône de pierre noire, et sur le trône, "
@@ -89,8 +89,8 @@ LOCATIONS = [
 
 # from, to, libellé, niveau requis, objet requis, marqueur requis, message si bloqué
 EXITS = [
-    ('hautcendre', 'lisiere', "Franchir la palissade vers la lisière", 0, None, '', ''),
-    ('lisiere', 'hautcendre', "Rentrer à Hautcendre", 0, None, '', ''),
+    ('precalm', 'lisiere', "Prendre le chemin de la lisière", 0, None, '', ''),
+    ('lisiere', 'precalm', "Rentrer à Précalm", 0, None, '', ''),
     ('lisiere', 'foret-murmures', "S'enfoncer dans la Forêt des Murmures", 2, None, '',
      "La forêt est trop dangereuse avant le niveau 2."),
     ('lisiere', 'mine-abandonnee', "Suivre les rails vers la mine", 0, 'lanterne', '',
@@ -176,9 +176,9 @@ QUESTS = [
 # Scènes. ``choices`` : liste de dicts ; ``success`` / ``failure`` : conséquences.
 # ``test`` : (caractéristique, seuil). ``wound`` : (gravité 1-3, description). ``strain`` : sollicite les blessures.
 SCENES = [
-    # --- Hautcendre ----------------------------------------------------------
+    # --- Précalm ----------------------------------------------------------
     {
-        'slug': 'pot-casse', 'title': "L'auberge du Pot Cassé", 'location': 'hautcendre', 'explore_weight': 3,
+        'slug': 'pot-casse', 'title': "L'auberge du Pot Cassé", 'location': 'precalm', 'explore_weight': 3,
         'text': (
             "La salle est basse et enfumée. On y parle à mi-voix, comme si la brume pouvait écouter. "
             "Derrière le comptoir, [b]Maela[/b] te jauge longuement : « Tu as l'allure de ceux qui partent. "
@@ -186,7 +186,7 @@ SCENES = [
         ),
         'choices': [
             {'label': "Demander s'il y a une tâche à accomplir", 'forbidden_flag': 'quete_loups',
-             'success': {'text': "« Les loups. Depuis que la brume est tombée, ils viennent jusqu'aux palissades. "
+             'success': {'text': "« Les loups. Depuis que la brume est tombée, ils rôdent jusqu'aux premières maisons. "
                                  "Leur chef a une cicatrice blanche. Abats-le, et la meute se dispersera. »",
                          'start_quest': 'loups-lisiere', 'set_flag': 'quete_loups'}},
             {'label': "Prêter l'oreille aux conversations", 'test': ('perception', 10),
@@ -200,7 +200,7 @@ SCENES = [
         ],
     },
     {
-        'slug': 'puits-ancien', 'title': "Le puits ancien", 'location': 'hautcendre', 'explore_weight': 1,
+        'slug': 'puits-ancien', 'title': "Le puits ancien", 'location': 'precalm', 'explore_weight': 1,
         'once': True,
         'text': "Au coin de la place, un puits plus vieux que le village. Quelque chose brille faiblement au fond.",
         'choices': [
@@ -232,10 +232,10 @@ SCENES = [
         'slug': 'taniere-apres', 'title': "Le silence de la tanière",
         'text': "L'alpha gît dans la poussière. Privée de son chef, la meute s'est dispersée dans la brume.",
         'choices': [
-            {'label': "Prendre un croc en trophée et rentrer à Hautcendre",
+            {'label': "Prendre un croc en trophée et rentrer à Précalm",
              'success': {'text': "Maela pose une chope devant toi sans un mot. C'est sa façon de dire merci.",
                          'give_item': 'croc-alpha', 'set_flag': 'loups_vaincus', 'complete_quest': 'loups-lisiere',
-                         'move_to': 'hautcendre'}},
+                         'move_to': 'precalm'}},
         ],
     },
     {
@@ -387,10 +387,10 @@ SCENES = [
         'text': ("Le Roi-Brume se dissout dans un long soupir. Au-dessus de toi, pour la première fois depuis "
                  "des mois, un rayon de soleil perce jusqu'aux ruines."),
         'choices': [
-            {'label': "Rentrer à Hautcendre",
+            {'label': "Rentrer à Précalm",
              'success': {'text': "Tout le village t'attend sur la place. On allume des feux sur les collines, "
                                  "et ton nom passe de bouche en bouche. [i]Fin du scénario d'exemple.[/i]",
-                         'set_flag': 'roi_vaincu', 'complete_quest': 'roi-brume', 'move_to': 'hautcendre'}},
+                         'set_flag': 'roi_vaincu', 'complete_quest': 'roi-brume', 'move_to': 'precalm'}},
         ],
     },
     {

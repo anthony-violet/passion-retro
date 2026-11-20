@@ -27,7 +27,9 @@ class IvakarForm(forms.ModelForm):
                 field.widget = forms.CheckboxSelectMultiple(choices=field.choices)
         if 'slug' in self.fields:
             self.fields['slug'].required = False
-            self.fields['slug'].help_text = "Identifiant technique. Vide = déduit du nom."
+            self.fields['slug'].help_text = ("Identifiant technique. Vide = déduit du nom. Évite de le changer "
+                                             "ensuite : la commande load_ivakar s'en sert pour reconnaître les "
+                                             "éléments du scénario.")
 
     def clean(self):
         data = super().clean()
@@ -62,8 +64,9 @@ SECTIONS = {
     'lieux': {
         'model': Location, 'title': "Lieux", 'singular': "un lieu", 'icon': "🗺️",
         'help': "Les lieux du monde, leurs chemins et les monstres qu'on y croise en explorant.",
-        'form': form_for(Location, ['name', 'slug', 'description', 'is_start', 'is_safe', 'has_inn', 'inn_price',
-                                    'has_merchant', 'recommended_level', 'calm_weight', 'order']),
+        'form': form_for(Location, ['name', 'slug', 'description', 'image', 'is_start', 'is_safe', 'has_inn',
+                                    'inn_price', 'has_merchant', 'recommended_level', 'calm_weight', 'order',
+                                    'map_x', 'map_y']),
         'columns': [("Nom", 'name'), ("Niv.", 'recommended_level'), ("Départ", 'is_start'), ("Sûr", 'is_safe'),
                     ("Auberge", 'has_inn'), ("Marchand", 'has_merchant'), ("Ordre", 'order')],
         'search': ['name', 'slug'],
@@ -76,9 +79,10 @@ SECTIONS = {
     },
     'scenes': {
         'model': Scene, 'title': "Scènes", 'singular': "une scène", 'icon': "📜",
-        'help': "Les événements à choix. Une scène apparaît en explorant son lieu (poids > 0) ou à la suite d'un choix.",
-        'form': form_for(Scene, ['title', 'slug', 'location', 'text', 'explore_weight', 'once', 'min_level',
-                                 'required_flag', 'forbidden_flag']),
+        'help': "Les événements à choix. Une scène apparaît en explorant son lieu (poids > 0) ou à la suite d'un "
+                "choix. Sans illustration propre, elle reprend celle de son lieu.",
+        'form': form_for(Scene, ['title', 'slug', 'location', 'text', 'image', 'explore_weight', 'once',
+                                 'min_level', 'required_flag', 'forbidden_flag']),
         'columns': [("Titre", 'title'), ("Lieu", 'location'), ("Poids", 'explore_weight'), ("Unique", 'once'),
                     ("Choix", 'choices.count')],
         'search': ['title', 'slug', 'text'],
@@ -90,7 +94,7 @@ SECTIONS = {
         'model': Monster, 'title': "Monstres", 'singular': "un monstre", 'icon': "👹",
         'help': "Chaque monstre est décrit par les seuils (10 / 13 / 16) que le héros doit atteindre avec sa "
                 "Dextérité pour le toucher, esquiver ses attaques ou le fuir.",
-        'form': form_for(Monster, ['name', 'slug', 'description', 'level', 'hp', 'hit_difficulty',
+        'form': form_for(Monster, ['name', 'slug', 'description', 'image', 'level', 'hp', 'hit_difficulty',
                                    'dodge_difficulty', 'flee_difficulty', 'damage_min', 'damage_max', 'armor', 'xp',
                                    'coins_min', 'coins_max', 'is_boss']),
         'columns': [("Nom", 'name'), ("Niv.", 'level'), ("PV", 'hp'), ("Toucher", 'hit_difficulty'),
@@ -101,7 +105,7 @@ SECTIONS = {
     'objets': {
         'model': Item, 'title': "Objets", 'singular': "un objet", 'icon': "🎒",
         'help': "Armes, armures, consommables et objets de quête. Cocher un lieu met l'objet en vente chez son marchand.",
-        'form': form_for(Item, ['name', 'slug', 'description', 'kind', 'rarity', 'price', 'attack_bonus',
+        'form': form_for(Item, ['name', 'slug', 'description', 'image', 'kind', 'rarity', 'price', 'attack_bonus',
                                 'defense_bonus', 'hp_bonus', 'heal', 'sold_at']),
         'columns': [("Nom", 'name'), ("Type", 'kind'), ("Rareté", 'rarity'), ("Prix", 'price'),
                     ("Dégâts", 'attack_bonus'), ("Armure", 'defense_bonus'), ("Soin", 'heal')],

@@ -1,0 +1,117 @@
+{% extends 'panel/ivakar/base.html' %}
+
+{% block ivakar_content %}
+<div class="panel-page-header">
+    <h2>🧭 Carte — Les plaines d’Agasur</h2>
+    <a href="{% url 'rpg_map' %}" class="btn btn-small">Voir côté joueur</a>
+</div>
+<p class="ivk-help">Fais glisser les repères pour placer les lieux (souris, doigt, ou flèches du clavier après avoir cliqué un repère),
+   puis enregistre. Les chemins se tracent tout seuls à partir des sorties des lieux. Les joueurs ne voient que les lieux
+   visités et leurs voisins.</p>
+
+<form method="post" id="ivk-map-form">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="positions">
+    {% for m in map.markers %}
+    <input type="hidden" name="x_{{ m.location.pk }}" value="{{ m.location.map_x }}" data-x="{{ m.location.pk }}">
+    <input type="hidden" name="y_{{ m.location.pk }}" value="{{ m.location.map_y }}" data-y="{{ m.location.pk }}">
+    {% endfor %}
+    {% include "rpg/partials/map.html" with map=map background=background editable=True %}
+    <div class="panel-form-actions">
+        <button type="submit" class="btn btn-add">Enregistrer les positions</button>
+        <span class="ivk-help" data-dirty hidden>Modifications non enregistrées.</span>
+    </div>
+</form>
+
+<div class="ivk-columns">
+    <div class="panel-section">
+        <h3>Lieux absents de la carte</h3>
+        {% if unplaced %}
+        <ul class="ivk-list">
+            {% for loc in unplaced %}
+            <li>{{ loc.name }}
+                <form method="post" style="display:inline">{% csrf_token %}<input type="hidden" name="location" value="{{ loc.pk }}">
+                    <button name="action" value="place" class="btn btn-small">Placer sur la carte</button></form></li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Tous les lieux sont placés.</p>
+        {% endif %}
+        {% if map.markers %}
+        <h3>Retirer un lieu de la carte</h3>
+        <form method="post" class="ivk-toolbar">{% csrf_token %}
+            <select name="location" aria-label="Lieu à retirer">{% for m in map.markers %}<option value="{{ m.location.pk }}">{{ m.location.name }}</option>{% endfor %}</select>
+            <button name="action" value="unplace" class="btn btn-small btn-danger">Retirer</button>
+        </form>
+        {% endif %}
+    </div>
+    <div class="panel-section">
+        <h3>Fond de carte</h3>
+        <p class="ivk-help">{% if custom_background %}Image envoyée par l'équipe.{% else %}Parchemin fourni par défaut.{% endif %}
+           La carte prend les proportions de l'image (la carte d'Ivakar en 1600 × 900 convient très bien).
+           Les repères gardent leur position relative : replace-les après un changement de fond.</p>
+        <form method="post" enctype="multipart/form-data" class="ivk-toolbar">{% csrf_token %}
+            <input type="file" name="image" accept="image/*" required aria-label="Nouveau fond de carte">
+            <button name="action" value="background" class="btn btn-small btn-add">Envoyer</button>
+        </form>
+        {% if custom_background %}
+        <form method="post">{% csrf_token %}<button name="action" value="reset_background" class="btn btn-small">Revenir au parchemin fourni</button></form>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function () {
+    var map = document.querySelector('[data-ivk-map]');
+    var form = document.getElementById('ivk-map-form');
+    if (!map || !form) return;
+    var dirty = form.querySelector('[data-dirty]');
+    function place(marker, x, y) {
+        x = Math.max(0, Math.min(1000, Math.round(x)));
+        y = Math.max(0, Math.min(1000, Math.round(y)));
+        var pk = marker.dataset.marker;
+        marker.style.left = (x / 10) + '%';
+        marker.style.top = (y / 10) + '%';
+        form.querySelector('[data-x="' + pk + '"]').value = x;
+        form.querySelector('[data-y="' + pk + '"]').value = y;
+        map.querySelectorAll('line[data-a="' + pk + '"]').forEach(function (l) { l.setAttribute('x1', x); l.setAttribute('y1', y); });
+        map.querySelectorAll('line[data-b="' + pk + '"]').forEach(function (l) { l.setAttribute('x2', x); l.setAttribute('y2', y); });
+        dirty.hidden = false;
+    }
+    function current(marker) {
+        var pk = marker.dataset.marker;
+        return [parseInt(form.querySelector('[data-x="' + pk + '"]').value, 10),
+                parseInt(form.querySelector('[data-y="' + pk + '"]').value, 10)];
+    }
+    map.querySelectorAll('[data-marker]').forEach(function (marker) {
+        marker.addEventListener('pointerdown', function (event) {
+            event.preventDefault();
+            marker.setPointerCapture(event.pointerId);
+            marker.classList.add('is-dragging');
+            function move(e) {
+                var box = map.getBoundingClientRect();
+                place(marker, (e.clientX - box.left) / box.width * 1000, (e.clientY - box.top) / box.height * 1000);
+            }
+            function up() {
+                marker.classList.remove('is-dragging');
+                marker.removeEventListener('pointermove', move);
+                marker.removeEventListener('pointerup', up);
+            }
+            marker.addEventListener('pointermove', move);
+            marker.addEventListener('pointerup', up);
+        });
+        marker.addEventListener('keydown', function (event) {
+            var step = event.shiftKey ? 50 : 10, pos = current(marker);
+            var delta = {ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step]}[event.key];
+            if (!delta) return;
+            event.preventDefault();
+            place(marker, pos[0] + delta[0], pos[1] + delta[1]);
+        });
+    });
+    window.addEventListener('beforeunload', function (event) {
+        if (!dirty.hidden) { event.preventDefault(); event.returnValue = ''; }
+    });
+    form.addEventListener('submit', function () { dirty.hidden = true; });
+})();
+</script>
+{% endblock %}

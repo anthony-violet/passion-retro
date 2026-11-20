@@ -12,8 +12,10 @@ from django.views.decorators.http import require_POST
 from ivakar_rpg.checks import content_problems
 from ivakar_rpg.engine import character as hero
 from ivakar_rpg.engine.rules import CHARACTERISTICS
+from ivakar_rpg.engine.worldmap import map_for
 from ivakar_rpg.models import (
-    Character, CharacterQuest, Choice, CoinExchange, Combat, InventoryItem, Location, Outcome, Scene, Wound,
+    MAP_SIZE, Character, CharacterQuest, Choice, CoinExchange, Combat, InventoryItem, Location, Outcome, Scene,
+    WorldMap, Wound,
 )
 from panel.decorators import staff_required
 from panel.ivakar_sections import SECTIONS, ChoiceForm, OutcomeForm
@@ -120,7 +122,7 @@ def _edit(request, section, instance):
     config = _section(section)
     creating = instance.pk is None
     if request.method == 'POST':
-        form = config['form'](request.POST, instance=instance)
+        form = config['form'](request.POST, request.FILES, instance=instance)
         formsets = _formsets(config, instance, request.POST)
         if form.is_valid() and all(f['formset'].is_valid() for f in formsets):
             with transaction.atomic():
@@ -344,4 +346,51 @@ def exchange_list(request):
     return _render(request, 'panel/ivakar/exchanges.html', {
         'section': 'change', 'page': page,
         'totals': CoinExchange.objects.aggregate(gold=Sum('gold_spent'), coins=Sum('coins_received')),
+    })
+
+
+# ---------------------------------------------------------------------------
+# Carte du monde : placement des lieux et fond de carte
+# ---------------------------------------------------------------------------
+@staff_required
+def world_map(request):
+    world = WorldMap.current()
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'positions':
+            moved = 0
+            for location in Location.objects.all():
+                x, y = request.POST.get(f'x_{location.pk}'), request.POST.get(f'y_{location.pk}')
+                if x is None or y is None:
+                    continue
+                try:
+                    x, y = (max(0, min(MAP_SIZE, int(float(v)))) for v in (x, y))
+                except (TypeError, ValueError):
+                    continue
+                if (location.map_x, location.map_y) != (x, y):
+                    Location.objects.filter(pk=location.pk).update(map_x=x, map_y=y)
+                    moved += 1
+            messages.success(request, f"Positions enregistrées ({moved} lieu{'x' if moved > 1 else ''} déplacé"
+                                      f"{'s' if moved > 1 else ''}).")
+        elif action == 'place':
+            location = Location.objects.filter(pk=request.POST.get('location'), map_x=None).first()
+            if location:
+                Location.objects.filter(pk=location.pk).update(map_x=MAP_SIZE // 2, map_y=MAP_SIZE // 2)
+                messages.success(request, f"« {location.name} » est placé au centre : fais-le glisser à sa place.")
+        elif action == 'unplace':
+            Location.objects.filter(pk=request.POST.get('location')).update(map_x=None, map_y=None)
+            messages.success(request, "Lieu retiré de la carte.")
+        elif action == 'background' and request.FILES.get('image'):
+            world.image = request.FILES['image']
+            world.save()
+            messages.success(request, "Nouveau fond de carte enregistré.")
+        elif action == 'reset_background' and world.pk:
+            world.image = ''
+            world.save()
+            messages.success(request, "Le parchemin fourni est rétabli.")
+        return redirect('panel_ivakar_map')
+    return _render(request, 'panel/ivakar/map.html', {
+        'section': 'carte', 'map': map_for(None), 'background': world.background_url,
+        'custom_background': world.has_custom_background if world.pk else False,
+        'unplaced': Location.objects.filter(Q(map_x=None) | Q(map_y=None)),
     })

@@ -42,6 +42,13 @@ def lock(character):
     return Character.objects.select_for_update().select_related('location', 'scene').get(pk=character.pk)
 
 
+def visit(character, location):
+    """Déplace le héros et marque le lieu comme découvert (personnage verrouillé, non sauvegardé)."""
+    character.location = location
+    if location is not None and location.pk not in (character.visited or []):
+        character.visited = list(character.visited or []) + [location.pk]
+
+
 def start_location():
     location = Location.objects.filter(is_start=True).order_by('order').first()
     if location is None:
@@ -134,7 +141,7 @@ def create_character(user, name, origin_id):
         if Character.objects.select_for_update().filter(user=user).exists():
             raise RpgError("Tu as déjà un héros à Ivakar.")
         character = Character.objects.create(user=user, name=name, origin=origin, location=location, hp=1,
-                                             coins=STARTING_COINS)
+                                             coins=STARTING_COINS, visited=[location.pk])
         inventory = Inventory.objects.create(character=character)
         CharacterCharacteristic.objects.bulk_create([
             CharacterCharacteristic(character=character, characteristic=characteristic,

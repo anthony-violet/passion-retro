@@ -5,7 +5,7 @@ from django.utils import timezone
 from ..models import CharacterQuest, Choice, Combat, Outcome
 from . import RpgError
 from .character import (
-    add_item, add_log, change_coins, change_hp, gain_xp, lock, owned_item_ids, remove_item, stat_values,
+    add_item, add_log, change_coins, change_hp, gain_xp, lock, owned_item_ids, remove_item, stat_values, visit,
 )
 from .dice import get_rng
 from .rules import resolve
@@ -119,7 +119,7 @@ def apply_outcome(character, outcome, rng=None):
     if outcome.wound:
         inflict(character, outcome.wound, outcome.wound_label)
     if outcome.move_to_id:
-        character.location = outcome.move_to
+        visit(character, outcome.move_to)
         add_log(character, f"Tu arrives : {outcome.move_to.name}.")
     if outcome.combat_id:
         enter_scene(character, None)

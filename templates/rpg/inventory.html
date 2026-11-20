@@ -9,7 +9,8 @@
     <ul class="rpg-items">
         {% for entry in entries %}
         <li class="rpg-item rpg-item--{{ entry.item.rarity }}{% if entry.equipped %} is-equipped{% endif %}">
-            <div>
+            {% if entry.item.visual_url %}<img class="rpg-item__icon" src="{{ entry.item.visual_url }}" alt="">{% endif %}
+            <div class="rpg-item__body">
                 <strong>{{ entry.item.name }}</strong>{% if entry.quantity > 1 %} ×{{ entry.quantity }}{% endif %}
                 <span class="rpg-muted">· {{ entry.item.get_kind_display }}{% if entry.equipped %} · équipé{% endif %}</span>
                 {% if entry.item.description %}<p class="rpg-muted">{{ entry.item.description }}</p>{% endif %}

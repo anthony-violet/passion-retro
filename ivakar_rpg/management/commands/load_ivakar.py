@@ -3,6 +3,9 @@
 Par défaut, seuls les éléments absents sont créés : les retouches faites dans
 l'admin sont préservées. ``--update`` réécrit les éléments du scénario avec les
 valeurs du fichier.
+
+Les éléments sont reconnus par leur identifiant (slug) : un élément dont le slug
+a été changé dans le panel sera recréé. Vérifier avant de relancer la commande.
 """
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -49,7 +52,11 @@ class Command(BaseCommand):
             data = dict(data)
             wares = data.pop('wares', [])
             slug = data.pop('slug')
+            position = {'map_x': data.pop('map_x', None), 'map_y': data.pop('map_y', None)}
             locations[slug], created = self._save(Location, {'slug': slug}, data)
+            # Position sur la carte : posée si le lieu n'est pas encore placé (sans écraser un placement du panel).
+            if self.update or locations[slug].map_x is None:
+                Location.objects.filter(pk=locations[slug].pk).update(**position)
             if created or self.update:
                 for ware in wares:
                     items[ware].sold_at.add(locations[slug])

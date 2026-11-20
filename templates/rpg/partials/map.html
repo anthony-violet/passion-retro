@@ -1,0 +1,29 @@
+{# Carte du monde. Paramètres : map, background, editable (panel : repères déplaçables) #}
+{% load l10n %}{% localize off %}
+<div class="ivk-map{% if editable %} ivk-map--editable{% endif %}" data-ivk-map>
+    <img class="ivk-map__bg" src="{{ background }}" alt="" aria-hidden="true">
+    <svg class="ivk-map__paths" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+        {% for p in map.paths %}
+        <line x1="{{ p.x1 }}" y1="{{ p.y1 }}" x2="{{ p.x2 }}" y2="{{ p.y2 }}" class="{% if p.explored %}is-explored{% endif %}"
+              data-a="{{ p.a }}" data-b="{{ p.b }}"/>
+        {% endfor %}
+    </svg>
+    {% for m in map.markers %}
+        {% if m.exit and not m.lock_reason and not editable %}
+        <form method="post" action="{% url 'rpg_move' m.exit.id %}" class="ivk-map__marker is-reachable" style="left: {{ m.x }}%; top: {{ m.y }}%">
+            {% csrf_token %}
+            <button type="submit" title="Y aller : {{ m.exit.label|default:m.location.name }}">
+                <span class="ivk-map__dot"></span><span class="ivk-map__name">{{ m.location.name }}</span>
+            </button>
+        </form>
+        {% else %}
+        <div class="ivk-map__marker{% if m.current %} is-current{% endif %}{% if not m.visited %} is-unexplored{% endif %}"
+             style="left: {{ m.x }}%; top: {{ m.y }}%"
+             {% if editable %}data-marker="{{ m.location.pk }}" tabindex="0" role="button" aria-label="Déplacer {{ m.location.name }}"{% endif %}
+             title="{% if m.current %}Tu es ici{% elif m.lock_reason %}{{ m.lock_reason }}{% elif not m.visited %}Pas encore exploré{% else %}{{ m.location.name }}{% endif %}">
+            <span class="ivk-map__dot"></span><span class="ivk-map__name">{% if m.current %}📍 {% elif m.lock_reason %}🔒 {% endif %}{{ m.location.name }}</span>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endlocalize %}

@@ -31,3 +31,7 @@
 .panel-form-group ul label { font-weight: normal; }
 .ivk-inline input:not([type="checkbox"]), .ivk-inline select { height: 32px; padding: 4px 6px; font-size: .9em; }
 .ivk-outcome { padding-left: 16px; }
+.ivk-preview { margin: 0 0 14px; max-width: 420px; }
+.ivk-preview img[src$=".svg"] { image-rendering: pixelated; }
+.ivk-preview img { display: block; width: 100%; border: 2px solid currentColor; border-radius: 6px; }
+.ivk-preview figcaption { font-size: .85em; opacity: .75; margin-top: 4px; }

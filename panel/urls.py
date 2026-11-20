@@ -88,6 +88,7 @@ urlpatterns = [
     path('ivakar/heros/', ivakar.hero_list, name='panel_ivakar_heroes'),
     path('ivakar/heros/<int:pk>/', ivakar.hero_detail, name='panel_ivakar_hero'),
     path('ivakar/change/', ivakar.exchange_list, name='panel_ivakar_exchanges'),
+    path('ivakar/carte/', ivakar.world_map, name='panel_ivakar_map'),
     path('ivakar/scenes/<int:scene_id>/choix/create/', ivakar.choice_create, name='panel_ivakar_choice_create'),
     path('ivakar/choix/<int:pk>/edit/', ivakar.choice_edit, name='panel_ivakar_choice_edit'),
     path('ivakar/choix/<int:pk>/delete/', ivakar.choice_delete, name='panel_ivakar_choice_delete'),

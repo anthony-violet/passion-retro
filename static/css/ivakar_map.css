@@ -1,0 +1,32 @@
+/* Carte du monde d'Ivakar (jeu et panel) */
+/* La carte prend les proportions de son image de fond ; les repères sont en % de sa taille. */
+.ivk-map { position: relative; width: 100%; border: 3px solid #6b4a2b; border-radius: 6px;
+    overflow: hidden; background: #e9d8b0; color: #3b2a1a; user-select: none; line-height: 0; }
+.ivk-map__bg { display: block; width: 100%; height: auto; pointer-events: none; -webkit-user-drag: none; }
+.ivk-map__marker, .ivk-map__name { line-height: 1.1; }
+.ivk-map__paths { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.ivk-map__paths line { stroke: #6b4a2b; stroke-width: 2.5; stroke-dasharray: 8 7; vector-effect: non-scaling-stroke;
+    opacity: .55; }
+.ivk-map__paths line.is-explored { opacity: .95; stroke-dasharray: 10 5; }
+.ivk-map__marker { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column;
+    align-items: center; gap: 2px; margin: 0; z-index: 1; }
+.ivk-map__marker button { all: unset; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ivk-map__dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: #8e3b2b;
+    border: 2px solid #3b2a1a; box-shadow: 0 0 0 2px #f3e6c4; }
+.ivk-map__dot.is-current, .ivk-map__marker.is-current .ivk-map__dot { background: #d4a017; width: 18px; height: 18px;
+    animation: ivkPulse 1.6s ease-in-out infinite; }
+.ivk-map__dot.is-unexplored, .ivk-map__marker.is-unexplored .ivk-map__dot { background: #b8a888; border-style: dashed; }
+.ivk-map__name { font: italic bold 13px/1.1 Georgia, serif; background: rgba(243, 230, 196, .88); color: #3b2a1a;
+    padding: 1px 5px; border-radius: 3px; white-space: nowrap; }
+.ivk-map__marker.is-unexplored .ivk-map__name { opacity: .7; font-weight: normal; }
+.ivk-map__marker.is-reachable .ivk-map__dot { background: #2f7d4a; }
+.ivk-map__marker.is-reachable button:hover .ivk-map__name,
+.ivk-map__marker.is-reachable button:focus-visible .ivk-map__name { background: #2f7d4a; color: #fff; }
+.ivk-map--editable .ivk-map__marker { cursor: grab; touch-action: none; }
+.ivk-map--editable .ivk-map__marker.is-dragging { cursor: grabbing; z-index: 2; }
+.ivk-map__legend { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 6px 18px;
+    font-size: .9em; }
+.ivk-map__legend .ivk-map__dot { vertical-align: middle; animation: none; width: 12px; height: 12px; }
+@keyframes ivkPulse { 0%, 100% { box-shadow: 0 0 0 2px #f3e6c4; } 50% { box-shadow: 0 0 0 6px rgba(212, 160, 23, .45); } }
+@media (max-width: 560px) { .ivk-map__name { font-size: 10px; } .ivk-map__dot { width: 11px; height: 11px; } }
+@media (prefers-reduced-motion: reduce) { .ivk-map__dot.is-current, .ivk-map__marker.is-current .ivk-map__dot { animation: none; } }

@@ -24,7 +24,8 @@
     </ul>
     {% endif %}
     <nav class="rpg-hud__nav" aria-label="Menu du jeu">
-        <a href="{% url 'rpg_play' %}">🗺️ Jouer</a>
+        <a href="{% url 'rpg_play' %}">⚔️ Jouer</a>
+        <a href="{% url 'rpg_map' %}">🗺️ Carte</a>
         <a href="{% url 'rpg_sheet' %}">📜 Héros{% if character.unspent_points %} <span class="rpg-pill">+{{ character.unspent_points }}</span>{% endif %}</a>
         <a href="{% url 'rpg_inventory' %}">🎒 Inventaire</a>
         <a href="{% url 'rpg_quests' %}">📖 Quêtes</a>

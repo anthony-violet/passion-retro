@@ -9,8 +9,9 @@ from .engine import character as hero
 from .engine import combat as fight
 from .engine import economy, rewards as site_rewards, scenes, world
 from .engine import wounds
+from .engine.worldmap import map_for
 from .engine.rules import DIFFICULTY_LABELS, MAX_LEVEL, POINTS_PER_LEVEL, STAT_CAP
-from .models import Character, CharacterQuest, InventoryItem, Origin, Wound
+from .models import Character, CharacterQuest, InventoryItem, Location, Origin, WorldMap, Wound
 
 PLAY = 'rpg_play'
 
@@ -76,6 +77,7 @@ def home(request):
         'heroes': heroes,
         'track': site_rewards.reward_track(character),
         'is_open': getattr(settings, 'RPG_OPEN', False),
+        'banner': next((loc.visual_url for loc in Location.objects.filter(is_start=True)[:1]), ''),
     })
 
 
@@ -234,6 +236,15 @@ def equip(request, character, item_id):
 @player_view
 def use(request, character, item_id):
     return _run(request, hero.use_item, character, item_id, to='rpg_inventory')
+
+
+@player_view
+def world_map(request, character):
+    return render(request, 'rpg/map.html', {
+        **_meta("Les plaines d’Agasur"), **_hud(character),
+        'map': map_for(character),
+        'background': WorldMap.current().background_url,
+    })
 
 
 @player_view

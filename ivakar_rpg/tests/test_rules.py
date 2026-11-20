@@ -58,7 +58,7 @@ class CreationAndProgressionTests(IvakarTestCase):
     def test_starting_state(self):
         c = self.reload()
         self.assertEqual(c.level, 1)
-        self.assertEqual(c.location.slug, 'hautcendre')
+        self.assertEqual(c.location.slug, 'precalm')
         self.assertEqual(c.hp, hero.max_hp(c))
         self.assertEqual(c.state, Character.STATE_OK)
 
@@ -130,7 +130,7 @@ class WoundTests(IvakarTestCase):
         c.save()
         wounds.wake_up(c)
         c = self.reload()
-        self.assertEqual((c.state, c.location.slug), (Character.STATE_OK, 'hautcendre'))
+        self.assertEqual((c.state, c.location.slug), (Character.STATE_OK, 'precalm'))
         self.assertGreater(c.hp, 0)
         self.assertFalse(Combat.objects.filter(character=c).exists())
 

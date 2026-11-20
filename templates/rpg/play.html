@@ -16,6 +16,7 @@
 
 {% elif mode == 'combat' %}
 <section class="rpg-screen rpg-screen--combat">
+    {% if combat.monster.visual_url %}<figure class="rpg-art rpg-art--sprite"><img src="{{ combat.monster.visual_url }}" alt="{{ combat.monster.name }}"></figure>{% endif %}
     <h2>⚔️ {{ combat.monster.name }}{% if combat.monster.is_boss %} <span class="rpg-pill rpg-pill--boss">Boss</span>{% endif %}</h2>
     {% if combat.monster.description %}<p class="rpg-muted">{{ combat.monster.description }}</p>{% endif %}
     <p class="rpg-muted">Toucher : {{ combat.monster.get_hit_difficulty_display }} · Esquiver : {{ combat.monster.get_dodge_difficulty_display }}{% if not combat.monster.is_boss %} · Fuir : {{ combat.monster.get_flee_difficulty_display }}{% endif %}</p>
@@ -46,6 +47,7 @@
 
 {% elif mode == 'scene' %}
 <section class="rpg-screen rpg-screen--scene">
+    {% if scene.visual_url %}<figure class="rpg-art"><img src="{{ scene.visual_url }}" alt=""></figure>{% endif %}
     <h2>{{ scene.title }}</h2>
     <div class="rpg-text">{{ scene.text|bbcode|safe }}</div>
     <ul class="rpg-choices">
@@ -73,6 +75,7 @@
 
 {% else %}
 <section class="rpg-screen rpg-screen--location">
+    {% if character.location.visual_url %}<figure class="rpg-art"><img src="{{ character.location.visual_url }}" alt="{{ character.location.name }}"></figure>{% endif %}
     <h2>📍 {{ character.location.name }}</h2>
     <p class="rpg-muted">
         {% if character.location.is_safe %}Lieu sûr{% else %}Danger · niveau conseillé {{ character.location.recommended_level }}{% endif %}
@@ -85,6 +88,7 @@
         <form method="post" action="{% url 'rpg_rest' %}">{% csrf_token %}<button type="submit" class="btn">🛏️ Dormir à l'auberge ({{ character.location.inn_price }} écus)</button></form>
         {% endif %}
         {% if character.location.has_merchant %}<a href="{% url 'rpg_merchant' %}" class="btn">🛒 Marchand</a>{% endif %}
+        <a href="{% url 'rpg_map' %}" class="btn">🗺️ Carte</a>
     </div>
 
     {% if exits %}

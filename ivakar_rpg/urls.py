@@ -20,6 +20,7 @@ urlpatterns = [
     path("inventaire/<int:item_id>/equiper", views.equip, name="rpg_equip"),
     path("inventaire/<int:item_id>/utiliser", views.use, name="rpg_use"),
     path("quetes", views.quests, name="rpg_quests"),
+    path("carte", views.world_map, name="rpg_map"),
     path("marchand", views.merchant, name="rpg_merchant"),
     path("marchand/acheter/<int:item_id>", views.buy, name="rpg_buy"),
     path("marchand/vendre/<int:item_id>", views.sell, name="rpg_sell"),

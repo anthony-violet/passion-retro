@@ -8,7 +8,11 @@
 <p class="ivk-help">{{ config.help }}</p>
 
 <div class="panel-section">
-    <form method="post" class="panel-form">
+    {% if obj.pk and obj.visual_url %}
+    <figure class="ivk-preview"><img src="{{ obj.visual_url }}" alt="Illustration actuelle">
+        <figcaption>{% if obj.has_uploaded_image %}Image envoyée{% else %}Illustration fournie (remplacée dès qu'une image est envoyée){% endif %}</figcaption></figure>
+    {% endif %}
+    <form method="post" class="panel-form" enctype="multipart/form-data">
         {% csrf_token %}
         {% include 'panel/ivakar/_fields.html' with form=form %}
         {% for f in formsets %}

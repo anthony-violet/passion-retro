@@ -3,7 +3,7 @@ from django.db import transaction
 
 from ..models import LocationExit, Scene
 from . import RpgError
-from .character import add_log, ensure_free, lock, owned_item_ids
+from .character import add_log, ensure_free, lock, owned_item_ids, visit
 from .dice import get_rng, weighted_pick
 
 
@@ -47,7 +47,7 @@ def move(character, exit_id, rng=None):
         reason = exit_lock_reason(character, exit, owned_item_ids(character))
         if reason:
             raise RpgError(reason)
-        character.location = exit.to_location
+        visit(character, exit.to_location)
         add_log(character, f"Tu arrives : {exit.to_location.name}.")
         character.travel_count += 1
         if character.travel_count % TIME_CHECK_EVERY == 0:

@@ -114,3 +114,14 @@
 .rpg-wound--2 { color: #d27a1f; }
 .rpg-wound--3 { color: var(--rpg-bad); font-weight: bold; }
 .rpg-table th .rpg-muted { font-weight: normal; }
+
+/* Illustrations (pixel art : agrandies sans flou) */
+.rpg-art { margin: 0 0 12px; border: 2px solid currentColor; border-radius: 6px; overflow: hidden; line-height: 0; }
+.rpg-art img { display: block; width: 100%; height: auto; }
+.rpg-art img[src$=".svg"], .rpg-item__icon[src$=".svg"] { image-rendering: pixelated; }
+.rpg-art--sprite { width: 128px; margin: 0 auto 10px; background: rgba(127, 127, 127, .15); }
+.rpg-intro .rpg-art { margin-bottom: 14px; }
+.rpg-item { justify-content: flex-start; }
+.rpg-item__body { flex: 1; min-width: 0; }
+.rpg-item__icon { width: 40px; height: 40px; flex-shrink: 0; object-fit: contain;
+    background: rgba(127, 127, 127, .15); border-radius: 4px; padding: 2px; }

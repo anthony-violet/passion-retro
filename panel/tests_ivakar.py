@@ -87,16 +87,16 @@ class IvakarPanelTests(TestCase):
         return data
 
     def test_edit_location_and_add_exit(self):
-        location = Location.objects.get(slug='hautcendre')
+        location = Location.objects.get(slug='precalm')
         before = location.exits.count()
-        data = self._location_post(location, name="Hautcendre-la-Neuve")
+        data = self._location_post(location, name="Précalm-la-Neuve")
         n = before
         data.update({f'inline0-{n}-to_location': Location.objects.get(slug='mine-abandonnee').pk,
                      f'inline0-{n}-label': "Raccourci", f'inline0-{n}-required_level': 3})
         response = self.client.post(reverse('panel_ivakar_edit', args=['lieux', location.pk]), data)
         self.assertRedirects(response, reverse('panel_ivakar_list', args=['lieux']))
         location.refresh_from_db()
-        self.assertEqual(location.name, "Hautcendre-la-Neuve")
+        self.assertEqual(location.name, "Précalm-la-Neuve")
         self.assertEqual(location.exits.count(), before + 1)
 
     def test_new_origin_prefills_seven_characteristics(self):

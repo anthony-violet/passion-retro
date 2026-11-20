@@ -2,10 +2,11 @@
 
 {% block rpg_body %}
 <section class="rpg-intro">
+    {% if banner %}<figure class="rpg-art"><img src="{{ banner }}" alt=""></figure>{% endif %}
     <h2>Ivakar <small>— le RPG textuel de {{ site_name }}</small></h2>
     {% if not is_open %}<p class="rpg-notice">🔒 Ivakar est en construction : seule l'équipe y a accès pour l'instant.</p>{% endif %}
     <p class="rpg-tagline">
-        Une brume étrange a englouti les collines de Hautcendre. Les sentiers se perdent, les mines grondent
+        Une brume étrange a englouti les collines de Précalm. Les sentiers se perdent, les mines grondent
         et quelque chose s'est réveillé sous les ruines. Il faut un héros. Pourquoi pas toi ?
     </p>
     <ul class="rpg-features">

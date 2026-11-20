@@ -9,8 +9,12 @@ site par deux ponts seulement :
   boutique du site ou de l'XP du site ;
 - le bureau de change convertit l'or du site en écus, jamais l'inverse.
 """
+from functools import lru_cache
+
+from django.contrib.staticfiles import finders
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.templatetags.static import static
 
 from users.models import User
 
@@ -26,6 +30,49 @@ DIFFICULTY_CHOICES = [
     (DIFFICULTY_MEDIUM, "Moyenne (13)"),
     (DIFFICULTY_HARD, "Difficile (16)"),
 ]
+# Coordonnées sur la carte : de 0 à 1000 sur chaque axe (millièmes de la largeur / hauteur).
+MAP_SIZE = 1000
+VISUAL_EXTENSIONS = ('svg', 'webp', 'png', 'jpg')
+
+
+@lru_cache(maxsize=None)
+def builtin_visual(folder, slug):
+    """Illustration versionnée ``static/ivakar/<folder>/<slug>.<ext>`` ou ``''``."""
+    if not slug:
+        return ''
+    for ext in VISUAL_EXTENSIONS:
+        path = f'ivakar/{folder}/{slug}.{ext}'
+        if finders.find(path):
+            return path
+    return ''
+
+
+class Illustrated(models.Model):
+    """Image envoyée depuis le panel, sinon illustration versionnée dans ``static/ivakar/``."""
+
+    VISUAL_FOLDER = ''
+
+    image = models.ImageField("Illustration", upload_to='ivakar/', blank=True,
+                              help_text="Remplace l'illustration fournie. Format paysage conseillé.")
+
+    class Meta:
+        abstract = True
+
+    @property
+    def has_uploaded_image(self):
+        try:
+            return bool(self.image) and self.image.storage.exists(self.image.name)
+        except Exception:
+            return False
+
+    @property
+    def visual_url(self):
+        if self.has_uploaded_image:
+            return self.image.url
+        path = builtin_visual(self.VISUAL_FOLDER, getattr(self, 'slug', ''))
+        return static(path) if path else ''
+
+
 # Valeurs d'une caractéristique au niveau 1 (règles, IV).
 START_STAT_MIN = 1
 START_STAT_MAX = 20
@@ -114,6 +161,8 @@ class Character(models.Model):
     # Marqueurs d'histoire posés par les choix (``Outcome.set_flag``) et
     # scènes uniques déjà vues (``scene:<slug>``).
     flags = models.JSONField(default=list, blank=True)
+    # Lieux déjà visités (identifiants) : la carte n'en montre que ceux-là et leurs voisins.
+    visited = models.JSONField(default=list, blank=True)
     # Derniers événements racontés au joueur (le plus récent en dernier).
     log = models.JSONField(default=list, blank=True)
     show_title = models.BooleanField("Afficher mon titre sur le site", default=True)
@@ -175,7 +224,9 @@ class Inventory(models.Model):
     character = models.OneToOneField(Character, on_delete=models.CASCADE, related_name="inventory")
 
 
-class Item(models.Model):
+class Item(Illustrated):
+    VISUAL_FOLDER = 'objets'
+
     KIND_WEAPON = 'weapon'
     KIND_ARMOR = 'armor'
     KIND_CONSUMABLE = 'consumable'
@@ -247,7 +298,9 @@ class InventoryItem(models.Model):
 # ---------------------------------------------------------------------------
 # Monde
 # ---------------------------------------------------------------------------
-class Location(models.Model):
+class Location(Illustrated):
+    VISUAL_FOLDER = 'lieux'
+
     slug = models.SlugField(max_length=60, unique=True)
     name = models.CharField("Nom", max_length=80)
     description = models.TextField("Description (BBCode)", blank=True)
@@ -263,6 +316,12 @@ class Location(models.Model):
         help_text="Chance relative qu'une exploration ne donne rien.",
     )
     order = models.PositiveSmallIntegerField("Ordre", default=0)
+    map_x = models.PositiveSmallIntegerField("Carte : position horizontale", null=True, blank=True,
+                                             validators=[MaxValueValidator(MAP_SIZE)],
+                                             help_text="0 = bord gauche, 1000 = bord droit. Vide = absent de la carte.")
+    map_y = models.PositiveSmallIntegerField("Carte : position verticale", null=True, blank=True,
+                                             validators=[MaxValueValidator(MAP_SIZE)],
+                                             help_text="0 = haut, 1000 = bas.")
 
     class Meta:
         ordering = ['order', 'name']
@@ -292,7 +351,9 @@ class LocationExit(models.Model):
         return self.label or f"Vers {self.to_location}"
 
 
-class Monster(models.Model):
+class Monster(Illustrated):
+    VISUAL_FOLDER = 'monstres'
+
     slug = models.SlugField(max_length=60, unique=True)
     name = models.CharField("Nom", max_length=60)
     description = models.TextField(blank=True)
@@ -385,7 +446,9 @@ class CharacterQuest(models.Model):
 # ---------------------------------------------------------------------------
 # Histoire : scènes, choix et conséquences
 # ---------------------------------------------------------------------------
-class Scene(models.Model):
+class Scene(Illustrated):
+    VISUAL_FOLDER = 'scenes'
+
     slug = models.SlugField(max_length=80, unique=True)
     title = models.CharField("Titre", max_length=100)
     text = models.TextField("Texte (BBCode)")
@@ -410,6 +473,14 @@ class Scene(models.Model):
     @property
     def seen_flag(self):
         return f"scene:{self.slug}"
+
+    @property
+    def visual_url(self):
+        """Sa propre illustration, sinon celle de son lieu."""
+        own = super().visual_url
+        if own or not self.location_id:
+            return own
+        return self.location.visual_url
 
 
 class Choice(models.Model):
@@ -548,3 +619,35 @@ class CoinExchange(models.Model):
     class Meta:
         ordering = ['-created_at']
         verbose_name = "Change"
+
+
+class WorldMap(models.Model):
+    """Fond de la carte du monde. Sans image envoyée, le parchemin fourni est utilisé."""
+
+    DEFAULT_BACKGROUND = 'ivakar/carte/parchemin.svg'
+
+    image = models.ImageField("Fond de carte", upload_to='ivakar/carte/', blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Carte du monde"
+
+    @classmethod
+    def current(cls):
+        return cls.objects.first() or cls()
+
+    @property
+    def has_custom_background(self):
+        try:
+            return bool(self.image) and self.image.storage.exists(self.image.name)
+        except Exception:
+            return False
+
+    @property
+    def background_url(self):
+        try:
+            if self.image and self.image.storage.exists(self.image.name):
+                return self.image.url
+        except Exception:
+            pass
+        return static(self.DEFAULT_BACKGROUND)

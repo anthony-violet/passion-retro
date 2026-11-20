@@ -1,0 +1,16 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Carte</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>🗺️ Les plaines d’Agasur</h2>
+    <p class="rpg-muted">Seuls les lieux que tu as visités et leurs abords apparaissent. Clique sur un lieu voisin pour t'y rendre.</p>
+    {% include "rpg/partials/map.html" with map=map background=background editable=False %}
+    <ul class="ivk-map__legend">
+        <li><span class="ivk-map__dot is-current"></span> Ta position</li>
+        <li><span class="ivk-map__dot"></span> Lieu exploré</li>
+        <li><span class="ivk-map__dot is-unexplored"></span> Lieu entrevu</li>
+    </ul>
+</section>
+{% endblock %}
