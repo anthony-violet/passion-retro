@@ -9,12 +9,14 @@ après chaque assaut, récompenses (XP et écus pour tout participant, un objet 
 from datetime import timedelta
 
 from django.db import transaction
+from django.urls import reverse
 from django.utils import timezone
 
 from ..models import Character, EventParticipation, WorldEvent
 from . import RpgError
 from .character import add_item, add_log, change_coins, gain_xp, lock, sheet
 from .dice import get_rng
+from .notifications import notify
 from .rules import resolve
 
 LOG_SIZE = 20
@@ -119,6 +121,9 @@ def distribute_rewards(event):
     for participation in participations:
         character = lock(participation.character)
         add_log(character, f"{event.name} est vaincu grâce à toi et aux autres héros !", 'good')
+        notify(character, 'event_won', f"{event.name} est vaincu !",
+               f"Tu as infligé {participation.damage} dégâts. Tes récompenses t'attendent.",
+               reverse('rpg_event_detail', args=[event.pk]), ref=f"event_won:{event.pk}")
         if event.reward_coins:
             change_coins(character, event.reward_coins)
             add_log(character, f"Récompense : +{event.reward_coins} écus.", 'good')

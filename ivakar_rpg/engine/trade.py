@@ -3,11 +3,13 @@
 Rien n'est bloqué pendant l'attente : tout est revérifié au moment de l'acceptation.
 """
 from django.db import transaction
+from django.urls import reverse
 from django.utils import timezone
 
 from ..models import Character, InventoryItem, Item, Trade, TradeLine
 from . import RpgError
 from .character import add_item, add_log, max_hp, remove_item
+from .notifications import notify
 
 MAX_PENDING = 5
 
@@ -64,6 +66,8 @@ def propose(proposer, receiver_id, offer=None, request=None, offer_coins=0, requ
         TradeLine.objects.bulk_create(
             [TradeLine(trade=trade, side=TradeLine.SIDE_OFFER, item=i, quantity=q) for i, q in offer]
             + [TradeLine(trade=trade, side=TradeLine.SIDE_REQUEST, item=i, quantity=q) for i, q in request])
+        notify(receiver, 'trade_received', f"{proposer.name} te propose un échange.",
+               (message or '')[:200], reverse('rpg_trades'))
     return trade
 
 
@@ -119,6 +123,11 @@ def accept(receiver, trade_id):
             trade.status = Trade.STATUS_ACCEPTED
         trade.resolved_at = timezone.now()
         trade.save(update_fields=['status', 'resolved_at'])
+        if failure:
+            notify(proposer, 'trade_failed', f"Ton échange avec {receiver.name} n'a pas pu se faire.", str(failure),
+                   reverse('rpg_trades'))
+        else:
+            notify(proposer, 'trade_accepted', f"{receiver.name} accepte ton échange !", url=reverse('rpg_inventory'))
     if failure:
         raise RpgError(f"Échange impossible : {failure}")
     return trade
@@ -140,4 +149,7 @@ def _close(character, trade_id, field, status):
         trade.status = status
         trade.resolved_at = timezone.now()
         trade.save(update_fields=['status', 'resolved_at'])
+        if status == Trade.STATUS_DECLINED:
+            notify(trade.proposer, 'trade_declined', f"{character.name} refuse ton échange.",
+                   url=reverse('rpg_trades'))
     return trade

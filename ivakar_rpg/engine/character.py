@@ -166,6 +166,9 @@ def gain_xp(character, amount):
     Chaque passage de niveau donne 3 points de progression, répartis librement par
     le joueur. Aucune caractéristique n'augmente automatiquement.
     """
+    from django.urls import reverse
+
+    from .notifications import notify
     from .rewards import grant_level_rewards
 
     if amount <= 0:
@@ -181,6 +184,8 @@ def gain_xp(character, amount):
         add_log(character, f"Niveau {character.level} ! {POINTS_PER_LEVEL * gained} points de progression "
                            "à répartir.", 'good')
         character.save()
+        notify(character, 'level_up', f"Niveau {character.level} !",
+               f"{POINTS_PER_LEVEL * gained} points de progression à répartir librement.", reverse('rpg_sheet'))
         grant_level_rewards(character)
     return gained
 

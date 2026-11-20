@@ -1,0 +1,15 @@
+{# Popups (à fermer) et toasts (éphémères) d'Ivakar. Voir static/js/ivakar_notifications.js #}
+<div class="ivk-toasts" data-ivk-toasts aria-live="polite" aria-atomic="false"></div>
+<dialog class="ivk-popup" data-ivk-popup aria-labelledby="ivk-popup-title">
+    <div class="ivk-popup__icon" data-icon aria-hidden="true"></div>
+    <h2 id="ivk-popup-title" class="ivk-popup__title" data-title></h2>
+    <p class="ivk-popup__body" data-body></p>
+    <div class="ivk-popup__actions">
+        <a href="#" class="btn btn-add" data-go>Voir</a>
+        <button type="button" class="btn" data-close>Fermer</button>
+    </div>
+</dialog>
+{% if user.is_authenticated %}
+<span hidden data-ivk-notifications data-feed="{% url 'rpg_notifications' %}"
+      data-dismiss="{% url 'rpg_notification_dismiss' 0 %}" data-csrf="{{ csrf_token }}"></span>
+{% endif %}

@@ -12,6 +12,8 @@
     </ul>
     {% block rpg_body %}{% endblock %}
 </div>
+{% include "rpg/partials/notifications.html" %}
+<script src="{% static 'js/ivakar_notifications.js' %}" defer></script>
 <script>
 /* Après un formulaire du jeu, la page revient là où le joueur était au lieu de remonter en haut. */
 (function () {

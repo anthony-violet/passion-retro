@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 
 from .engine import RpgError
 from .engine import duel as duel_engine
-from .engine import events, social, trade as trade_engine
+from .engine import events, notifications, social, trade as trade_engine
 from .models import Character, Duel, InventoryItem, Item, Trade, WorldEvent
 from .views import _hud, _meta, _run, player_view
 
@@ -249,3 +249,19 @@ def world_event_attack(request, character, event_id):
     except RpgError as error:
         messages.error(request, str(error))
     return redirect(reverse('rpg_event_detail', args=[event_id]))
+
+
+# ---------------------------------------------------------------------------
+# Notifications (popups et toasts)
+# ---------------------------------------------------------------------------
+@player_view
+def notifications_feed(request, character):
+    return JsonResponse({'notifications': notifications.deliver(character),
+                         'poll': notifications.POLL_SECONDS})
+
+
+@require_POST
+@player_view
+def notification_dismiss(request, character, notification_id):
+    notifications.dismiss(character, notification_id)
+    return JsonResponse({'ok': True})

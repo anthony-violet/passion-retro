@@ -168,3 +168,27 @@
 .rpg-duel-round summary { cursor: pointer; font-weight: bold; }
 .rpg-duel-round .rpg-combat-log { margin: 6px 0 4px; }
 .rpg-log__entry--story { font-weight: bold; }
+
+/* Notifications : toasts (éphémères) et popups (à fermer) */
+.ivk-toasts { position: fixed; right: 16px; bottom: 16px; z-index: 1000; display: flex; flex-direction: column;
+    gap: 8px; width: min(360px, calc(100vw - 32px)); pointer-events: none; }
+.ivk-toast { pointer-events: auto; display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px;
+    background: #fdfbf5; color: #2a2620; border: 2px solid #2a2620; border-left-width: 6px; border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .25); text-decoration: none; font-size: .95em;
+    opacity: 0; transform: translateY(12px); transition: opacity .25s, transform .25s; }
+.ivk-toast.is-visible { opacity: 1; transform: none; }
+.ivk-toast--success { border-left-color: #2f9e57; }
+.ivk-toast--error { border-left-color: #c9413a; }
+.ivk-toast__icon { font-size: 1.3em; line-height: 1; }
+.ivk-toast__text { flex: 1; display: grid; gap: 2px; }
+.ivk-toast__text span { opacity: .85; font-size: .92em; }
+.ivk-toast__close { background: none; border: 0; color: inherit; font-size: 1.3em; line-height: 1; cursor: pointer;
+    padding: 0 2px; }
+.ivk-popup { margin: auto; inset: 0; height: fit-content; max-width: min(440px, calc(100vw - 32px)); border: 3px solid #2a2620; border-radius: 10px; padding: 22px;
+    background: #fdfbf5; color: #2a2620; text-align: center; box-shadow: 0 12px 40px rgba(0, 0, 0, .35); }
+.ivk-popup::backdrop { background: rgba(10, 8, 6, .55); }
+.ivk-popup__icon { font-size: 2.6em; line-height: 1; }
+.ivk-popup__title { margin: 10px 0 6px; font-size: 1.25em; }
+.ivk-popup__body { margin: 0 0 16px; }
+.ivk-popup__actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+@media (prefers-reduced-motion: reduce) { .ivk-toast { transition: none; } }

@@ -27,12 +27,14 @@ from datetime import timedelta
 
 from django.db import transaction
 from django.db.models import Q
+from django.urls import reverse
 from django.utils import timezone
 
 from ..models import Character, Duel
 from . import RpgError
 from .character import add_log, sheet, stat_values
 from .dice import get_rng
+from .notifications import notify
 from .rules import bonus
 
 FORFEIT_DELAY = timedelta(hours=24)
@@ -119,7 +121,10 @@ def challenge(challenger, opponent_id):
         raise RpgError("Termine d'abord ton duel en cours.")
     if open_duels(challenger).filter(Q(challenger=opponent) | Q(opponent=opponent)).exists():
         raise RpgError(f"Un duel avec {opponent.name} est déjà en cours ou en attente.")
-    return Duel.objects.create(challenger=challenger, opponent=opponent)
+    duel = Duel.objects.create(challenger=challenger, opponent=opponent)
+    notify(opponent, 'duel_challenge', f"{challenger.name} te défie en duel !",
+           "Un duel amical : aucune blessure, rien à perdre.", reverse('rpg_duels'))
+    return duel
 
 
 def _locked(duel_id):
@@ -147,6 +152,8 @@ def accept(opponent, duel_id):
         _log(duel, f"{opponent.name} relève le défi de {duel.challenger.name} ! Chacun choisit son action en secret.",
              'good')
         duel.save()
+        notify(duel.challenger, 'duel_accepted', f"{opponent.name} relève ton défi !", "Choisis ta première action.",
+               _url(duel))
     return duel
 
 
@@ -165,7 +172,24 @@ def _close_pending(character, duel_id, field, status):
             raise RpgError("Ce défi ne te concerne pas.")
         duel.status = status
         duel.save(update_fields=['status', 'updated_at'])
+        if status == Duel.STATUS_DECLINED:
+            notify(duel.challenger, 'duel_declined', f"{character.name} décline ton défi.", url=reverse('rpg_duels'))
     return duel
+
+
+def _url(duel):
+    return reverse('rpg_duel', args=[duel.pk])
+
+
+def _notify_result(duel, recipient):
+    """Prévient le héros qui n'a pas déclenché la fin du duel."""
+    if duel.winner_id is None:
+        title = "Ton duel se termine sur un match nul."
+    elif duel.winner_id == recipient.pk:
+        title = f"Victoire ! Tu remportes ton duel contre {duel.other(recipient).name}."
+    else:
+        title = f"{duel.other(recipient).name} remporte votre duel."
+    notify(recipient, 'duel_finished', title, "Belle passe d'armes.", _url(duel))
 
 
 # ---------------------------------------------------------------------------
@@ -185,8 +209,18 @@ def choose(character, duel_id, action, rng=None):
         if action not in allowed_actions(duel, character):
             raise RpgError("Ébranlé, tu ne peux que Frapper ou te mettre en Garde à cette manche.")
         setattr(duel, f'{me}_action', action)
+        other = getattr(duel, other_side(me))
         if duel.challenger_action and duel.opponent_action:
+            played = duel.round
             _resolve_round(duel, get_rng(rng))
+            if duel.status == Duel.STATUS_FINISHED:
+                _notify_result(duel, other)
+            else:
+                notify(other, 'duel_round', f"Manche {played} résolue contre {character.name}.",
+                       f"À toi de choisir pour la manche {duel.round}.", _url(duel))
+        else:
+            notify(other, 'duel_your_move', f"{character.name} a fait son choix.",
+                   f"À toi de jouer la manche {duel.round}.", _url(duel))
         duel.save()
     return duel
 
@@ -352,6 +386,7 @@ def forfeit(character, duel_id):
         other = getattr(duel, other_side(me))
         _finish(duel, other, character, f"{character.name} s'incline. Victoire de {other.name}.")
         duel.save()
+        _notify_result(duel, other)
     return duel
 
 
@@ -369,6 +404,7 @@ def claim_forfeit(character, duel_id, now=None):
         other = getattr(duel, them)
         _finish(duel, character, other, f"{other.name} ne s'est pas présenté : victoire de {character.name}.")
         duel.save()
+        _notify_result(duel, other)
     return duel
 
 

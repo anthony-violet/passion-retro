@@ -854,3 +854,29 @@ class EventParticipation(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['event', 'character'], name='unique_event_participation'),
         ]
+
+
+class Notification(models.Model):
+    """Notification d'un héros : popup (à fermer) ou toast (éphémère)."""
+
+    STYLE_POPUP = 'popup'
+    STYLE_TOAST = 'toast'
+    STYLE_CHOICES = [(STYLE_POPUP, 'Popup'), (STYLE_TOAST, 'Toast')]
+
+    character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='notifications')
+    kind = models.CharField(max_length=30)
+    style = models.CharField(max_length=10, choices=STYLE_CHOICES, default=STYLE_TOAST)
+    title = models.CharField(max_length=120)
+    body = models.CharField(max_length=300, blank=True)
+    url = models.CharField(max_length=200, blank=True)
+    # Clé d'unicité facultative (ex. « event:12 ») pour ne pas notifier deux fois la même chose.
+    ref = models.CharField(max_length=60, blank=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    seen_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['created_at']
+        indexes = [models.Index(fields=['character', 'seen_at'])]
+
+    def __str__(self):
+        return f"{self.character.name} : {self.title}"
