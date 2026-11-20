@@ -103,6 +103,14 @@ class IvakarPanelTests(TestCase):
         response = self.client.get(reverse('panel_ivakar_create', args=['origines']))
         self.assertEqual(response.context['formsets'][0]['formset'].total_form_count(), 7)
 
+    def test_new_origin_on_empty_database(self):
+        """En prod, aucune caractéristique n'existait avant la première origine."""
+        from ivakar_rpg.models import Characteristic
+        Characteristic.objects.all().delete()
+        response = self.client.get(reverse('panel_ivakar_create', args=['origines']))
+        self.assertEqual(response.context['formsets'][0]['formset'].total_form_count(), 7)
+        self.assertContains(response, 'Constitution')
+
     def test_delete(self):
         monster = Monster.objects.get(slug='rat-geant')
         self.client.post(reverse('panel_ivakar_delete', args=['monstres', monster.pk]))

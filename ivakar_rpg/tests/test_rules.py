@@ -1,5 +1,5 @@
 """Règles validées : résolution, caractéristiques, progression, blessures."""
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from users.models import User
 
@@ -139,3 +139,10 @@ class WoundTests(IvakarTestCase):
         Wound.objects.create(character=self.character, severity=Wound.SEVERITY_SEVERE)
         hero.rest(self.character)
         self.assertEqual(list(Wound.objects.values_list('severity', flat=True)), [Wound.SEVERITY_MODERATE])
+
+
+class CharacteristicsMigrationTests(TestCase):
+    def test_seven_characteristics_exist_after_migrations(self):
+        """La migration 0004 les crée : un panel tout neuf peut créer des origines sans scénario chargé."""
+        from ..models import Characteristic
+        self.assertEqual(sorted(Characteristic.objects.values_list('code', flat=True)), sorted(CHARACTERISTICS))

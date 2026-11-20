@@ -56,6 +56,9 @@ def inline(parent, model, fields, fk_name=None, title='', extra=1, initial=None)
 
 def _missing_characteristics(origin):
     """Lignes pré-remplies pour les caractéristiques qu'une origine n'a pas encore."""
+    from ivakar_rpg.engine.character import ensure_characteristics
+
+    ensure_characteristics()  # filet de sécurité si la base n'a pas encore les sept caractéristiques
     have = set(origin.values.values_list('characteristic_id', flat=True)) if origin.pk else set()
     return [{'characteristic': c.pk, 'value': 10} for c in Characteristic.objects.exclude(pk__in=have)]
 
