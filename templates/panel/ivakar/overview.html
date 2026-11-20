@@ -1,0 +1,69 @@
+{% extends 'panel/ivakar/base.html' %}
+
+{% block ivakar_content %}
+<div class="panel-page-header">
+    <h2>⚔️ Ivakar — le RPG textuel</h2>
+    <a href="{% url 'rpg_home' %}" class="btn btn-small">Voir le jeu</a>
+</div>
+
+<div class="panel-section">
+    <p>
+        {% if is_open %}
+            <span class="panel-badge panel-badge-success">Ouvert</span> Le jeu est ouvert à tous les membres.
+        {% else %}
+            <span class="panel-badge panel-badge-warning">Fermé</span> Le jeu n'est visible que par l'équipe.
+        {% endif %}
+        <small>Réglé par la variable <code>RPG_OPEN</code> du fichier <code>.env</code> (redémarrage nécessaire).</small>
+    </p>
+</div>
+
+<div class="panel-stats-grid">
+    <div class="panel-stat-card"><div class="panel-stat-icon">🧙</div><div class="panel-stat-value">{{ heroes_count }}</div><div class="panel-stat-label">Héros</div>
+        <div class="panel-stat-sub"><a href="{% url 'panel_ivakar_heroes' %}">Gérer</a></div></div>
+    <div class="panel-stat-card"><div class="panel-stat-icon">⚔️</div><div class="panel-stat-value">{{ in_combat }}</div><div class="panel-stat-label">En combat</div></div>
+    <div class="panel-stat-card{% if ko_count %} panel-stat-warning{% endif %}"><div class="panel-stat-icon">💫</div><div class="panel-stat-value">{{ ko_count }}</div><div class="panel-stat-label">Inconscients</div></div>
+    <div class="panel-stat-card"><div class="panel-stat-icon">💱</div><div class="panel-stat-value">{{ exchanges.gold|default:0 }}</div><div class="panel-stat-label">Or du site changé</div>
+        <div class="panel-stat-sub">{{ exchanges.n }} échange{{ exchanges.n|pluralize }} · {{ exchanges.coins|default:0 }} écus</div></div>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header"><h3>Contenu</h3></div>
+    <div class="ivk-cards">
+        {% for s in ivakar_sections %}
+        <a class="ivk-card" href="{% url 'panel_ivakar_list' s.slug %}">
+            <span class="ivk-card__icon">{{ s.icon }}</span>
+            <span class="ivk-card__title">{{ s.title }}</span>
+            <span class="ivk-card__count">{% for slug, n in counts.items %}{% if slug == s.slug %}{{ n }}{% endif %}{% endfor %}</span>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="panel-section">
+    <div class="panel-section-header"><h3>Contrôles de cohérence</h3></div>
+    {% if problems %}
+    <ul class="ivk-problems">
+        {% for p in problems %}
+        <li><span class="panel-badge panel-badge-{{ p.level }}">{% if p.level == 'danger' %}Bloquant{% else %}À vérifier{% endif %}</span>
+            {{ p.message }} <a href="{{ p.url }}">Corriger</a></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p><span class="panel-badge panel-badge-success">OK</span> Aucun problème détecté dans le contenu.</p>
+    {% endif %}
+</div>
+
+{% if top_heroes %}
+<div class="panel-section">
+    <div class="panel-section-header"><h3>Meilleurs héros</h3></div>
+    <table class="panel-table">
+        <thead><tr><th>Héros</th><th>Joueur</th><th>Niveau</th><th>XP</th></tr></thead>
+        <tbody>
+        {% for c in top_heroes %}
+            <tr><td><a href="{% url 'panel_ivakar_hero' c.pk %}">{{ c.name }}</a></td><td>{{ c.user.username }}</td><td>{{ c.level }}</td><td>{{ c.xp }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

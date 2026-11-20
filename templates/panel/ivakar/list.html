@@ -1,0 +1,49 @@
+{% extends 'panel/ivakar/base.html' %}
+
+{% block ivakar_content %}
+<div class="panel-page-header">
+    <h2>{{ config.icon }} {{ config.title }}</h2>
+    <a href="{% url 'panel_ivakar_create' section %}{% if current_filter %}?{{ filter_field }}={{ current_filter }}{% endif %}" class="btn btn-add">+ Ajouter {{ config.singular }}</a>
+</div>
+<p class="ivk-help">{{ config.help }}</p>
+
+<form method="get" class="ivk-toolbar">
+    <input type="search" name="q" value="{{ query }}" placeholder="Rechercher…" aria-label="Rechercher">
+    {% if filter_options %}
+    <select name="{{ filter_field }}" aria-label="Filtrer" onchange="this.form.submit()">
+        {% for value, label in filter_options %}<option value="{{ value }}"{% if value == current_filter %} selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    {% endif %}
+    <button type="submit" class="btn btn-small">Filtrer</button>
+</form>
+
+<div class="panel-section">
+    <table class="panel-table">
+        <thead><tr>{% for label, path in config.columns %}<th>{{ label }}</th>{% endfor %}<th>Actions</th></tr></thead>
+        <tbody>
+        {% for row in rows %}
+            <tr>
+                {% for cell in row.cells %}
+                <td>
+                    {% if cell is True %}<span class="panel-badge panel-badge-success">Oui</span>
+                    {% elif cell is False %}<span class="panel-badge">Non</span>
+                    {% elif forloop.first %}<a href="{% url 'panel_ivakar_edit' section row.obj.pk %}"><strong>{{ cell }}</strong></a>
+                    {% else %}{{ cell|default_if_none:"—" }}{% endif %}
+                </td>
+                {% endfor %}
+                <td class="panel-actions">
+                    <a href="{% url 'panel_ivakar_edit' section row.obj.pk %}" class="btn btn-small">Éditer</a>
+                    <form method="post" action="{% url 'panel_ivakar_delete' section row.obj.pk %}" style="display:inline" onsubmit="return confirm('Supprimer « {{ row.obj|escapejs }} » ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-small btn-danger">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="{{ config.columns|length|add:1 }}" class="panel-empty">Rien pour l'instant.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'panel/ivakar/_pager.html' %}
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{# Sous-liste éditable (formset en ligne). Paramètres : formset, title #}
+<div class="ivk-formset" data-prefix="{{ formset.prefix }}">
+    <h3>{{ title }}</h3>
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}<div class="ivk-errors">{{ formset.non_form_errors }}</div>{% endif %}
+    <div class="ivk-table-wrap">
+    <table class="panel-table ivk-inline">
+        <thead><tr>
+            {% for field in formset.empty_form.visible_fields %}{% if field.name != 'DELETE' %}<th>{{ field.label }}</th>{% endif %}{% endfor %}
+            <th>Suppr.</th>
+        </tr></thead>
+        <tbody data-rows>
+        {% for f in formset %}
+            <tr>
+                {% for field in f.visible_fields %}{% if field.name != 'DELETE' %}
+                <td>{{ field }}{% if field.errors %}<div class="ivk-errors">{{ field.errors }}</div>{% endif %}</td>
+                {% endif %}{% endfor %}
+                <td>{% for hidden in f.hidden_fields %}{{ hidden }}{% endfor %}{% if f.instance.pk %}{{ f.DELETE }}{% endif %}</td>
+            </tr>
+            {% if f.non_field_errors %}<tr><td colspan="99"><div class="ivk-errors">{{ f.non_field_errors }}</div></td></tr>{% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    <template data-empty-row>
+        <tr>
+            {% for field in formset.empty_form.visible_fields %}{% if field.name != 'DELETE' %}<td>{{ field }}</td>{% endif %}{% endfor %}
+            <td>{% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}</td>
+        </tr>
+    </template>
+    <button type="button" class="btn btn-small" data-add-row>+ Ajouter une ligne</button>
+</div>

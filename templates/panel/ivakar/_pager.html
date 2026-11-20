@@ -1,0 +1,7 @@
+{% if page.has_other_pages %}
+<div class="ivk-pager">
+    {% if page.has_previous %}<a class="btn btn-small" href="?page={{ page.previous_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if current_filter %}&{{ filter_field }}={{ current_filter }}{% endif %}">← Précédent</a>{% endif %}
+    <span>Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a class="btn btn-small" href="?page={{ page.next_page_number }}{% if query %}&q={{ query|urlencode }}{% endif %}{% if current_filter %}&{{ filter_field }}={{ current_filter }}{% endif %}">Suivant →</a>{% endif %}
+</div>
+{% endif %}

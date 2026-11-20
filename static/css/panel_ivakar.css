@@ -1,0 +1,33 @@
+/* Panel — section Ivakar. S'appuie sur les classes panel-* des thèmes. */
+.ivk-subnav { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 14px; }
+.ivk-subnav a { padding: 5px 10px; border: 1px solid currentColor; border-radius: 4px; text-decoration: none; font-size: .9em; opacity: .75; }
+.ivk-subnav a.is-active, .ivk-subnav a:hover { opacity: 1; font-weight: bold; }
+.ivk-help { opacity: .8; margin: 0 0 12px; }
+.ivk-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; align-items: center; }
+.ivk-toolbar input, .ivk-toolbar select { padding: 5px 8px; }
+.ivk-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.ivk-card { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid currentColor; border-radius: 6px; text-decoration: none; }
+.ivk-card__icon { font-size: 1.4em; }
+.ivk-card__title { font-weight: bold; }
+.ivk-card__count { font-size: 1.4em; }
+.ivk-problems, .ivk-list { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.ivk-errors { color: #b42318; font-size: .9em; }
+.ivk-errors ul { margin: 0; padding-left: 16px; }
+.ivk-check { justify-content: flex-end; }
+.ivk-formset { margin: 18px 0; }
+.ivk-table-wrap { overflow-x: auto; }
+.ivk-inline td { vertical-align: top; }
+.ivk-inline input, .ivk-inline select { min-width: 90px; width: 100%; box-sizing: border-box; }
+.ivk-inline input[type="checkbox"] { min-width: 0; width: auto; }
+.ivk-outcome--success { border-left: 4px solid #2f9e57; }
+.ivk-outcome--failure { border-left: 4px solid #c9413a; }
+.ivk-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.ivk-actions form { margin: 0; }
+.ivk-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.ivk-pager { display: flex; gap: 10px; align-items: center; justify-content: center; margin-top: 10px; }
+.ivk-danger-zone { border: 1px dashed #c9413a; }
+.ivk-danger-zone small { display: block; margin-top: 6px; }
+.panel-form-group ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.panel-form-group ul label { font-weight: normal; }
+.ivk-inline input:not([type="checkbox"]), .ivk-inline select { height: 32px; padding: 4px 6px; font-size: .9em; }
+.ivk-outcome { padding-left: 16px; }

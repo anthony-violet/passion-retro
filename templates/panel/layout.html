@@ -41,6 +41,9 @@
             <a href="{% url 'panel_games' %}" class="panel-nav-item {% if 'panel_games' in request.resolver_match.url_name %}active{% endif %}">
                 🎮 Jeux
             </a>
+            <a href="{% url 'panel_ivakar' %}" class="panel-nav-item {% if 'panel_ivakar' in request.resolver_match.url_name %}active{% endif %}">
+                ⚔️ Ivakar (RPG)
+            </a>
             <a href="{% url 'panel_maintenance' %}" class="panel-nav-item {% if 'panel_maintenance' in request.resolver_match.url_name %}active{% endif %}">
                 🔧 Maintenance
             </a>

@@ -1,0 +1,21 @@
+{# Champs d'un formulaire Django au style du panel. Paramètre : form #}
+{% if form.non_field_errors %}<div class="ivk-errors">{{ form.non_field_errors }}</div>{% endif %}
+<div class="panel-form-grid">
+{% for field in form.visible_fields %}
+    {% if field.widget_type == 'checkbox' %}
+    <div class="panel-form-group ivk-check">
+        <label class="panel-checkbox">{{ field }} {{ field.label }}</label>
+        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+        {% if field.errors %}<div class="ivk-errors">{{ field.errors }}</div>{% endif %}
+    </div>
+    {% else %}
+    <div class="panel-form-group{% if field.widget_type == 'textarea' or field.widget_type == 'checkboxselectmultiple' %} panel-form-full{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+        {{ field }}
+        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+        {% if field.errors %}<div class="ivk-errors">{{ field.errors }}</div>{% endif %}
+    </div>
+    {% endif %}
+{% endfor %}
+{% for field in form.hidden_fields %}{{ field }}{% endfor %}
+</div>

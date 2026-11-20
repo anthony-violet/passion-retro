@@ -1,0 +1,35 @@
+{% extends 'panel/ivakar/base.html' %}
+
+{% block ivakar_content %}
+<div class="panel-page-header"><h2>🧙 Héros</h2></div>
+<form method="get" class="ivk-toolbar">
+    <input type="search" name="q" value="{{ query }}" placeholder="Nom du héros ou du joueur…" aria-label="Rechercher">
+    <button type="submit" class="btn btn-small">Rechercher</button>
+</form>
+<div class="panel-section">
+    <table class="panel-table">
+        <thead><tr><th>Héros</th><th>Joueur</th><th>Origine</th><th>Niv.</th><th>PV</th><th>Écus</th><th>Lieu</th><th>État</th></tr></thead>
+        <tbody>
+        {% for c in page %}
+            <tr>
+                <td><a href="{% url 'panel_ivakar_hero' c.pk %}"><strong>{{ c.name }}</strong></a></td>
+                <td>{{ c.user.username }}</td>
+                <td>{{ c.origin|default:"—" }}</td>
+                <td>{{ c.level }}</td>
+                <td>{{ c.hp }}</td>
+                <td>{{ c.coins }}</td>
+                <td>{{ c.location|default:"—" }}</td>
+                <td>
+                    {% if c.is_ko %}<span class="panel-badge panel-badge-danger">KO</span>{% endif %}
+                    {% if c.pk in in_combat %}<span class="panel-badge panel-badge-warning">Combat</span>{% endif %}
+                    {% if c.scene_id %}<span class="panel-badge panel-badge-info">Scène</span>{% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="8" class="panel-empty">Aucun héros.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'panel/ivakar/_pager.html' %}
+</div>
+{% endblock %}

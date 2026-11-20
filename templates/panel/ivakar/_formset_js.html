@@ -1,0 +1,14 @@
+<script>
+document.querySelectorAll('.ivk-formset').forEach(function (box) {
+    var button = box.querySelector('[data-add-row]');
+    if (!button) return;
+    button.addEventListener('click', function () {
+        var prefix = box.dataset.prefix;
+        var total = box.querySelector('input[name="' + prefix + '-TOTAL_FORMS"]');
+        var index = parseInt(total.value, 10);
+        var html = box.querySelector('[data-empty-row]').innerHTML.replace(/__prefix__/g, index);
+        box.querySelector('[data-rows]').insertAdjacentHTML('beforeend', html);
+        total.value = index + 1;
+    });
+});
+</script>

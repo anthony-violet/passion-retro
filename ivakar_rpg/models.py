@@ -67,10 +67,14 @@ class Origin(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def values_total(self):
+        return sum(row.value for row in self.values.all())
+
 
 class OriginCharacteristic(models.Model):
     origin = models.ForeignKey(Origin, on_delete=models.CASCADE, related_name='values')
-    characteristic = models.ForeignKey(Characteristic, on_delete=models.CASCADE, related_name='+')
+    characteristic = models.ForeignKey(Characteristic, verbose_name="Caractéristique", on_delete=models.CASCADE, related_name='+')
     value = models.PositiveSmallIntegerField(
         "Valeur de départ", default=10,
         validators=[MinValueValidator(START_STAT_MIN), MaxValueValidator(START_STAT_MAX)],
@@ -316,10 +320,14 @@ class Monster(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def damage_range(self):
+        return f"{self.damage_min}–{self.damage_max}"
+
 
 class MonsterLoot(models.Model):
     monster = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name='loot')
-    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, verbose_name="Objet", on_delete=models.CASCADE)
     chance = models.PositiveSmallIntegerField("Chance (%)", default=25)
 
     class Meta:
@@ -330,7 +338,7 @@ class LocationEncounter(models.Model):
     """Monstre qui peut surgir quand on explore un lieu."""
 
     location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='encounters')
-    monster = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name='+')
+    monster = models.ForeignKey(Monster, verbose_name="Monstre", on_delete=models.CASCADE, related_name='+')
     weight = models.PositiveSmallIntegerField("Poids", default=1)
 
     class Meta:
@@ -480,7 +488,7 @@ class Outcome(models.Model):
 
 class Combat(models.Model):
     character = models.OneToOneField(Character, on_delete=models.CASCADE, related_name='combat')
-    monster = models.ForeignKey(Monster, on_delete=models.CASCADE, related_name='+')
+    monster = models.ForeignKey(Monster, verbose_name="Monstre", on_delete=models.CASCADE, related_name='+')
     monster_hp = models.PositiveIntegerField()
     turn = models.PositiveIntegerField(default=1)
     defending = models.BooleanField(default=False)

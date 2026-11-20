@@ -1,0 +1,16 @@
+{% extends 'panel/layout.html' %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/panel_ivakar.css' %}">{% endblock %}
+
+{% block panel_content %}
+<nav class="ivk-subnav" aria-label="Sections d'Ivakar">
+    <a href="{% url 'panel_ivakar' %}" class="{% if request.resolver_match.url_name == 'panel_ivakar' %}is-active{% endif %}">📊 Vue d'ensemble</a>
+    {% for s in ivakar_sections %}
+    <a href="{% url 'panel_ivakar_list' s.slug %}" class="{% if section == s.slug %}is-active{% endif %}">{{ s.icon }} {{ s.title }}</a>
+    {% endfor %}
+    <a href="{% url 'panel_ivakar_heroes' %}" class="{% if section == 'heros' %}is-active{% endif %}">🧙 Héros</a>
+    <a href="{% url 'panel_ivakar_exchanges' %}" class="{% if section == 'change' %}is-active{% endif %}">💱 Change</a>
+</nav>
+{% block ivakar_content %}{% endblock %}
+{% endblock %}

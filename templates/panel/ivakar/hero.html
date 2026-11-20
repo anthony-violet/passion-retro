@@ -1,0 +1,88 @@
+{% extends 'panel/ivakar/base.html' %}
+
+{% block ivakar_content %}
+<div class="panel-page-header">
+    <h2>🧙 {{ character.name }} <small>({{ character.user.username }})</small></h2>
+    <a href="{% url 'panel_ivakar_heroes' %}" class="btn btn-small">← Héros</a>
+</div>
+
+<div class="panel-section">
+    <p>Niveau {{ character.level }} · {{ character.xp }} XP · origine : {{ character.origin|default:"—" }} ·
+       {{ character.victories }} victoire{{ character.victories|pluralize }} · {{ character.knockouts }} KO ·
+       créé le {{ character.date_joined|date:"j F Y" }}</p>
+    <p>
+        {% if character.is_ko %}<span class="panel-badge panel-badge-danger">Inconscient</span>{% endif %}
+        {% if combat %}<span class="panel-badge panel-badge-warning">En combat contre {{ combat.monster.name }} ({{ combat.monster_hp }} PV)</span>{% endif %}
+        {% if character.scene %}<span class="panel-badge panel-badge-info">Scène : {{ character.scene.title }}</span>{% endif %}
+    </p>
+    <h3>Dépannage</h3>
+    <div class="ivk-actions">
+        <form method="post">{% csrf_token %}<button name="action" value="heal" class="btn btn-small">❤️ Restaurer les PV</button></form>
+        {% if combat %}<form method="post">{% csrf_token %}<button name="action" value="end_combat" class="btn btn-small">⚔️ Terminer le combat</button></form>{% endif %}
+        {% if character.scene %}<form method="post">{% csrf_token %}<button name="action" value="leave_scene" class="btn btn-small">📜 Quitter la scène</button></form>{% endif %}
+        {% if character.is_ko %}<form method="post">{% csrf_token %}<button name="action" value="wake" class="btn btn-small">💫 Réveiller</button></form>{% endif %}
+        {% if wounds %}<form method="post">{% csrf_token %}<button name="action" value="clear_wounds" class="btn btn-small">🩹 Retirer toutes les blessures</button></form>{% endif %}
+    </div>
+</div>
+
+<div class="panel-section">
+    <h3>Modifier</h3>
+    <form method="post" class="panel-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save">
+        <div class="panel-form-grid">
+            <div class="panel-form-group"><label for="h-name">Nom</label><input id="h-name" name="name" value="{{ character.name }}" maxlength="30"></div>
+            <div class="panel-form-group"><label for="h-location">Lieu</label>
+                <select id="h-location" name="location">{% for l in locations %}<option value="{{ l.pk }}"{% if l.pk == character.location_id %} selected{% endif %}>{{ l.name }}</option>{% endfor %}</select></div>
+            <div class="panel-form-group"><label for="h-hp">PV (max {{ sheet.max_hp }})</label><input id="h-hp" type="number" min="0" name="hp" value="{{ character.hp }}"></div>
+            <div class="panel-form-group"><label for="h-coins">Écus</label><input id="h-coins" type="number" min="0" name="coins" value="{{ character.coins }}"></div>
+            <div class="panel-form-group"><label for="h-points">Points à répartir</label><input id="h-points" type="number" min="0" name="unspent_points" value="{{ character.unspent_points }}"></div>
+            <div class="panel-form-group ivk-check"><label class="panel-checkbox"><input type="checkbox" name="show_title"{% if character.show_title %} checked{% endif %}> Titre affiché sur le site</label></div>
+            <div class="panel-form-group panel-form-full"><label for="h-flags">Marqueurs d'histoire (un par ligne)</label>
+                <textarea id="h-flags" name="flags" rows="4" data-no-bbcode-bar>{{ flags_text }}</textarea>
+                <small>Posés par les choix ; « scene:… » = scène unique déjà vue.</small></div>
+        </div>
+        <div class="panel-form-actions"><button type="submit" class="btn btn-add">Enregistrer</button></div>
+    </form>
+</div>
+
+<div class="ivk-columns">
+    <div class="panel-section">
+        <h3>Caractéristiques</h3>
+        <table class="panel-table"><tbody>
+            {% for name, value in stats.items %}<tr><td>{{ name }}</td><td>{{ value }}</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+    <div class="panel-section">
+        <h3>Blessures</h3>
+        <ul class="ivk-list">
+        {% for w in wounds %}
+            <li>{{ w.get_severity_display }}{% if w.label %} — {{ w.label }}{% endif %}
+                <form method="post" style="display:inline">{% csrf_token %}<input type="hidden" name="wound" value="{{ w.pk }}"><button name="action" value="remove_wound" class="btn btn-small">Retirer</button></form></li>
+        {% empty %}<li>Aucune.</li>{% endfor %}
+        </ul>
+        <h3>Inventaire</h3>
+        <ul class="ivk-list">
+        {% for e in inventory %}<li>{{ e.item.name }} ×{{ e.quantity }}{% if e.equipped %} (équipé){% endif %}</li>{% empty %}<li>Vide.</li>{% endfor %}
+        </ul>
+        <h3>Quêtes</h3>
+        <ul class="ivk-list">
+        {% for q in quests %}<li>{{ q.quest.title }} — {{ q.get_status_display }}</li>{% empty %}<li>Aucune.</li>{% endfor %}
+        </ul>
+    </div>
+</div>
+
+<div class="panel-section">
+    <h3>Récit récent</h3>
+    <ul class="ivk-list">{% for entry in log %}<li>{{ entry.text|striptags }}</li>{% empty %}<li>Vide.</li>{% endfor %}</ul>
+</div>
+
+<div class="panel-section ivk-danger-zone">
+    <h3>Zone dangereuse</h3>
+    <form method="post" onsubmit="return confirm('Supprimer définitivement le héros {{ character.name|escapejs }} ? Son joueur repartira de zéro.')">
+        {% csrf_token %}
+        <button name="action" value="delete" class="btn btn-danger">Supprimer ce héros</button>
+        <small>Irréversible : progression, inventaire et quêtes sont effacés. Les récompenses déjà obtenues sur le site restent.</small>
+    </form>
+</div>
+{% endblock %}

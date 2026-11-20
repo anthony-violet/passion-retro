@@ -1,0 +1,20 @@
+{% extends 'panel/ivakar/base.html' %}
+
+{% block ivakar_content %}
+<div class="panel-page-header"><h2>💱 Bureau de change</h2></div>
+<p class="ivk-help">Or du site converti en écus d'Ivakar (sens unique). Total : {{ totals.gold|default:0 }} or → {{ totals.coins|default:0 }} écus.
+   Les paquets proposés sont définis dans <code>ivakar_rpg/engine/economy.py</code>.</p>
+<div class="panel-section">
+    <table class="panel-table">
+        <thead><tr><th>Date</th><th>Membre</th><th>Or dépensé</th><th>Écus reçus</th></tr></thead>
+        <tbody>
+        {% for e in page %}
+            <tr><td>{{ e.created_at|date:"j M Y H:i" }}</td><td>{{ e.user.username }}</td><td>{{ e.gold_spent }}</td><td>{{ e.coins_received }}</td></tr>
+        {% empty %}
+            <tr><td colspan="4" class="panel-empty">Aucun échange.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'panel/ivakar/_pager.html' %}
+</div>
+{% endblock %}

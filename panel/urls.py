@@ -1,5 +1,5 @@
 from django.urls import path
-from panel.views import stats, dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation, wall_memories, seasonal, rewards
+from panel.views import stats, dashboard, users, forum, posts, quiz, shop, guestbook, maintenance, games, version, ephemerides, navigation, wall_memories, seasonal, rewards, ivakar
 
 urlpatterns = [
     # Dashboard
@@ -83,6 +83,19 @@ urlpatterns = [
     path('versions/<int:version_id>/delete/', version.version_delete, name='panel_version_delete'),
 
     # Games
+    # Ivakar (RPG)
+    path('ivakar/', ivakar.overview, name='panel_ivakar'),
+    path('ivakar/heros/', ivakar.hero_list, name='panel_ivakar_heroes'),
+    path('ivakar/heros/<int:pk>/', ivakar.hero_detail, name='panel_ivakar_hero'),
+    path('ivakar/change/', ivakar.exchange_list, name='panel_ivakar_exchanges'),
+    path('ivakar/scenes/<int:scene_id>/choix/create/', ivakar.choice_create, name='panel_ivakar_choice_create'),
+    path('ivakar/choix/<int:pk>/edit/', ivakar.choice_edit, name='panel_ivakar_choice_edit'),
+    path('ivakar/choix/<int:pk>/delete/', ivakar.choice_delete, name='panel_ivakar_choice_delete'),
+    path('ivakar/<slug:section>/', ivakar.section_list, name='panel_ivakar_list'),
+    path('ivakar/<slug:section>/create/', ivakar.section_create, name='panel_ivakar_create'),
+    path('ivakar/<slug:section>/<int:pk>/edit/', ivakar.section_edit, name='panel_ivakar_edit'),
+    path('ivakar/<slug:section>/<int:pk>/delete/', ivakar.section_delete, name='panel_ivakar_delete'),
+
     path('games/', games.games_overview, name='panel_games'),
     path('games/category/create/', games.category_create, name='panel_games_category_create'),
     path('games/category/<int:category_id>/edit/', games.category_edit, name='panel_games_category_edit'),

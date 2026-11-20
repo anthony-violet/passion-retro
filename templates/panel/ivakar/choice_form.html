@@ -1,0 +1,32 @@
+{% extends 'panel/ivakar/base.html' %}
+
+{% block ivakar_content %}
+<div class="panel-page-header">
+    <h2>{% if creating %}Nouveau choix{% else %}Choix : {{ choice.label }}{% endif %}</h2>
+    <a href="{% url 'panel_ivakar_edit' 'scenes' scene.pk %}" class="btn btn-small">← Scène « {{ scene.title }} »</a>
+</div>
+<p class="ivk-help">Un choix peut demander un test : 2D6 + ⌊caractéristique ÷ 3⌋ contre le seuil (10, 13 ou 16).
+   Sans test, seule la conséquence « Réussite / sans test » s'applique. Avec un test raté et sans conséquence d'échec, la scène se termine.</p>
+
+<form method="post" class="panel-form">
+    {% csrf_token %}
+    <div class="panel-section">
+        <h3>Le choix</h3>
+        {% include 'panel/ivakar/_fields.html' with form=form %}
+    </div>
+    <div class="panel-section ivk-outcome ivk-outcome--success">
+        <h3>✅ Réussite (ou choix sans test)</h3>
+        {% include 'panel/ivakar/_fields.html' with form=success %}
+    </div>
+    <div class="panel-section ivk-outcome ivk-outcome--failure">
+        <h3>❌ Échec du test</h3>
+        {% if has_failure %}<label class="panel-checkbox"><input type="checkbox" name="drop_failure"> Supprimer la conséquence d'échec</label>{% endif %}
+        {% include 'panel/ivakar/_fields.html' with form=failure %}
+    </div>
+    <div class="panel-form-actions">
+        <button type="submit" class="btn btn-add">Enregistrer</button>
+        <button type="submit" name="continue" value="1" class="btn">Enregistrer et continuer</button>
+        <a href="{% url 'panel_ivakar_edit' 'scenes' scene.pk %}" class="btn btn-danger">Annuler</a>
+    </div>
+</form>
+{% endblock %}
