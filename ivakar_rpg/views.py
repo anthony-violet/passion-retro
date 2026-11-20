@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.db.models import Q
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
@@ -13,7 +12,7 @@ from .engine import duel as duel_engine
 from .engine import events, social, wounds
 from .engine.worldmap import map_for
 from .engine.rules import DIFFICULTY_LABELS, MAX_LEVEL, POINTS_PER_LEVEL, STAT_CAP
-from .models import Character, CharacterQuest, Duel, InventoryItem, Location, Origin, Trade, WorldMap, Wound
+from .models import Character, CharacterQuest, InventoryItem, Location, Origin, Trade, WorldMap, Wound
 
 PLAY = 'rpg_play'
 
@@ -65,8 +64,7 @@ def _hud(character):
         'wounds': list(Wound.objects.filter(character=character)),
         'difficulty_labels': DIFFICULTY_LABELS,
         'pending_trades': Trade.objects.filter(receiver=character, status=Trade.STATUS_PENDING).count(),
-        'duels_waiting': duel_engine.open_duels(character).filter(
-            Q(status=Duel.STATUS_PENDING, opponent=character) | Q(status=Duel.STATUS_ACTIVE, turn=character)).count(),
+        'duels_waiting': duel_engine.waiting_for(character).count(),
         'world_event': events.current_event(),
     }
 

@@ -39,7 +39,7 @@ fichiers, et doit être tranchée ou remplacée lors des phases de test.
 | Aggravation d'une blessure grave | Reste grave (rien de défini au-delà) | `wounds._check()` |
 | Effets des blessures | Aucun malus mécanique pour l'instant | — |
 | Soins | Une nuit à l'auberge : PV au max, chaque blessure perd un degré ; potions = PV seulement | `rest()`, `treat_all()` |
-| Duels (oppositions) | Le défié joue en premier ; toucher : Dextérité contre 13 (16 si l'adversaire est en garde) ; dégâts comme en combat ; PV à part, sans blessure ni KO ; forfait possible après 24 h sans réponse | `engine/duel.py` |
+| Duels (oppositions) | Manches à choix secrets et simultanés parmi 6 actions, chacune sur une caractéristique (Frappe et Garde : Dextérité, Coup puissant : Force, Feinte : Intelligence contre Perception, Intimidation : Charisme contre Mental, Observer : Perception contre Intelligence). Attaque = opposition 2D6 + ⌊carac ÷ 3⌋ des deux côtés, égalité au défenseur ; écart 1-2 effleure (dégâts ÷ 2), 3-5 touche, 6+ coup appuyé (+1D6). PV à part, sans blessure ni KO ; forfait après 24 h | `engine/duel.py` |
 | Événements de serveur | Un assaut par héros toutes les N minutes (réglable) ; riposte esquivée à la Dextérité ; récompenses égales pour tout participant, objet pour le meilleur | `engine/events.py` |
 | Origines proposées | Soldat, Éclaireur, Lettré, Héraut, Forgeron (valeurs dans `content/chapitre1.py`) | admin → Origines |
 

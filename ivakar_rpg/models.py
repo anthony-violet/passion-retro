@@ -740,13 +740,19 @@ class Duel(models.Model):
     challenger = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='duels_sent')
     opponent = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='duels_received')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
-    turn = models.ForeignKey(Character, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     challenger_hp = models.PositiveIntegerField(default=0)
     opponent_hp = models.PositiveIntegerField(default=0)
     challenger_max_hp = models.PositiveIntegerField(default=0)
     opponent_max_hp = models.PositiveIntegerField(default=0)
-    # Héros en garde (il a choisi « Se défendre » à son dernier tour).
-    guarding = models.ForeignKey(Character, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    # Actions secrètes de la manche en cours ('' = pas encore choisie). Voir engine/duel.py.
+    challenger_action = models.CharField(max_length=12, blank=True, default='')
+    opponent_action = models.CharField(max_length=12, blank=True, default='')
+    # Ébranlé (Intimidation subie) : ne peut que Frapper ou se garder à la manche en cours.
+    challenger_shaken = models.BooleanField(default=False)
+    opponent_shaken = models.BooleanField(default=False)
+    # Observer réussi : voit l'action adverse de la manche en cours dès qu'elle est choisie.
+    challenger_insight = models.BooleanField(default=False)
+    opponent_insight = models.BooleanField(default=False)
     winner = models.ForeignKey(Character, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     round = models.PositiveIntegerField(default=0)
     log = models.JSONField(default=list, blank=True)

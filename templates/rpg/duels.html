@@ -11,7 +11,7 @@
 
     {% for d in active %}
     <p class="rpg-notice">⚔️ Duel en cours contre <strong>{% if d.challenger_id == character.pk %}{{ d.opponent.name }}{% else %}{{ d.challenger.name }}{% endif %}</strong>
-        — {% if d.turn_id == character.pk %}<strong>à toi de jouer</strong>{% else %}tour de l'adversaire{% endif %}.
+        — manche {{ d.round }}{% if d.challenger_id == character.pk and not d.challenger_action or d.opponent_id == character.pk and not d.opponent_action %}, <strong>à toi de choisir</strong>{% else %}, en attente de l'adversaire{% endif %}.
         <a href="{% url 'rpg_duel' d.id %}" class="btn btn-small btn-add">Rejoindre</a></p>
     {% endfor %}
 

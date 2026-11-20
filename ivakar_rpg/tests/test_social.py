@@ -136,60 +136,137 @@ class TradeTests(SocialTestCase):
 
 
 class DuelTests(SocialTestCase):
+    """Les deux héros ont l'origine « Soldat » : Force 15, Dex 11 (+3), Perception 9 (+3), Intelligence 7 (+2),
+    Mental 12 (+4), Charisme 8 (+2) ; bonus de dégâts = ⌊15 ÷ 3⌋ + 1 (bâton) = 6, armure 0."""
+
     def start(self):
         duel = duel_engine.challenge(self.character, self.other.pk)
         return duel_engine.accept(self.other, duel.pk)
 
-    def test_challenge_accept_and_turns(self):
-        duel = self.start()
-        self.assertEqual(duel.status, Duel.STATUS_ACTIVE)
-        self.assertEqual(duel.turn_id, self.other.pk)  # le défié commence
-        with self.assertRaises(RpgError):
-            duel_engine.act(self.character, duel.pk, 'attack')
+    def play(self, duel, mine, theirs, rng):
+        duel_engine.choose(self.character, duel.pk, mine)
+        duel_engine.choose(self.other, duel.pk, theirs, rng=rng)
+        duel.refresh_from_db()
+        return duel
 
-    def test_attack_uses_2d6_and_guard(self):
+    def test_choices_stay_secret_until_both_have_chosen(self):
         duel = self.start()
-        self.set_stat('dexterite', 9)  # bonus +3
-        duel_engine.act(self.other, duel.pk, 'defend')
+        duel_engine.choose(self.character, duel.pk, 'strike')
         duel.refresh_from_db()
-        self.assertEqual(duel.guarding_id, self.other.pk)
-        # 5 + 5 + 3 = 13 < 16 (adversaire en garde) → raté
-        duel_engine.act(self.character, duel.pk, 'attack', rng=FixedRng(5, 5))
-        duel.refresh_from_db()
+        state = duel_engine.view_state(duel, self.other)
+        self.assertTrue(state['other_has_chosen'])
+        self.assertEqual(state['revealed_action'], '')
+        self.assertEqual(duel.round, 1)
+        with self.assertRaises(RpgError):
+            duel_engine.choose(self.character, duel.pk, 'guard')
+
+    def test_strike_exchange_uses_opposition_and_degrees(self):
+        duel = self.start()
+        # Aldric : 6+6+3 = 15 contre 1+1+3 = 5 → écart 10, coup appuyé : 4 + 6 + 3 = 13.
+        # Brann : 1+1+3 = 5 contre 6+6+3 = 15 → esquivé.
+        duel = self.play(duel, 'strike', 'strike', FixedRng(6, 6, 1, 1, 4, 3, 1, 1, 6, 6))
+        self.assertEqual(duel.opponent_hp, duel.opponent_max_hp - 13)
+        self.assertEqual(duel.challenger_hp, duel.challenger_max_hp)
+        self.assertEqual((duel.round, duel.challenger_action, duel.opponent_action), (2, '', ''))
+
+    def test_tie_goes_to_defender(self):
+        duel = self.start()
+        duel = self.play(duel, 'strike', 'guard', FixedRng(3, 3, 3, 3))
         self.assertEqual(duel.opponent_hp, duel.opponent_max_hp)
+
+    def test_guard_punishes_power(self):
+        duel = self.start()
+        # Riposte de Brann : 6+6+3 contre 1+1+3 → écart 10 : 2 + 6 + 2 = 10.
+        duel = self.play(duel, 'power', 'guard', FixedRng(6, 6, 1, 1, 2, 2))
+        self.assertEqual(duel.challenger_hp, duel.challenger_max_hp - 10)
+        self.assertEqual(duel.opponent_hp, duel.opponent_max_hp)
+
+    def test_feint_opens_guard(self):
+        duel = self.start()
+        # Intelligence 6+6+2 = 14 contre Perception 1+1+3 = 5 → écart 9 : 1 + 6 + 1 = 8.
+        duel = self.play(duel, 'feint', 'guard', FixedRng(6, 6, 1, 1, 1, 1))
+        self.assertEqual(duel.opponent_hp, duel.opponent_max_hp - 8)
+
+    def test_feint_is_too_slow_against_an_attack(self):
+        duel = self.start()
+        duel = self.play(duel, 'feint', 'strike', FixedRng(1, 1, 1, 1))
+        self.assertEqual(duel.opponent_hp, duel.opponent_max_hp)
+        self.assertIn("trop lente", " ".join(e['text'] for e in duel.log))
+
+    def test_intimidation_limits_next_round(self):
+        duel = self.start()
+        duel = self.play(duel, 'intimidate', 'guard', FixedRng(6, 6, 1, 1))
+        self.assertTrue(duel.opponent_shaken)
+        self.assertEqual(duel_engine.allowed_actions(duel, self.other), ('strike', 'guard'))
+        with self.assertRaises(RpgError):
+            duel_engine.choose(self.other, duel.pk, 'power')
+        duel = self.play(duel, 'guard', 'strike', FixedRng(1, 1, 6, 6))
+        self.assertFalse(duel.opponent_shaken)
+
+    def test_observe_reveals_next_choice(self):
+        duel = self.start()
+        duel = self.play(duel, 'observe', 'guard', FixedRng(6, 6, 1, 1))
+        self.assertTrue(duel.challenger_insight)
+        duel_engine.choose(self.other, duel.pk, 'power')
+        duel.refresh_from_db()
+        self.assertEqual(duel_engine.view_state(duel, self.character)['revealed_action'], 'power')
+        duel_engine.choose(self.character, duel.pk, 'guard', rng=FixedRng(6, 6, 1, 1, 1, 1))
+        duel.refresh_from_db()
+        self.assertFalse(duel.challenger_insight)
 
     def test_victory_without_real_damage(self):
         duel = self.start()
         hp_before = self.reload().hp
-        Duel.objects.filter(pk=duel.pk).update(challenger_hp=1, turn=self.other)
-        self.other.refresh_from_db()
-        CharacterCharacteristic.objects.filter(character=self.other,
-                                               characteristic__code='dexterite').update(value=30)
-        duel_engine.act(self.other, duel.pk, 'attack', rng=FixedRng(6, 6, 6))
-        duel.refresh_from_db()
+        Duel.objects.filter(pk=duel.pk).update(challenger_hp=1)
+        duel = self.play(duel, 'guard', 'strike', FixedRng(6, 6, 1, 1, 1, 1))
         self.assertEqual((duel.status, duel.winner_id), (Duel.STATUS_FINISHED, self.other.pk))
         c = self.reload()
         self.assertEqual((c.hp, c.state, c.duel_losses), (hp_before, Character.STATE_OK, 1))
+
+    def test_double_knockdown_is_a_draw(self):
+        duel = self.start()
+        Duel.objects.filter(pk=duel.pk).update(challenger_hp=1, opponent_hp=1)
+        duel = self.play(duel, 'strike', 'strike', FixedRng(6, 6, 1, 1, 1, 1, 6, 6, 1, 1, 1, 1))
+        self.assertEqual((duel.status, duel.winner_id), (Duel.STATUS_FINISHED, None))
+        self.assertEqual((self.reload().duel_wins, self.reload().duel_losses), (0, 0))
 
     def test_forfeit_and_claim(self):
         duel = self.start()
         with self.assertRaises(RpgError):
             duel_engine.claim_forfeit(self.character, duel.pk)
+        duel_engine.choose(self.character, duel.pk, 'guard')
         Duel.objects.filter(pk=duel.pk).update(updated_at=timezone.now() - timedelta(hours=25))
         duel_engine.claim_forfeit(self.character, duel.pk)
         duel.refresh_from_db()
         self.assertEqual(duel.winner_id, self.character.pk)
+        other_duel = duel_engine.accept(self.other, duel_engine.challenge(self.character, self.other.pk).pk)
+        duel_engine.forfeit(self.other, other_duel.pk)
+        other_duel.refresh_from_db()
+        self.assertEqual(other_duel.winner_id, self.character.pk)
 
     def test_one_active_duel_and_no_double_challenge(self):
         self.start()
         with self.assertRaises(RpgError):
             duel_engine.challenge(self.character, self.other.pk)
 
+    def test_waiting_counter(self):
+        duel = self.start()
+        self.assertEqual(duel_engine.waiting_for(self.character).count(), 1)
+        duel_engine.choose(self.character, duel.pk, 'guard')
+        self.assertEqual(duel_engine.waiting_for(self.character).count(), 0)
+        self.assertEqual(duel_engine.waiting_for(self.other).count(), 1)
+
     def test_duel_pages(self):
         duel = self.start()
         self.client.login(username='compagnon', password='pass')
-        self.assertContains(self.client.get(reverse('rpg_duel', args=[duel.pk])), "À toi de jouer")
-        self.assertEqual(self.client.get(reverse('rpg_duel_state', args=[duel.pk])).json()['turn'], self.other.pk)
+        page = self.client.get(reverse('rpg_duel', args=[duel.pk]))
+        for label in ("Frappe", "Coup puissant", "Garde", "Feinte", "Intimidation", "Observer"):
+            self.assertContains(page, label)
+        self.client.post(reverse('rpg_duel_action', args=[duel.pk]), {'action': 'guard'})
+        self.assertContains(self.client.get(reverse('rpg_duel', args=[duel.pk])), "En attente du choix")
+        self.client.login(username='heros', password='pass')
+        state = self.client.get(reverse('rpg_duel_state', args=[duel.pk])).json()
+        self.assertEqual((state['other_has_chosen'], state['revealed']), (True, ''))
         intruder = User.objects.create_user(username='intrus', password='pass', is_staff=True)
         hero.create_character(intruder, "Intrus", self.origin.pk)
         self.client.login(username='intrus', password='pass')

@@ -158,39 +158,61 @@ def duel_answer(request, character, duel_id):
 
 
 def _duel_for(character, duel_id):
-    duel = (Duel.objects.select_related('challenger', 'opponent', 'turn', 'winner')
+    duel = (Duel.objects.select_related('challenger', 'opponent', 'winner')
             .filter(pk=duel_id).filter(Q(challenger=character) | Q(opponent=character)).first())
     if duel is None:
         raise Http404
     return duel
 
 
+def _rounds(duel):
+    """Journal regroupé par manche, de la plus récente à la plus ancienne."""
+    rounds = {}
+    for entry in duel.log or []:
+        rounds.setdefault(entry.get('round', 0), []).append(entry)
+    return sorted(rounds.items(), reverse=True)
+
+
 @player_view
 def duel_view(request, character, duel_id):
     duel = _duel_for(character, duel_id)
-    forfeit_possible = (duel.status == Duel.STATUS_ACTIVE and duel.turn_id and duel.turn_id != character.pk
-                        and timezone.now() - duel.updated_at >= duel_engine.FORFEIT_DELAY)
+    state = duel_engine.view_state(duel, character) if duel.status == Duel.STATUS_ACTIVE else {}
+    allowed = duel_engine.allowed_actions(duel, character) if duel.status == Duel.STATUS_ACTIVE else ()
+    actions = [{'code': code, 'name': name, 'icon': icon, 'stat': stat, 'help': help_text,
+                'allowed': code in allowed}
+               for code, (name, icon, stat, help_text) in duel_engine.ACTIONS.items()]
     return render(request, 'rpg/duel.html', {
         **_meta("Duel"), **_hud(character), 'duel': duel, 'other': duel.other(character),
-        'my_turn': duel.status == Duel.STATUS_ACTIVE and duel.turn_id == character.pk,
-        'forfeit_possible': forfeit_possible,
+        'state': state, 'actions': actions,
+        'action_names': {code: f"{icon} {name}" for code, (name, icon, _, _) in duel_engine.ACTIONS.items()},
+        'can_claim': duel_engine.can_claim(duel, character),
+        'rounds': _rounds(duel),
     })
 
 
 @player_view
 def duel_state(request, character, duel_id):
+    """Signature de l'état visible : la page se recharge quand elle change."""
     duel = _duel_for(character, duel_id)
-    return JsonResponse({'status': duel.status, 'turn': duel.turn_id, 'round': duel.round})
+    state = duel_engine.view_state(duel, character) if duel.status == Duel.STATUS_ACTIVE else {}
+    return JsonResponse({
+        'status': duel.status, 'round': duel.round,
+        'other_has_chosen': state.get('other_has_chosen', False),
+        'revealed': state.get('revealed_action', ''),
+    })
 
 
 @require_POST
 @player_view
 def duel_action(request, character, duel_id):
     action = request.POST.get('action', '')
-    handler = duel_engine.claim_forfeit if action == 'claim' else duel_engine.act
-    args = (character, duel_id) if action == 'claim' else (character, duel_id, action)
     try:
-        handler(*args)
+        if action == 'claim':
+            duel_engine.claim_forfeit(character, duel_id)
+        elif action == 'forfeit':
+            duel_engine.forfeit(character, duel_id)
+        else:
+            duel_engine.choose(character, duel_id, action)
     except RpgError as error:
         messages.error(request, str(error))
     return redirect('rpg_duel', duel_id)

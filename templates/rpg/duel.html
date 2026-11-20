@@ -4,35 +4,66 @@
 {% block crumb %}<li><a href="{% url 'rpg_duels' %}">Duels</a></li><li>Contre {{ other.name }}</li>{% endblock %}
 
 {% block game %}
-<section class="rpg-screen rpg-screen--duel" data-duel data-state="{% url 'rpg_duel_state' duel.id %}" data-turn="{{ duel.turn_id|default:'' }}" data-status="{{ duel.status }}">
+<section class="rpg-screen rpg-screen--duel" data-duel data-state="{% url 'rpg_duel_state' duel.id %}"
+         data-status="{{ duel.status }}" data-round="{{ duel.round }}"
+         data-other-chosen="{% if state.other_has_chosen %}1{% else %}0{% endif %}" data-revealed="{{ state.revealed_action }}">
     <h2>🤺 {{ duel.challenger.name }} contre {{ duel.opponent.name }}</h2>
     <div class="rpg-duel-bars">
-        <div><strong>{{ duel.challenger.name }}</strong>
+        <div><strong>{{ duel.challenger.name }}</strong>{% if duel.challenger_shaken and duel.status == 'active' %} <span class="rpg-pill">ébranlé</span>{% endif %}
             <div class="rpg-bar"><span class="rpg-bar__fill" style="width: {{ duel.challenger_hp|hp_percent:duel.challenger_max_hp }}%"></span>
             <span class="rpg-bar__label">PV {{ duel.challenger_hp }} / {{ duel.challenger_max_hp }}</span></div></div>
-        <div><strong>{{ duel.opponent.name }}</strong>
+        <div><strong>{{ duel.opponent.name }}</strong>{% if duel.opponent_shaken and duel.status == 'active' %} <span class="rpg-pill">ébranlé</span>{% endif %}
             <div class="rpg-bar"><span class="rpg-bar__fill" style="width: {{ duel.opponent_hp|hp_percent:duel.opponent_max_hp }}%"></span>
             <span class="rpg-bar__label">PV {{ duel.opponent_hp }} / {{ duel.opponent_max_hp }}</span></div></div>
     </div>
+
     {% if duel.status == 'finished' %}
-        <p class="rpg-notice">🏆 Victoire de <strong>{{ duel.winner.name }}</strong>.</p>
+        <p class="rpg-notice">{% if duel.winner %}🏆 Victoire de <strong>{{ duel.winner.name }}</strong>.{% else %}🤝 Match nul.{% endif %}</p>
     {% elif duel.status == 'active' %}
-        <p>{% if my_turn %}<strong>À toi de jouer !</strong>{% else %}Au tour de {{ other.name }}… la page se met à jour toute seule.{% endif %}
-           <span class="rpg-muted">Manche {{ duel.round }}</span></p>
+        <div class="rpg-duel-status">
+            <strong>Manche {{ duel.round }}</strong>
+            <span>Toi : {% if state.my_action %}✓ {% for code, label in action_names.items %}{% if code == state.my_action %}{{ label }}{% endif %}{% endfor %}{% else %}à choisir{% endif %}</span>
+            <span>{{ other.name }} : {% if state.revealed_action %}👁️ prépare {% for code, label in action_names.items %}{% if code == state.revealed_action %}<strong>{{ label }}</strong>{% endif %}{% endfor %}{% elif state.other_has_chosen %}✓ a choisi{% else %}réfléchit…{% endif %}</span>
+        </div>
+
+        {% if not state.my_action %}
+            {% if state.shaken %}<p class="rpg-notice">😠 Tu es ébranlé : à cette manche, tu ne peux que Frapper ou te mettre en Garde.</p>{% endif %}
+            <form method="post" action="{% url 'rpg_duel_action' duel.id %}" class="rpg-duel-actions">
+                {% csrf_token %}
+                {% for a in actions %}
+                <button type="submit" name="action" value="{{ a.code }}" class="rpg-duel-action"{% if not a.allowed %} disabled{% endif %}>
+                    <span class="rpg-duel-action__name">{{ a.icon }} {{ a.name }}</span>
+                    <span class="rpg-duel-action__stat">{{ a.stat }}</span>
+                    <span class="rpg-duel-action__help">{{ a.help }}</span>
+                </button>
+                {% endfor %}
+            </form>
+            <p class="rpg-muted">Ton choix reste secret jusqu'à la résolution. Retiens : la Feinte trompe la Garde, la Garde punit le Coup puissant, le Coup puissant frappe fort tout le reste.</p>
+        {% else %}
+            <p class="rpg-muted">En attente du choix de {{ other.name }}… la page se met à jour toute seule.</p>
+        {% endif %}
     {% else %}
         <p class="rpg-muted">{{ duel.get_status_display }}.</p>
     {% endif %}
-    <ol class="rpg-combat-log">
-        {% for entry in duel.log %}<li class="rpg-log__entry--{{ entry.kind }}">{{ entry.text }}</li>{% endfor %}
-    </ol>
+
+    {% if rounds %}
+    <h3>Déroulé</h3>
+    <div class="rpg-duel-rounds">
+        {% for number, entries in rounds %}
+        <details class="rpg-duel-round"{% if forloop.first %} open{% endif %}>
+            <summary>{% if number %}Manche {{ number }}{% else %}Début{% endif %}</summary>
+            <ol class="rpg-combat-log">
+                {% for entry in entries %}<li class="rpg-log__entry--{{ entry.kind }}">{{ entry.text }}</li>{% endfor %}
+            </ol>
+        </details>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if duel.status == 'active' %}
     <form method="post" action="{% url 'rpg_duel_action' duel.id %}" class="rpg-actions">
         {% csrf_token %}
-        {% if my_turn %}
-        <button type="submit" name="action" value="attack" class="btn btn-add">Attaquer</button>
-        <button type="submit" name="action" value="defend" class="btn">Se mettre en garde</button>
-        {% endif %}
-        {% if forfeit_possible %}<button type="submit" name="action" value="claim" class="btn">Réclamer la victoire (24 h sans réponse)</button>{% endif %}
+        {% if can_claim %}<button type="submit" name="action" value="claim" class="btn">Réclamer la victoire (24 h sans réponse)</button>{% endif %}
         <button type="submit" name="action" value="forfeit" class="btn btn-small" onclick="return confirm('Abandonner le duel ?')">Abandonner</button>
     </form>
     {% endif %}
@@ -45,7 +76,10 @@
         if (document.hidden) return;
         fetch(box.dataset.state, {credentials: 'same-origin'}).then(function (r) { return r.ok ? r.json() : null; })
             .then(function (s) {
-                if (s && (String(s.turn || '') !== box.dataset.turn || s.status !== box.dataset.status)) location.reload();
+                if (!s) return;
+                var changed = s.status !== box.dataset.status || String(s.round) !== box.dataset.round
+                    || (s.other_has_chosen ? '1' : '0') !== box.dataset.otherChosen || s.revealed !== box.dataset.revealed;
+                if (changed) location.reload();
             }).catch(function () {});
     }, 4000);
 })();
