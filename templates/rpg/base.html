@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block extracss %}<link rel="stylesheet" href="{% static 'css/rpg.css' %}">{% endblock %}
+
+{% block content %}
+<div class="container rpg">
+    <ul class="breadcrumbs">
+        <li><a href="{% url 'portal_games' %}">Portail de jeux</a></li>
+        <li><a href="{% url 'rpg_home' %}">Ivakar</a></li>
+        {% block crumb %}{% endblock %}
+    </ul>
+    {% block rpg_body %}{% endblock %}
+</div>
+{% endblock %}

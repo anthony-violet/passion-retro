@@ -620,3 +620,30 @@
 .level-badge {
     z-index: 5;
 }
+
+/* IVAKAR — cadre offert au niveau 10 du RPG Ivakar (non vendu en boutique) */
+.cadre-ivakar {
+    position: relative;
+    display: inline-block;
+    padding: 4px;
+    background: linear-gradient(160deg, #1d2b24, #0d1512);
+    border: 3px solid #7f9c88;
+    box-shadow:
+        0 0 0 1px #0a100d,
+        inset 0 0 0 1px #0a100d,
+        0 0 10px rgba(170, 200, 180, .45);
+}
+
+.cadre-ivakar::before,
+.cadre-ivakar::after {
+    content: '⚔';
+    position: absolute;
+    color: #e6d38a;
+    font-size: 14px;
+    line-height: 1;
+    text-shadow: 0 0 4px #000;
+    z-index: 1;
+}
+
+.cadre-ivakar::before { top: -10px; left: -8px; }
+.cadre-ivakar::after { bottom: -10px; right: -8px; transform: scaleX(-1); }

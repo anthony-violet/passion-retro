@@ -1,0 +1,37 @@
+{% extends "rpg/base.html" %}
+
+{% block crumb %}<li>Créer ton héros</li>{% endblock %}
+
+{% block rpg_body %}
+<section class="rpg-panel rpg-create">
+    <h2>Créer ton héros</h2>
+    <p>Ton origine fixe tes caractéristiques de départ, sans t'enfermer dans une voie : à chaque niveau
+       (jusqu'au {{ max_level }}), tu reçois <strong>{{ points_per_level }} points de progression</strong> à répartir librement.</p>
+    {% if origins %}
+    <form method="post" class="rpg-form">
+        {% csrf_token %}
+        <label for="rpg-name">Nom du héros</label>
+        <input id="rpg-name" type="text" name="name" maxlength="{{ name_max_length }}" required value="{{ form.name }}" autocomplete="off">
+
+        <fieldset class="rpg-origins">
+            <legend>Origine</legend>
+            {% for o in origins %}
+            <label class="rpg-origin">
+                <input type="radio" name="origin" value="{{ o.obj.id }}" required{% if form.origin == o.obj.id|stringformat:"s" %} checked{% endif %}>
+                <span class="rpg-origin__body">
+                    <strong>{{ o.obj.name }}</strong>
+                    {% if o.obj.description %}<span class="rpg-muted">{{ o.obj.description }}</span>{% endif %}
+                    <span class="rpg-origin__stats">
+                        {% for c, value in o.values %}<span title="{{ c.description }}">{{ c.name }} <strong>{{ value }}</strong></span>{% endfor %}
+                    </span>
+                </span>
+            </label>
+            {% endfor %}
+        </fieldset>
+        <button type="submit" class="btn btn-add">Entrer dans Ivakar</button>
+    </form>
+    {% else %}
+    <p class="rpg-notice">Aucune origine n'est encore proposée : l'équipe prépare le jeu.</p>
+    {% endif %}
+</section>
+{% endblock %}

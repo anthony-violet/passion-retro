@@ -18,3 +18,4 @@
 .games-table { width: 100%; border-collapse: collapse; }
 .games-table th, .games-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid currentColor; }
 .quiz-score { font-weight: bold; }
+.games-hero--flagship { border-width: 3px; }

@@ -1,0 +1,57 @@
+{% extends "rpg/base.html" %}
+
+{% block rpg_body %}
+<section class="rpg-intro">
+    <h2>Ivakar <small>— le RPG textuel de {{ site_name }}</small></h2>
+    {% if not is_open %}<p class="rpg-notice">🔒 Ivakar est en construction : seule l'équipe y a accès pour l'instant.</p>{% endif %}
+    <p class="rpg-tagline">
+        Une brume étrange a englouti les collines de Hautcendre. Les sentiers se perdent, les mines grondent
+        et quelque chose s'est réveillé sous les ruines. Il faut un héros. Pourquoi pas toi ?
+    </p>
+    <ul class="rpg-features">
+        <li>🗺️ Explore des lieux, déclenche des événements et fais tes choix.</li>
+        <li>🎲 Tests de caractéristiques au d20 et combats au tour par tour.</li>
+        <li>🎒 Équipe armes et armures, commerce avec le marchand.</li>
+        <li>🏅 Tes paliers de niveau débloquent des titres, cadres et badges sur le site.</li>
+    </ul>
+    <div class="rpg-intro__cta">
+        {% if character %}
+            <a href="{% url 'rpg_play' %}" class="btn btn-add btn-large">Reprendre l'aventure avec {{ character.name }}</a>
+        {% elif user.is_authenticated %}
+            <a href="{% url 'rpg_create' %}" class="btn btn-add btn-large">Créer mon héros</a>
+        {% else %}
+            <a href="{% url 'rpg_create' %}" class="btn btn-add btn-large">Se connecter pour jouer</a>
+        {% endif %}
+    </div>
+</section>
+
+<div class="rpg-columns">
+    <section class="rpg-panel">
+        <h3>🏆 Les héros d'Ivakar</h3>
+        {% if heroes %}
+        <ol class="rpg-ranking">
+            {% for h in heroes %}
+            <li><strong>{{ h.name }}</strong> <span class="rpg-muted">({{ h.user.username }})</span> — niv. {{ h.level }}</li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <p class="rpg-muted">Aucun héros pour l'instant. Sois le premier !</p>
+        {% endif %}
+    </section>
+    <section class="rpg-panel">
+        <h3>🏅 Récompenses sur le site</h3>
+        {% if track %}
+        <ul class="rpg-track">
+            {% for step in track %}
+            <li class="{% if step.unlocked %}is-unlocked{% endif %}">
+                <span class="rpg-track__level">Niv. {{ step.reward.level }}</span>
+                {{ step.reward.label }}{% if step.reward.description %} <span class="rpg-muted">— {{ step.reward.description }}</span>{% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="rpg-muted">Les paliers arrivent bientôt.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

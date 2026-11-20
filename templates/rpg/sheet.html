@@ -1,0 +1,53 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Fiche du héros</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>📜 {{ character.name }}</h2>
+    <p>Niveau {{ character.level }} · {{ character.victories }} victoire{{ character.victories|pluralize }} · {{ character.knockouts }} KO{% if character.origin %} · origine : {{ character.origin.name }}{% endif %}</p>
+    {% if character.unspent_points %}<p class="rpg-notice">Tu as <strong>{{ character.unspent_points }}</strong> point{{ character.unspent_points|pluralize }} de progression à répartir librement (plafond : {{ stat_cap }}).</p>{% endif %}
+    <p class="rpg-muted">Un test se résout ainsi : 2D6 + ⌊caractéristique ÷ 3⌋, à comparer au seuil (Facile 10, Moyenne 13, Difficile 16).</p>
+    <table class="rpg-table">
+        <tbody>
+            {% for c in characteristics %}
+            <tr>
+                <th scope="row">{{ c.obj.name }} <span class="rpg-muted">(bonus +{{ c.bonus }})</span><br><span class="rpg-muted">{{ c.obj.description }}</span></th>
+                <td class="rpg-table__num">{{ c.value }}</td>
+                <td>
+                    {% if character.unspent_points and c.value < stat_cap %}
+                    <form method="post" action="{% url 'rpg_spend_point' %}">{% csrf_token %}
+                        <button type="submit" name="code" value="{{ c.obj.code }}" class="btn btn-small" aria-label="Ajouter un point en {{ c.obj.name }}">+1</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h3>Statistiques</h3>
+    <ul class="rpg-stats">
+        <li>⚔️ Dégâts : 1D6 + {{ sheet.damage_bonus }}</li>
+        <li>🛡️ Armure : {{ sheet.armor }}</li>
+        <li>❤️ PV max : {{ sheet.max_hp }}</li>
+    </ul>
+    <h3>Blessures</h3>
+    {% if wounds %}
+    <ul class="rpg-wounds">
+        {% for wound in wounds %}<li class="rpg-wound rpg-wound--{{ wound.severity }}">🩸 {{ wound.get_severity_display }}{% if wound.label %} — {{ wound.label }}{% endif %}</li>{% endfor %}
+    </ul>
+    <p class="rpg-muted">Une blessure peut s'aggraver quand elle est sollicitée (seuil : Force × coefficient) ou laissée sans soins (seuil : Mental × coefficient). Une nuit à l'auberge les soigne d'un degré.</p>
+    {% else %}
+    <p class="rpg-muted">Aucune blessure.</p>
+    {% endif %}
+    <h3>Titre sur le site</h3>
+    {% if title %}
+    <form method="post" action="{% url 'rpg_toggle_title' %}">{% csrf_token %}
+        <p>« {{ title }} » — {% if character.show_title %}affiché sur ton profil{% else %}masqué{% endif %}.</p>
+        <button type="submit" class="btn btn-small">{% if character.show_title %}Masquer{% else %}Afficher{% endif %} mon titre</button>
+    </form>
+    {% else %}
+    <p class="rpg-muted">Aucun titre pour l'instant. <a href="{% url 'rpg_rewards' %}">Voir les paliers</a>.</p>
+    {% endif %}
+</section>
+{% endblock %}

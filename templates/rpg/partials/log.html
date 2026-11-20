@@ -1,0 +1,13 @@
+{% load bbcode_tags %}
+{% if log %}
+<section class="rpg-log" aria-label="Récit">
+    <h3>Récit</h3>
+    <ol>
+        {% for entry in log %}
+        <li class="rpg-log__entry rpg-log__entry--{{ entry.kind }}{% if forloop.first %} rpg-log__entry--latest{% endif %}">
+            {% if entry.kind == 'story' %}{{ entry.text|bbcode|safe }}{% else %}{{ entry.text }}{% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+</section>
+{% endif %}

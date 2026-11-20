@@ -1,0 +1,22 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Récompenses</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>🏅 Récompenses sur le site</h2>
+    <p>Chaque palier de niveau d'Ivakar débloque quelque chose sur ton compte {{ site_name }}.</p>
+    <ul class="rpg-track">
+        {% for step in track %}
+        <li class="{% if step.unlocked %}is-unlocked{% endif %}">
+            <span class="rpg-track__level">Niv. {{ step.reward.level }}</span>
+            <span>{% if step.unlocked %}✅{% else %}🔒{% endif %} <strong>{{ step.reward.label }}</strong>
+            <span class="rpg-muted">— {{ step.reward.get_kind_display }}{% if step.reward.description %} · {{ step.reward.description }}{% endif %}</span></span>
+        </li>
+        {% empty %}
+        <li class="rpg-muted">Aucun palier pour l'instant.</li>
+        {% endfor %}
+    </ul>
+    <p><a href="{% url 'shop_inventory' %}">Voir mon inventaire du site</a></p>
+</section>
+{% endblock %}

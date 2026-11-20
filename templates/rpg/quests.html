@@ -1,0 +1,23 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Quêtes</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>📖 Journal de quêtes</h2>
+    <h3>En cours</h3>
+    {% for entry in active %}
+    <article class="rpg-quest">
+        <h4>{{ entry.quest.title }}</h4>
+        {% if entry.quest.summary %}<p>{{ entry.quest.summary }}</p>{% endif %}
+        {% if entry.quest.objective %}<p class="rpg-quest__objective">🎯 {{ entry.quest.objective }}</p>{% endif %}
+    </article>
+    {% empty %}
+    <p class="rpg-muted">Aucune quête en cours. Explore pour en trouver !</p>
+    {% endfor %}
+    {% if done %}
+    <h3>Accomplies</h3>
+    <ul>{% for entry in done %}<li>✅ {{ entry.quest.title }} <span class="rpg-muted">({{ entry.completed_at|date:"j F Y" }})</span></li>{% endfor %}</ul>
+    {% endif %}
+</section>
+{% endblock %}

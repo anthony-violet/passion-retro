@@ -1,0 +1,36 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Inventaire</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>🎒 Inventaire</h2>
+    {% if entries %}
+    <ul class="rpg-items">
+        {% for entry in entries %}
+        <li class="rpg-item rpg-item--{{ entry.item.rarity }}{% if entry.equipped %} is-equipped{% endif %}">
+            <div>
+                <strong>{{ entry.item.name }}</strong>{% if entry.quantity > 1 %} ×{{ entry.quantity }}{% endif %}
+                <span class="rpg-muted">· {{ entry.item.get_kind_display }}{% if entry.equipped %} · équipé{% endif %}</span>
+                {% if entry.item.description %}<p class="rpg-muted">{{ entry.item.description }}</p>{% endif %}
+                {% include "rpg/partials/item_bonuses.html" with item=entry.item %}
+            </div>
+            <div class="rpg-item__actions">
+                {% if entry.item.is_equippable %}
+                <form method="post" action="{% url 'rpg_equip' entry.item.id %}">{% csrf_token %}
+                    <button type="submit" class="btn btn-small">{% if entry.equipped %}Ranger{% else %}Équiper{% endif %}</button>
+                </form>
+                {% elif entry.item.kind == 'consumable' %}
+                <form method="post" action="{% url 'rpg_use' entry.item.id %}">{% csrf_token %}
+                    <button type="submit" class="btn btn-small">Utiliser</button>
+                </form>
+                {% endif %}
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="rpg-muted">Ton sac est vide.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Bureau de change</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>💱 Bureau de change</h2>
+    <p>Convertis l'or gagné sur {{ site_name }} en écus d'Ivakar. <strong>Attention : le change est à sens unique</strong>,
+       les écus ne peuvent pas redevenir de l'or du site.</p>
+    <p>Ton or sur le site : <strong>{{ user.gold }}</strong> · tes écus : <strong>{{ character.coins }}</strong></p>
+    <div class="rpg-packs">
+        {% for pack in packs %}
+        <form method="post" class="rpg-pack">
+            {% csrf_token %}
+            <p class="rpg-pack__coins">🪙 {{ pack.coins }} écus</p>
+            <p class="rpg-muted">pour {{ pack.gold }} or du site</p>
+            <button type="submit" name="pack" value="{{ pack.index }}" class="btn btn-small"{% if not pack.affordable %} disabled{% endif %}>Échanger</button>
+        </form>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

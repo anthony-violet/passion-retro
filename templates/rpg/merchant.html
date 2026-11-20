@@ -1,0 +1,40 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Marchand</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>🛒 Le marchand de {{ character.location.name }}</h2>
+    <p>Tu as <strong>{{ character.coins }} écus</strong>. <a href="{% url 'rpg_play' %}">Retour</a></p>
+    <h3>À vendre</h3>
+    <ul class="rpg-items">
+        {% for item in wares %}
+        <li class="rpg-item rpg-item--{{ item.rarity }}">
+            <div>
+                <strong>{{ item.name }}</strong> <span class="rpg-muted">· {{ item.get_kind_display }}</span>
+                {% if item.description %}<p class="rpg-muted">{{ item.description }}</p>{% endif %}
+                {% include "rpg/partials/item_bonuses.html" %}
+            </div>
+            <form method="post" action="{% url 'rpg_buy' item.id %}" class="rpg-item__actions">{% csrf_token %}
+                <button type="submit" class="btn btn-small"{% if item.price > character.coins %} disabled{% endif %}>Acheter · {{ item.price }} écus</button>
+            </form>
+        </li>
+        {% empty %}
+        <li class="rpg-muted">Les étals sont vides.</li>
+        {% endfor %}
+    </ul>
+    {% if sellable %}
+    <h3>Vendre</h3>
+    <ul class="rpg-items">
+        {% for entry in sellable %}
+        <li class="rpg-item">
+            <div><strong>{{ entry.item.name }}</strong>{% if entry.quantity > 1 %} ×{{ entry.quantity }}{% endif %}{% if entry.equipped %} <span class="rpg-muted">· équipé</span>{% endif %}</div>
+            <form method="post" action="{% url 'rpg_sell' entry.item.id %}" class="rpg-item__actions">{% csrf_token %}
+                <button type="submit" class="btn btn-small">Vendre · {{ entry.item.sell_price }} écus</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</section>
+{% endblock %}

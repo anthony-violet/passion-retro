@@ -38,6 +38,7 @@ urlpatterns = [
     path("llms.txt", views.llms_txt, name="llms_txt"),
     path("maintenance/", include("maintenance.urls")),
     path("", include("home.urls")),
+    path("rpg/", include("ivakar_rpg.urls")),
     path("posts/", include("posts.urls")),
     path("forum/", include("forum.urls")),
     path("users/", include("users.urls")),

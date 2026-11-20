@@ -1,0 +1,10 @@
+{% extends "rpg/base.html" %}
+
+{% block rpg_body %}
+<div class="rpg-layout">
+    {% include "rpg/partials/hud.html" %}
+    <div class="rpg-main">
+        {% block game %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

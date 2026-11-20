@@ -1,5 +1,6 @@
 {% extends 'layout.html' %}
 {% load static bbcode_tags users_custom_tags %}
+{% load rpg_tags %}
 
 {% block content %}
     <div class="container">
@@ -16,6 +17,8 @@
                     <p class="profile-realname">{{ user.first_name }} {{ user.last_name }}</p>
                 {% endif %}
                 <p class="profile-level-title"><span class="level-title">{{ user.level_title }}</span></p>
+                {% rpg_title user as ivakar_title %}
+                {% if ivakar_title %}<p class="profile-rpg-title" title="Titre gagné dans Ivakar, le RPG du site">⚔️ {{ ivakar_title }}</p>{% endif %}
                 <p class="profile-joined">Membre depuis le {{ user.date_joined|date:"d F Y" }}</p>
                 {% if user == request.user %}
                     <p class="profile-xp">Prochain niveau : <strong>{{ request.user.experience_left }} XP</strong></p>

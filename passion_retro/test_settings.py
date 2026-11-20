@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "version",
     "forum_api",
     "wall_memories",
+    "ivakar_rpg",
 ]
 
 SITE_ID = 1
@@ -122,3 +123,6 @@ GOOGLE_PRIVATE_KEY = "test-private-key"
 # Configuration API OpenClaw pour les tests - compte Frce4 existant
 OPENCLAW_API_KEY = "test_api_key_for_tests"
 OPENCLAW_API_USER = "Frce4"
+
+# Ivakar (RPG) : fermé au public, réservé au staff tant que RPG_OPEN est faux.
+RPG_OPEN = False

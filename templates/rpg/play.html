@@ -1,0 +1,111 @@
+{% extends "rpg/game_base.html" %}
+{% load bbcode_tags rpg_tags %}
+
+{% block crumb %}<li>{% if mode == 'combat' %}Combat{% elif mode == 'scene' %}{{ scene.title }}{% else %}{{ character.location.name }}{% endif %}</li>{% endblock %}
+
+{% block game %}
+{% if mode == 'ko' %}
+<section class="rpg-screen rpg-screen--combat">
+    <h2>💫 Inconscient</h2>
+    <p>Tout devient noir. Tu ne sens plus que le froid du sol et, très loin, des voix.</p>
+    <form method="post" action="{% url 'rpg_wake_up' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-add">Reprendre connaissance</button>
+    </form>
+</section>
+
+{% elif mode == 'combat' %}
+<section class="rpg-screen rpg-screen--combat">
+    <h2>⚔️ {{ combat.monster.name }}{% if combat.monster.is_boss %} <span class="rpg-pill rpg-pill--boss">Boss</span>{% endif %}</h2>
+    {% if combat.monster.description %}<p class="rpg-muted">{{ combat.monster.description }}</p>{% endif %}
+    <p class="rpg-muted">Toucher : {{ combat.monster.get_hit_difficulty_display }} · Esquiver : {{ combat.monster.get_dodge_difficulty_display }}{% if not combat.monster.is_boss %} · Fuir : {{ combat.monster.get_flee_difficulty_display }}{% endif %}</p>
+    <div class="rpg-bar rpg-bar--enemy">
+        <span class="rpg-bar__fill" style="width: {{ combat.monster_hp|hp_percent:combat.monster.hp }}%"></span>
+        <span class="rpg-bar__label">PV {{ combat.monster_hp }} / {{ combat.monster.hp }}</span>
+    </div>
+    <ol class="rpg-combat-log">
+        {% for entry in combat.log %}<li class="rpg-log__entry--{{ entry.kind }}">{{ entry.text }}</li>{% endfor %}
+    </ol>
+    <p class="rpg-muted">Tour {{ combat.turn }}</p>
+    <form method="post" action="{% url 'rpg_combat' %}" class="rpg-actions">
+        {% csrf_token %}
+        <button type="submit" name="action" value="attack" class="btn btn-add">Attaquer</button>
+        <button type="submit" name="action" value="defend" class="btn">Se défendre</button>
+        {% if not combat.monster.is_boss %}<button type="submit" name="action" value="flee" class="btn">Fuir</button>{% endif %}
+    </form>
+    {% if consumables %}
+    <form method="post" action="{% url 'rpg_combat' %}" class="rpg-actions">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="item">
+        {% for entry in consumables %}
+        <button type="submit" name="item" value="{{ entry.item.id }}" class="btn btn-small">🧪 {{ entry.item.name }} ×{{ entry.quantity }}</button>
+        {% endfor %}
+    </form>
+    {% endif %}
+</section>
+
+{% elif mode == 'scene' %}
+<section class="rpg-screen rpg-screen--scene">
+    <h2>{{ scene.title }}</h2>
+    <div class="rpg-text">{{ scene.text|bbcode|safe }}</div>
+    <ul class="rpg-choices">
+        {% for choice, reason in choices %}
+        <li>
+            <form method="post" action="{% url 'rpg_choose' choice.id %}">
+                {% csrf_token %}
+                <button type="submit" class="rpg-choice"{% if reason %} disabled aria-disabled="true"{% endif %}>
+                    <span class="rpg-choice__label">▸ {{ choice.label }}</span>
+                    {% if choice.test_characteristic %}<span class="rpg-choice__test">🎲 {{ choice.test_characteristic.name }} — {{ choice.get_test_difficulty_display }}</span>{% endif %}
+                    {% if choice.required_coins %}<span class="rpg-choice__test">🪙 {{ choice.required_coins }}</span>{% endif %}
+                    {% if reason %}<span class="rpg-choice__lock">🔒 {{ reason }}</span>{% endif %}
+                </button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% if can_leave %}
+    <form method="post" action="{% url 'rpg_leave_scene' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn">Continuer</button>
+    </form>
+    {% endif %}
+</section>
+
+{% else %}
+<section class="rpg-screen rpg-screen--location">
+    <h2>📍 {{ character.location.name }}</h2>
+    <p class="rpg-muted">
+        {% if character.location.is_safe %}Lieu sûr{% else %}Danger · niveau conseillé {{ character.location.recommended_level }}{% endif %}
+    </p>
+    <div class="rpg-text">{{ character.location.description|bbcode|safe }}</div>
+
+    <div class="rpg-actions">
+        <form method="post" action="{% url 'rpg_explore' %}">{% csrf_token %}<button type="submit" class="btn btn-add">🔍 Explorer</button></form>
+        {% if character.location.has_inn %}
+        <form method="post" action="{% url 'rpg_rest' %}">{% csrf_token %}<button type="submit" class="btn">🛏️ Dormir à l'auberge ({{ character.location.inn_price }} écus)</button></form>
+        {% endif %}
+        {% if character.location.has_merchant %}<a href="{% url 'rpg_merchant' %}" class="btn">🛒 Marchand</a>{% endif %}
+    </div>
+
+    {% if exits %}
+    <h3>Chemins</h3>
+    <ul class="rpg-choices">
+        {% for exit, reason in exits %}
+        <li>
+            <form method="post" action="{% url 'rpg_move' exit.id %}">
+                {% csrf_token %}
+                <button type="submit" class="rpg-choice"{% if reason %} disabled aria-disabled="true"{% endif %}>
+                    <span class="rpg-choice__label">➜ {{ exit.label|default:exit.to_location.name }}</span>
+                    <span class="rpg-choice__test">niv. {{ exit.to_location.recommended_level }}</span>
+                    {% if reason %}<span class="rpg-choice__lock">🔒 {{ reason }}</span>{% endif %}
+                </button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</section>
+{% endif %}
+
+{% include "rpg/partials/log.html" %}
+{% endblock %}

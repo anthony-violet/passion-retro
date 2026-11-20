@@ -1,0 +1,34 @@
+{% load rpg_tags %}
+<aside class="rpg-hud" aria-label="Ton héros">
+    <div class="rpg-hud__name">
+        <strong>{{ character.name }}</strong>
+        <span>Niv. {{ character.level }}</span>
+    </div>
+    <div class="rpg-bar rpg-bar--hp" title="Points de vie">
+        <span class="rpg-bar__fill" style="width: {{ character.hp|hp_percent:sheet.max_hp }}%"></span>
+        <span class="rpg-bar__label">PV {{ character.hp }} / {{ sheet.max_hp }}</span>
+    </div>
+    <div class="rpg-bar rpg-bar--xp" title="Expérience">
+        <span class="rpg-bar__fill" style="width: {{ character.xp|hp_percent:sheet.xp_next_level }}%"></span>
+        <span class="rpg-bar__label">XP {{ character.xp }} / {{ sheet.xp_next_level }}</span>
+    </div>
+    <ul class="rpg-hud__stats">
+        <li title="Bonus de dégâts">⚔️ +{{ sheet.damage_bonus }}</li>
+        <li title="Armure">🛡️ {{ sheet.armor }}</li>
+        <li title="Écus">🪙 {{ character.coins }}</li>
+    </ul>
+    {% if character.is_ko %}<p class="rpg-hud__state">💫 Inconscient</p>{% endif %}
+    {% if wounds %}
+    <ul class="rpg-wounds" aria-label="Blessures">
+        {% for wound in wounds %}<li class="rpg-wound rpg-wound--{{ wound.severity }}">🩸 {{ wound.get_severity_display }}{% if wound.label %} — {{ wound.label }}{% endif %}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    <nav class="rpg-hud__nav" aria-label="Menu du jeu">
+        <a href="{% url 'rpg_play' %}">🗺️ Jouer</a>
+        <a href="{% url 'rpg_sheet' %}">📜 Héros{% if character.unspent_points %} <span class="rpg-pill">+{{ character.unspent_points }}</span>{% endif %}</a>
+        <a href="{% url 'rpg_inventory' %}">🎒 Inventaire</a>
+        <a href="{% url 'rpg_quests' %}">📖 Quêtes</a>
+        <a href="{% url 'rpg_exchange' %}">💱 Change</a>
+        <a href="{% url 'rpg_rewards' %}">🏅 Récompenses</a>
+    </nav>
+</aside>

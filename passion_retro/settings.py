@@ -112,7 +112,11 @@ INSTALLED_APPS = [
     "version",
     "forum_api",
     "wall_memories",
+    "ivakar_rpg",
 ]
+
+# Ivakar (RPG) : réservé au staff tant que RPG_OPEN n'est pas activé.
+RPG_OPEN = os.getenv("RPG_OPEN", "False").lower() in ("1", "true", "yes")
 
 # Configuration API OpenClaw
 OPENCLAW_API_KEY = os.getenv("OPENCLAW_API_KEY", "test_api_key_default")

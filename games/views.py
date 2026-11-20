@@ -43,6 +43,13 @@ def portal(request):
     }
     if request.user.is_authenticated:
         context['games'] = LittleBacGames.objects.filter(author=request.user, status='waiting')
+
+    from ivakar_rpg.decorators import rpg_is_visible
+    from ivakar_rpg.models import Character
+    context['rpg_visible'] = rpg_is_visible(request.user)
+    context['rpg_open'] = getattr(settings, 'RPG_OPEN', False)
+    if context['rpg_visible'] and request.user.is_authenticated:
+        context['rpg_character'] = Character.objects.filter(user=request.user).first()
     return render(request, 'games/portal.html', context)
 
 
