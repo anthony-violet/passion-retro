@@ -249,6 +249,9 @@ class ScenarioTreeTests(TestCase):
                             walk(branch['next'])
 
         for group in groups:
+            for entry in group['npcs']:
+                for dialogue in entry['dialogues']:
+                    walk(dialogue['node'])
             for node in group['roots']:
                 walk(node)
         for node in orphans:

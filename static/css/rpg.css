@@ -234,3 +234,15 @@
 .rpg-achievement__date { font-size: .8em; color: var(--rpg-xp); }
 .rpg-bar--small { height: 16px; }
 .rpg-bar--small .rpg-bar__label { font-size: .75em; line-height: 14px; }
+
+/* PNJ : présents dans le lieu, interlocuteur d'une scène */
+.rpg-npcs { list-style: none; padding: 0; margin: 8px 0 14px; display: grid; gap: 8px; }
+.rpg-npc { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid currentColor;
+    border-radius: var(--rpg-radius); }
+.rpg-npc__body { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.rpg-npc form { margin: 0; }
+.rpg-npc__portrait { width: 48px; height: 48px; flex: none; border: 1px solid currentColor;
+    border-radius: 6px; background: rgba(127, 127, 127, .12); object-fit: cover; }
+.rpg-npc__portrait[src$=".svg"] { image-rendering: pixelated; }
+.rpg-speaker { display: flex; gap: 10px; align-items: center; margin: 0 0 10px; }
+@media (max-width: 480px) { .rpg-npc { flex-wrap: wrap; } }

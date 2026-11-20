@@ -8,7 +8,7 @@ from django.forms import inlineformset_factory
 from django.utils.text import slugify
 
 from ivakar_rpg.models import (
-    Achievement, Characteristic, Choice, DailyTask, Item, LevelReward, Location, LocationEncounter, LocationExit, Monster, MonsterLoot,
+    Achievement, Characteristic, Choice, DailyTask, Item, Npc, NpcDialogue, LevelReward, Location, LocationEncounter, LocationExit, Monster, MonsterLoot,
     Origin, OriginCharacteristic, Outcome, Quest, Scene, WorldEvent,
 )
 
@@ -92,7 +92,7 @@ SECTIONS = {
         'model': Scene, 'title': "Scènes", 'singular': "une scène", 'icon': "📜",
         'help': "Les événements à choix. Une scène apparaît en explorant son lieu (poids > 0) ou à la suite d'un "
                 "choix. Sans illustration propre, elle reprend celle de son lieu.",
-        'form': form_for(Scene, ['title', 'slug', 'location', 'text', 'image', 'explore_weight', 'once',
+        'form': form_for(Scene, ['title', 'slug', 'location', 'npc', 'text', 'image', 'explore_weight', 'once',
                                  'min_level', 'required_flag', 'forbidden_flag']),
         'columns': [("Titre", 'title'), ("Lieu", 'location'), ("Poids", 'explore_weight'), ("Unique", 'once'),
                     ("Choix", 'choices.count')],
@@ -100,6 +100,19 @@ SECTIONS = {
         'filter': ('location', Location, "Tous les lieux"),
         'inlines': [],
         'has_choices': True,
+    },
+    'pnj': {
+        'model': Npc, 'title': "PNJ", 'singular': "un PNJ", 'icon': "🧑",
+        'help': "Les habitants du monde. Dans chaque lieu coché, le joueur voit le PNJ et peut lui parler : cela "
+                "ouvre la scène de la première entrée de dialogue dont les conditions sont remplies. Ses répliques "
+                "évoluent donc avec les marqueurs du héros.",
+        'form': form_for(Npc, ['name', 'slug', 'role', 'description', 'image', 'locations', 'order', 'is_active']),
+        'columns': [("Nom", 'name'), ("Rôle", 'role'), ("Lieux", 'locations_display'),
+                    ("Dialogues", 'dialogues.count'), ("Présent", 'is_active')],
+        'search': ['name', 'slug', 'role'],
+        'inlines': [inline(Npc, NpcDialogue, ['scene', 'label', 'order', 'min_level', 'required_flag',
+                                              'forbidden_flag'], title="Dialogues (la première entrée valable "
+                                                                       "l'emporte)")],
     },
     'monstres': {
         'model': Monster, 'title': "Monstres", 'singular': "un monstre", 'icon': "👹",

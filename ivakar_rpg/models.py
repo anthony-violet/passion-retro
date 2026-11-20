@@ -178,6 +178,8 @@ class Character(models.Model):
     explorations = models.PositiveIntegerField("Explorations", default=0)
     choices_made = models.PositiveIntegerField("Choix faits", default=0)
     daily_tasks_done = models.PositiveIntegerField("Tâches quotidiennes accomplies", default=0)
+    # PNJ déjà abordés (identifiants).
+    npcs_met = models.JSONField(default=list, blank=True)
     daily_bonus_day = models.DateField("Dernier bonus « journée complète »", null=True, blank=True)
     date_joined = models.DateTimeField(auto_now_add=True)
 
@@ -504,6 +506,9 @@ class Scene(Illustrated):
     min_level = models.PositiveSmallIntegerField("Niveau minimum", default=0)
     required_flag = models.CharField("Marqueur requis", max_length=60, blank=True)
     forbidden_flag = models.CharField("Marqueur interdit", max_length=60, blank=True)
+    npc = models.ForeignKey('Npc', verbose_name="Interlocuteur (PNJ)", on_delete=models.SET_NULL, null=True,
+                            blank=True, related_name='scenes',
+                            help_text="Affiche son portrait et son nom en tête de la scène.")
 
     class Meta:
         ordering = ['location', 'title']
@@ -899,6 +904,60 @@ class EventParticipation(models.Model):
 
 
 # ---------------------------------------------------------------------------
+# Personnages non joueurs
+# ---------------------------------------------------------------------------
+class Npc(Illustrated):
+    """Personnage qu'on trouve dans un ou plusieurs lieux et à qui l'on peut parler."""
+
+    VISUAL_FOLDER = 'pnj'
+    FALLBACK_VISUAL = 'ivakar/pnj/inconnu.svg'
+
+    slug = models.SlugField(max_length=60, unique=True)
+    name = models.CharField("Nom", max_length=60)
+    role = models.CharField("Rôle", max_length=60, blank=True, help_text="Ex. « aubergiste », « ermite ».")
+    description = models.TextField("Description", blank=True, help_text="Ce que le joueur voit de lui avant de lui parler.")
+    locations = models.ManyToManyField(Location, verbose_name="Où le trouver", blank=True, related_name='npcs')
+    order = models.PositiveSmallIntegerField("Ordre", default=0)
+    is_active = models.BooleanField("Présent dans le jeu", default=True)
+
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name = "PNJ"
+        verbose_name_plural = "PNJ"
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def visual_url(self):
+        return super().visual_url or static(self.FALLBACK_VISUAL)
+
+    @property
+    def locations_display(self):
+        return ", ".join(loc.name for loc in self.locations.all()) or "—"
+
+
+class NpcDialogue(models.Model):
+    """Entrée de dialogue : la scène ouverte par « Parler », si ses conditions sont remplies.
+    Le jeu prend la première entrée valable dans l'ordre."""
+
+    npc = models.ForeignKey(Npc, on_delete=models.CASCADE, related_name='dialogues')
+    scene = models.ForeignKey(Scene, verbose_name="Scène ouverte", on_delete=models.CASCADE, related_name='npc_entries')
+    label = models.CharField("Texte du bouton", max_length=60, blank=True, help_text="Vide = « Parler ».")
+    order = models.PositiveSmallIntegerField("Ordre", default=0)
+    min_level = models.PositiveSmallIntegerField("Niveau minimum", default=0)
+    required_flag = models.CharField("Marqueur requis", max_length=60, blank=True)
+    forbidden_flag = models.CharField("Marqueur interdit", max_length=60, blank=True)
+
+    class Meta:
+        ordering = ['order', 'pk']
+        verbose_name = "Dialogue"
+
+    def __str__(self):
+        return f"{self.npc} → {self.scene}"
+
+
+# ---------------------------------------------------------------------------
 # Objectifs : succès et tâches quotidiennes
 # ---------------------------------------------------------------------------
 # Compteurs du héros que suivent les objectifs (calculés par ``engine.progress``).
@@ -914,13 +973,14 @@ METRIC_CHOICES = [
     ('event_attacks', "Assauts contre une menace de serveur"),
     ('trades', "Échanges conclus"),
     ('tavern', "Messages à la taverne"),
+    ('npcs', "PNJ rencontrés"),
     ('knockouts', "KO subis"),
     ('daily_done', "Tâches quotidiennes accomplies"),
     ('level', "Niveau atteint"),
     ('flag', "Marqueur d'histoire obtenu"),
 ]
 # Seuls les compteurs qui progressent par actions ont un sens pour une tâche du jour.
-DAILY_METRIC_CHOICES = [c for c in METRIC_CHOICES if c[0] not in ('level', 'flag', 'daily_done', 'knockouts')]
+DAILY_METRIC_CHOICES = [c for c in METRIC_CHOICES if c[0] not in ('level', 'flag', 'daily_done', 'knockouts', 'npcs')]
 
 
 class Achievement(models.Model):

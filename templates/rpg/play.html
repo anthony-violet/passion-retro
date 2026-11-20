@@ -58,6 +58,12 @@
 <section class="rpg-screen rpg-screen--scene">
     {% if scene.visual_url %}<figure class="rpg-art"><img src="{{ scene.visual_url }}" alt=""></figure>{% endif %}
     <h2>{{ scene.title }}</h2>
+    {% if scene.npc %}
+    <div class="rpg-speaker">
+        <img class="rpg-npc__portrait" src="{{ scene.npc.visual_url }}" alt="">
+        <span><strong>{{ scene.npc.name }}</strong>{% if scene.npc.role %} <span class="rpg-muted">· {{ scene.npc.role }}</span>{% endif %}</span>
+    </div>
+    {% endif %}
     <div class="rpg-text">{{ scene.text|bbcode|safe }}</div>
     <ul class="rpg-choices">
         {% for choice, reason in choices %}
@@ -99,6 +105,26 @@
         {% if character.location.has_merchant %}<a href="{% url 'rpg_merchant' %}" class="btn">🛒 Marchand</a>{% endif %}
         <a href="{% url 'rpg_map' %}" class="btn">🗺️ Carte</a>
     </div>
+
+    {% if npcs %}
+    <h3>Ici</h3>
+    <ul class="rpg-npcs">
+        {% for npc, dialogue in npcs %}
+        <li class="rpg-npc">
+            <img class="rpg-npc__portrait" src="{{ npc.visual_url }}" alt="">
+            <span class="rpg-npc__body">
+                <span><strong>{{ npc.name }}</strong>{% if npc.role %} <span class="rpg-muted">· {{ npc.role }}</span>{% endif %}</span>
+                {% if npc.description %}<span class="rpg-muted">{{ npc.description }}</span>{% endif %}
+            </span>
+            {% if dialogue %}
+            <form method="post" action="{% url 'rpg_talk' npc.id %}">{% csrf_token %}<button type="submit" class="btn btn-small btn-add">💬 {{ dialogue.label|default:"Parler" }}</button></form>
+            {% else %}
+            <span class="rpg-muted">n'a rien à te dire pour l'instant</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
 
     {% if exits %}
     <h3>Chemins</h3>

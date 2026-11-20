@@ -6,7 +6,7 @@ et une scène qui ramène à une scène en cours de déroulé est signalée comm
 """
 from collections import defaultdict
 
-from .models import Choice, LocationExit, Outcome, Scene
+from .models import Choice, Location, LocationExit, Npc, NpcDialogue, Outcome, Scene
 
 
 def _effects(outcome):
@@ -101,18 +101,31 @@ class _Builder:
 
 
 def build(location_id=None):
-    """Groupes de scènes par lieu d'entrée, puis les scènes qu'aucune entrée n'atteint."""
+    """Groupes par lieu (PNJ à qui parler, puis scènes d'exploration), puis les scènes qu'aucune entrée
+    n'atteint."""
     builder = _Builder()
-    groups = defaultdict(list)
+    explore = defaultdict(list)
     for scene in sorted(builder.scenes.values(), key=lambda s: (-s.explore_weight, s.title)):
         if scene.explore_weight > 0 and scene.location_id:
-            groups[scene.location_id].append(scene)
-    locations = {s.location_id: s.location for s in builder.scenes.values() if s.location_id}
+            explore[scene.location_id].append(scene)
+    npcs = defaultdict(list)
+    dialogues = defaultdict(list)
+    for dialogue in NpcDialogue.objects.select_related('scene'):
+        dialogues[dialogue.npc_id].append(dialogue)
+    for npc in Npc.objects.prefetch_related('locations'):
+        for location in npc.locations.all():
+            npcs[location.pk].append(npc)
     result = []
-    for loc_id in sorted(groups, key=lambda pk: (locations[pk].order, locations[pk].name)):
-        if location_id and loc_id != location_id:
+    for location in Location.objects.all():
+        if (location_id and location.pk != location_id) or not (explore[location.pk] or npcs[location.pk]):
             continue
-        result.append({'location': locations[loc_id], 'roots': [builder.scene(s) for s in groups[loc_id]]})
+        group = {'location': location, 'npcs': [], 'roots': []}
+        for npc in npcs[location.pk]:
+            group['npcs'].append({'npc': npc, 'dialogues': [
+                {'dialogue': d, 'conditions': _conditions(d), 'node': builder.scene(builder.scenes[d.scene_id])}
+                for d in dialogues[npc.pk] if d.scene_id in builder.scenes]})
+        group['roots'] = [builder.scene(s) for s in explore[location.pk]]
+        result.append(group)
     orphans = [] if location_id else [
         builder.scene(s) for s in sorted(builder.scenes.values(), key=lambda s: s.title) if s.pk not in builder.shown
     ]
@@ -126,12 +139,15 @@ def flag_index():
         index[outcome.set_flag]['set_by'].append(f"{outcome.choice.scene.title} › {outcome.choice.label}")
     for scene in Scene.objects.filter(once=True):
         index[scene.seen_flag]['set_by'].append(f"{scene.title} (scène unique, automatique)")
-    for model, label in ((Scene, lambda o: f"scène « {o.title} »"),
+    for model, label in ((NpcDialogue, lambda o: f"dialogue de {o.npc.name} « {o.scene.title} »"),
+                         (Scene, lambda o: f"scène « {o.title} »"),
                          (Choice, lambda o: f"choix « {o.scene.title} › {o.label} »"),
                          (LocationExit, lambda o: f"chemin {o.from_location.name} → {o.to_location.name}")):
         queryset = model.objects.all()
         if model is Choice:
             queryset = queryset.select_related('scene')
+        if model is NpcDialogue:
+            queryset = queryset.select_related('npc', 'scene')
         if model is LocationExit:
             queryset = queryset.select_related('from_location', 'to_location')
         for obj in queryset:

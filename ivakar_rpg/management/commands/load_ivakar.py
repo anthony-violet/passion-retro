@@ -14,7 +14,7 @@ from ivakar_rpg.content import chapitre1 as content
 from ivakar_rpg.engine.character import ensure_characteristics
 from ivakar_rpg.models import (
     Characteristic, Choice, Item, LevelReward, Location, LocationEncounter, LocationExit, Monster, MonsterLoot,
-    Origin, OriginCharacteristic, Outcome, Quest, Scene,
+    Npc, NpcDialogue, Origin, OriginCharacteristic, Outcome, Quest, Scene,
 )
 
 
@@ -96,6 +96,14 @@ class Command(BaseCommand):
             data['reward_item'] = items.get(data.pop('reward_item', None))
             quests[slug], _ = self._save(Quest, {'slug': slug}, data)
 
+        npcs = {}
+        for order, data in enumerate(content.NPCS):
+            npcs[data['slug']], created = self._save(Npc, {'slug': data['slug']}, {
+                'name': data['name'], 'role': data['role'], 'description': data['description'], 'order': order,
+            })
+            if created or self.update:
+                npcs[data['slug']].locations.add(*(locations[slug] for slug in data['locations']))
+
         # Les scènes d'abord (les conséquences peuvent pointer vers une scène plus loin).
         scenes = {}
         for data in content.SCENES:
@@ -103,8 +111,18 @@ class Command(BaseCommand):
                 'title': data['title'], 'text': data['text'], 'location': locations.get(data.get('location')),
                 'explore_weight': data.get('explore_weight', 0), 'once': data.get('once', False),
                 'min_level': data.get('min_level', 0), 'required_flag': data.get('required_flag', ''),
-                'forbidden_flag': data.get('forbidden_flag', ''),
+                'forbidden_flag': data.get('forbidden_flag', ''), 'npc': npcs.get(data.get('npc')),
             })
+            scene = scenes[data['slug']]
+            if data.get('npc') and scene.npc_id is None:  # scène déjà en base avant l'arrivée des PNJ
+                scene.npc = npcs[data['npc']]
+                scene.save(update_fields=['npc'])
+
+        for data in content.NPCS:
+            for order, (scene_slug, required, forbidden) in enumerate(data['dialogues'], start=1):
+                self._save(NpcDialogue, {'npc': npcs[data['slug']], 'scene': scenes[scene_slug]}, {
+                    'order': order, 'required_flag': required, 'forbidden_flag': forbidden,
+                })
         for data in content.SCENES:
             scene = scenes[data['slug']]
             for order, choice_data in enumerate(data['choices'], start=1):

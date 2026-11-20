@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 from .decorators import rpg_access, rpg_player
 from .engine import RpgError
 from .engine import character as hero
-from .engine import clash, progress
+from .engine import clash, npcs, progress
 from .engine import combat as fight
 from .engine import economy, rewards as site_rewards, scenes, world
 from .engine import duel as duel_engine
@@ -152,6 +152,7 @@ def play(request, character):
     else:
         context.update({
             'mode': 'location', 'exits': world.exits_for(character),
+            'npcs': npcs.npcs_here(character),
             'present': social.present_heroes(character),
             'tavern': social.tavern(character.location),
             'message_max_length': social.MESSAGE_MAX_LENGTH,
@@ -164,6 +165,12 @@ def play(request, character):
 @player_view
 def explore(request, character):
     return _run(request, world.explore, character)
+
+
+@require_POST
+@player_view
+def talk(request, character, npc_id):
+    return _run(request, npcs.talk, character, npc_id)
 
 
 @require_POST

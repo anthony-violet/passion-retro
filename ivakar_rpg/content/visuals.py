@@ -570,7 +570,74 @@ def parchment():
     return ''.join(parts)
 
 
+# ---------------------------------------------------------------------------
+# Portraits de PNJ (16 × 16) : un buste dessiné à partir de quelques réglages
+# ---------------------------------------------------------------------------
+def portrait(label, skin, hair, clothes, background, hair_style='short', beard=None, accent=None):
+    g = [[background] * 16 for _ in range(16)]
+
+    def put(x, y, color):
+        if 0 <= x < 16 and 0 <= y < 16 and color:
+            g[y][x] = color
+
+    # Épaules et vêtement
+    for y in range(12, 16):
+        for x in range(2 + (15 - y) // 2, 14 - (15 - y) // 2):
+            put(x, y, clothes)
+    for x in range(6, 10):
+        put(x, 12, skin)  # cou
+    if accent:
+        for y in range(13, 16):
+            put(7, y, accent)
+            put(8, y, accent)
+    # Visage
+    for y in range(4, 12):
+        for x in range(5, 11):
+            put(x, y, skin)
+    for x in (6, 9):
+        put(x, 7, K)  # yeux
+    put(7, 10, '#8a4b3a')
+    put(8, 10, '#8a4b3a')  # bouche
+    # Cheveux
+    for x in range(5, 11):
+        put(x, 3, hair)
+    for x in range(4, 12):
+        put(x, 4, hair)
+    put(4, 5, hair)
+    put(11, 5, hair)
+    if hair_style == 'long':
+        for y in range(5, 13):
+            put(4, y, hair)
+            put(11, y, hair)
+        for x in range(5, 11):
+            put(x, 5, hair)
+    elif hair_style == 'hood':
+        for y in range(2, 13):
+            put(3, y, hair)
+            put(12, y, hair)
+        for x in range(4, 12):
+            put(x, 2, hair)
+    if beard:
+        for y in range(9, 14):
+            for x in range(5 + max(0, y - 11), 11 - max(0, y - 11)):
+                put(x, y, beard)
+        put(7, 10, '#8a4b3a')
+        put(8, 10, '#8a4b3a')
+    return grid_svg(g, label)
+
+
+PORTRAITS = {
+    'maela': lambda: portrait("Maela, aubergiste", '#e8b88f', '#8b3a1e', '#5b6e3a', '#f1e3c8', 'long',
+                              accent='#efe6d2'),
+    'tobald': lambda: portrait("Tobald, ermite", '#d9a77f', '#6b5b4a', '#4a5a3a', '#dfe8d6', 'hood',
+                               beard='#d8d4cc'),
+    'inconnu': lambda: portrait("Personnage", '#d9a77f', '#3b3540', '#55606e', '#e4e4e8', 'hood'),
+}
+
+
 def main():
+    for slug, painter in PORTRAITS.items():
+        write('pnj', slug, painter())
     for slug, (label, palette, rows) in MONSTERS.items():
         assert all(len(r) == 16 for r in rows) and len(rows) == 16, slug
         write('monstres', slug, sprite(rows, palette, label))

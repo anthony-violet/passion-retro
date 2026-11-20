@@ -51,6 +51,8 @@ def _metric(character, code, flag=''):
                                     status=Trade.STATUS_ACCEPTED).count()
     if code == 'tavern':
         return LocationMessage.objects.filter(character=character).count()
+    if code == 'npcs':
+        return len(character.npcs_met or [])
     if code == 'knockouts':
         return character.knockouts
     if code == 'daily_done':

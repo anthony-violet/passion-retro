@@ -180,6 +180,7 @@ SCENES = [
     # --- Précalm ----------------------------------------------------------
     {
         'slug': 'pot-casse', 'title': "L'auberge du Pot Cassé", 'location': 'precalm', 'explore_weight': 3,
+        'npc': 'maela',
         'text': (
             "La salle est basse et enfumée. On y parle à mi-voix, comme si la brume pouvait écouter. "
             "Derrière le comptoir, [b]Maela[/b] te jauge longuement : « Tu as l'allure de ceux qui partent. "
@@ -268,9 +269,63 @@ SCENES = [
             {'label': "Les laisser", 'success': {}},
         ],
     },
+    # --- Dialogues des PNJ (ouverts par « Parler », voir NPCS) ---------------
+    {
+        'slug': 'maela-comptoir', 'title': "Au comptoir de Maela", 'npc': 'maela', 'location': 'precalm',
+        'forbidden_flag': 'quete_loups',
+        'text': ("Maela essuie une chope qui n'en a pas besoin. « Encore un voyageur. D'habitude ils filent avant "
+                 "la nuit. Avec ces loups, je ne leur en veux pas. »"),
+        'choices': [
+            {'label': "Proposer ton aide contre les loups",
+             'success': {'text': "Elle repose la chope. « Leur chef a une cicatrice blanche, il rôde à la lisière. "
+                                 "Abats-le et la meute se dispersera. Je saurai m'en souvenir. »",
+                         'start_quest': 'loups-lisiere', 'set_flag': 'quete_loups'}},
+            {'label': "Commander une soupe chaude (2 écus)", 'required_coins': 2,
+             'success': {'text': "Une soupe épaisse, du pain encore tiède. Tu te sens d'attaque.", 'hp': 4}},
+            {'label': "Prendre congé", 'order': 9, 'success': {}},
+        ],
+    },
+    {
+        'slug': 'maela-inquiete', 'title': "Maela s'inquiète", 'npc': 'maela', 'location': 'precalm',
+        'text': ("« Toujours pas de nouvelles de l'alpha ? Hier encore, ils ont emporté une chèvre jusque sous "
+                 "ma fenêtre. »"),
+        'choices': [
+            {'label': "Demander où le trouver",
+             'success': {'text': "« À la lisière, sous les racines d'un chêne mort. Fouille les environs, tu "
+                                 "finiras par sentir son odeur avant de le voir. »"}},
+            {'label': "Promettre de revenir avec sa peau", 'order': 9,
+             'success': {'text': "Elle hoche la tête sans y croire tout à fait."}},
+        ],
+    },
+    {
+        'slug': 'maela-reconnaissante', 'title': "Une chope offerte", 'npc': 'maela', 'location': 'precalm',
+        'text': ("Maela sourit pour la première fois. « Les nuits sont calmes depuis que l'alpha n'est plus. "
+                 "Ici, tu ne paieras jamais ta première chope. »"),
+        'choices': [
+            {'label': "Trinquer avec elle",
+             'success': {'text': "La bière est fraîche, la conversation aussi. Tu repars le pas léger.", 'hp': 3}},
+            {'label': "Lui parler de la brume", 'forbidden_flag': 'brume_secret',
+             'success': {'text': "« L'ermite de la forêt, Tobald, en sait plus que tout le village. Il ne parle "
+                                 "qu'à ceux qui ont fait leurs preuves. Montre-lui ce que tu as rapporté. »"}},
+            {'label': "Prendre congé", 'order': 9, 'success': {}},
+        ],
+    },
+    {
+        'slug': 'tobald-conseils', 'title': "Les conseils de l'ermite", 'npc': 'tobald', 'location': 'foret-murmures',
+        'text': ("Tobald tisonne son feu vert. « Tu es encore là ? La mine, la clé runique, les pierres levées. "
+                 "Le chemin ne va pas se parcourir tout seul. »"),
+        'choices': [
+            {'label': "L'interroger sur le Roi-Brume", 'test': ('intelligence', 13),
+             'success': {'text': "« Il a refusé la mort et la mort l'a pris au mot. Ne le laisse pas te lire : "
+                                 "observe-le avant de frapper, et garde-toi quand il prend son élan. »", 'xp': 10},
+             'failure': {'text': "Il marmonne quelque chose sur les rois et les brumes, puis se tait."}},
+            {'label': "Le laisser à ses murmures", 'order': 9, 'success': {}},
+        ],
+    },
     # --- Forêt des Murmures --------------------------------------------------
     {
-        'slug': 'ermite-tobald', 'title': "La cabane de l'ermite", 'location': 'foret-murmures', 'explore_weight': 3,
+        'slug': 'ermite-tobald', 'title': "La cabane de l'ermite", 'location': 'foret-murmures', 'explore_weight': 0,
+        'npc': 'tobald',
         'forbidden_flag': 'brume_secret',
         'text': ("Une cabane couverte de mousse, un feu qui fume vert. [b]Tobald[/b], la barbe jusqu'à la "
                  "ceinture, ne lève pas les yeux. « La brume. Tous veulent savoir d'où elle vient. "
@@ -403,6 +458,18 @@ SCENES = [
 ]
 
 # Paliers : niveau, type, libellé, description, objet du site (slug css de shop.Item), xp site
+# PNJ : où les trouver, et leurs dialogues dans l'ordre (scène, marqueur requis, marqueur interdit).
+# La première entrée valable l'emporte.
+NPCS = [
+    {'slug': 'maela', 'name': "Maela", 'role': "aubergiste du Pot Cassé", 'locations': ['precalm'],
+     'description': "Bras croisés derrière son comptoir, elle voit tout ce qui entre à Précalm.",
+     'dialogues': [('maela-comptoir', '', 'quete_loups'), ('maela-inquiete', 'quete_loups', 'loups_vaincus'),
+                   ('maela-reconnaissante', 'loups_vaincus', '')]},
+    {'slug': 'tobald', 'name': "Tobald", 'role': "ermite de la forêt", 'locations': ['foret-murmures'],
+     'description': "Une barbe jusqu'à la ceinture, un feu qui fume vert, et peu de goût pour les visiteurs.",
+     'dialogues': [('ermite-tobald', '', 'brume_secret'), ('tobald-conseils', 'brume_secret', '')]},
+]
+
 LEVEL_REWARDS = [
     (2, 'site_xp', "Premiers pas à Ivakar", "+20 XP de membre", None, 20),
     (5, 'title', "Aventurier d'Ivakar", "Titre affiché sur ton profil", None, 0),

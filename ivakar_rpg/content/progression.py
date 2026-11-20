@@ -19,6 +19,8 @@ ACHIEVEMENTS = [
     ('duelliste', "Duelliste", "Gagner un duel.", "🤺", 'duels_won', 1, '', False, 10, 10),
     ('maitre-d-armes', "Maître d'armes", "Gagner 10 duels.", "🥇", 'duels_won', 10, '', False, 50, 40),
     ('marchand', "Bon marchand", "Conclure 5 échanges avec d'autres héros.", "🤝", 'trades', 5, '', False, 20, 20),
+    ('visage-connu', "Visage connu", "Faire la connaissance de 2 habitants des plaines.", "🗣️", 'npcs', 2, '', False,
+     15, 5),
     ('pilier-de-taverne', "Pilier de taverne", "Écrire 20 messages à la taverne.", "🍺", 'tavern', 20, '', False, 10, 10),
     ('rempart', "Rempart d'Agasur", "Lancer 10 assauts contre des menaces de serveur.", "🌍", 'event_attacks', 10, '',
      False, 40, 20),

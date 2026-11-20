@@ -5,7 +5,7 @@
     <h2>🌳 Arbre des scénarios</h2>
     <a href="{% url 'panel_ivakar_create' 'scenes' %}" class="btn btn-small btn-add">+ Nouvelle scène</a>
 </div>
-<p class="ivk-help">Chaque lieu montre les scènes qu'on y découvre en explorant, puis où mène chacun de leurs choix.
+<p class="ivk-help">Chaque lieu montre ses PNJ (une scène par entrée de dialogue, la première valable l'emporte) et les scènes qu'on y découvre en explorant, puis où mène chacun de leurs choix.
     Une scène n'est déroulée qu'une fois : ailleurs, un lien y renvoie. ↩ signale une boucle.</p>
 
 <form method="get" class="ivk-toolbar">
@@ -22,8 +22,25 @@
     <section class="panel-section ivk-tree__group">
         <div class="panel-section-header">
             <h3>🗺️ <a href="{% url 'panel_ivakar_edit' 'lieux' group.location.pk %}">{{ group.location.name }}</a></h3>
-            <small>{{ group.roots|length }} scène{{ group.roots|pluralize }} en exploration</small>
+            <small>{% if group.npcs %}{{ group.npcs|length }} PNJ · {% endif %}{{ group.roots|length }} scène{{ group.roots|pluralize }} en exploration</small>
         </div>
+        {% for entry in group.npcs %}
+        <div class="ivk-tree__npc">
+            <h4>🧑 <a href="{% url 'panel_ivakar_edit' 'pnj' entry.npc.pk %}">{{ entry.npc.name }}</a>{% if entry.npc.role %} <small>· {{ entry.npc.role }}</small>{% endif %}{% if not entry.npc.is_active %} <span class="ivk-tag">absent du jeu</span>{% endif %}</h4>
+            <ul class="ivk-tree__list">
+                {% for d in entry.dialogues %}
+                <li class="ivk-tree__dialogue">
+                    <span class="ivk-tag ivk-tag--test">💬 {{ d.dialogue.label|default:"Parler" }}</span>
+                    {% for c in d.conditions %}<span class="ivk-tag ivk-tag--cond">{{ c }}</span>{% empty %}<span class="ivk-tag">toujours</span>{% endfor %}
+                    <ul class="ivk-tree__list">{% include 'panel/ivakar/_tree_scene.html' with node=d.node %}</ul>
+                </li>
+                {% empty %}
+                <li><span class="ivk-tag ivk-tag--warn">aucun dialogue</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+        {% if group.npcs and group.roots %}<h4 class="ivk-tree__explore">🔍 En explorant</h4>{% endif %}
         <ul class="ivk-tree__list">
             {% for node in group.roots %}{% include 'panel/ivakar/_tree_scene.html' with node=node %}{% endfor %}
         </ul>

@@ -64,3 +64,6 @@
 .ivk-tag--warn { border-color: #d9a92b; background: rgba(217, 169, 43, .15); }
 .ivk-toolbar select { width: auto; max-width: 100%; }
 .ivk-toolbar .btn { width: auto; margin: 0; }
+.ivk-tree__npc { margin: 8px 0 12px; padding: 8px 10px; border-left: 3px solid #3a9aa8; }
+.ivk-tree__npc h4, .ivk-tree__explore { margin: 0 0 6px; }
+.ivk-tree__dialogue { margin: 6px 0; }

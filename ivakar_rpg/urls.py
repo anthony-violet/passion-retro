@@ -8,6 +8,7 @@ urlpatterns = [
     path("jouer", views.play, name="rpg_play"),
     path("jouer/explorer", views.explore, name="rpg_explore"),
     path("jouer/aller/<int:exit_id>", views.move, name="rpg_move"),
+    path("jouer/parler/<int:npc_id>", views.talk, name="rpg_talk"),
     path("jouer/choix/<int:choice_id>", views.choose, name="rpg_choose"),
     path("jouer/continuer", views.leave_scene, name="rpg_leave_scene"),
     path("jouer/combat", views.combat_action, name="rpg_combat"),

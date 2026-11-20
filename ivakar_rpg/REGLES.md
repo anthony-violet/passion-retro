@@ -43,6 +43,7 @@ fichiers, et doit être tranchée ou remplacée lors des phases de test.
 | Événements de serveur | Un assaut par héros toutes les N minutes (réglable) ; assaut et esquive de la riposte = opposition Dextérité du héros contre Dextérité de la menace ; récompenses égales pour tout participant, objet pour le meilleur | `engine/events.py` |
 | Tâches quotidiennes | 3 par jour (minuit, heure de Paris), tirées selon leur poids parmi celles du niveau du héros ; progression = écart du compteur depuis le tirage ; récompense dès l'objectif atteint ; bonus « journée complète » +10 XP et +15 écus | `engine/progress.py` |
 | Succès | Débloqués quand un compteur atteint l'objectif (ou qu'un marqueur est obtenu), vérifiés à l'affichage des pages ; récompense une seule fois ; au-delà de 2 d'un coup, un seul popup | `engine/progress.py`, `content/progression.py` |
+| PNJ | « Parler » ouvre la scène de la première entrée de dialogue dont les conditions (niveau, marqueurs) sont remplies ; aucun moteur de dialogue à part | `engine/npcs.py` |
 | Origines proposées | Soldat, Éclaireur, Lettré, Héraut, Forgeron (valeurs dans `content/chapitre1.py`) | admin → Origines |
 
 ## Contenu

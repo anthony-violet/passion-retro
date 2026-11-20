@@ -1,6 +1,6 @@
 """Contrôles de cohérence du contenu d'Ivakar, affichés dans le panel."""
 from .engine.rules import CHARACTERISTICS, START_MAX, START_MIN
-from .models import Choice, Location, LocationExit, Origin, Outcome, Scene
+from .models import Choice, Location, LocationExit, Npc, NpcDialogue, Origin, Outcome, Scene
 
 
 def content_problems():
@@ -23,7 +23,8 @@ def content_problems():
 
     # Marqueurs exigés quelque part mais jamais posés par une conséquence : faute de frappe probable.
     set_flags = set(Outcome.objects.exclude(set_flag='').values_list('set_flag', flat=True))
-    for model, label in ((LocationExit, "une sortie"), (Scene, "la scène"), (Choice, "un choix")):
+    for model, label in ((LocationExit, "une sortie"), (Scene, "la scène"), (Choice, "un choix"),
+                         (NpcDialogue, "un dialogue de PNJ")):
         for obj in model.objects.exclude(required_flag=''):
             if obj.required_flag not in set_flags:
                 name = getattr(obj, 'title', None) or str(obj)
@@ -32,9 +33,18 @@ def content_problems():
 
     # Scènes qu'aucun chemin n'atteint.
     reached = set(Outcome.objects.exclude(next_scene=None).values_list('next_scene_id', flat=True))
+    reached |= set(NpcDialogue.objects.values_list('scene_id', flat=True))
     for scene in Scene.objects.filter(explore_weight=0).exclude(pk__in=reached):
-        problems.append(('warning', f"La scène « {scene.title} » n'apparaît jamais (poids d'exploration à 0 et "
-                                    "aucun choix n'y mène).", 'panel_ivakar_edit', ('scenes', scene.pk)))
+        problems.append(('warning', f"La scène « {scene.title} » n'apparaît jamais (poids d'exploration à 0, "
+                                    "aucun choix ni PNJ n'y mène).", 'panel_ivakar_edit', ('scenes', scene.pk)))
+
+    for npc in Npc.objects.filter(is_active=True).prefetch_related('locations', 'dialogues'):
+        if not npc.locations.all():
+            problems.append(('warning', f"Le PNJ « {npc.name} » n'est placé dans aucun lieu.", 'panel_ivakar_edit',
+                             ('pnj', npc.pk)))
+        if not npc.dialogues.all():
+            problems.append(('warning', f"Le PNJ « {npc.name} » n'a aucun dialogue.", 'panel_ivakar_edit',
+                             ('pnj', npc.pk)))
     for scene in Scene.objects.filter(explore_weight__gt=0, location=None):
         problems.append(('warning', f"La scène « {scene.title} » a un poids d'exploration mais aucun lieu.",
                          'panel_ivakar_edit', ('scenes', scene.pk)))
@@ -48,6 +58,8 @@ def content_problems():
 
 
 def _target(obj):
+    if isinstance(obj, NpcDialogue):
+        return 'panel_ivakar_edit', ('pnj', obj.npc_id)
     if isinstance(obj, Scene):
         return 'panel_ivakar_edit', ('scenes', obj.pk)
     if isinstance(obj, Choice):
