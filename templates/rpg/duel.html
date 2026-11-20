@@ -1,0 +1,54 @@
+{% extends "rpg/game_base.html" %}
+{% load rpg_tags %}
+
+{% block crumb %}<li><a href="{% url 'rpg_duels' %}">Duels</a></li><li>Contre {{ other.name }}</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen rpg-screen--duel" data-duel data-state="{% url 'rpg_duel_state' duel.id %}" data-turn="{{ duel.turn_id|default:'' }}" data-status="{{ duel.status }}">
+    <h2>🤺 {{ duel.challenger.name }} contre {{ duel.opponent.name }}</h2>
+    <div class="rpg-duel-bars">
+        <div><strong>{{ duel.challenger.name }}</strong>
+            <div class="rpg-bar"><span class="rpg-bar__fill" style="width: {{ duel.challenger_hp|hp_percent:duel.challenger_max_hp }}%"></span>
+            <span class="rpg-bar__label">PV {{ duel.challenger_hp }} / {{ duel.challenger_max_hp }}</span></div></div>
+        <div><strong>{{ duel.opponent.name }}</strong>
+            <div class="rpg-bar"><span class="rpg-bar__fill" style="width: {{ duel.opponent_hp|hp_percent:duel.opponent_max_hp }}%"></span>
+            <span class="rpg-bar__label">PV {{ duel.opponent_hp }} / {{ duel.opponent_max_hp }}</span></div></div>
+    </div>
+    {% if duel.status == 'finished' %}
+        <p class="rpg-notice">🏆 Victoire de <strong>{{ duel.winner.name }}</strong>.</p>
+    {% elif duel.status == 'active' %}
+        <p>{% if my_turn %}<strong>À toi de jouer !</strong>{% else %}Au tour de {{ other.name }}… la page se met à jour toute seule.{% endif %}
+           <span class="rpg-muted">Manche {{ duel.round }}</span></p>
+    {% else %}
+        <p class="rpg-muted">{{ duel.get_status_display }}.</p>
+    {% endif %}
+    <ol class="rpg-combat-log">
+        {% for entry in duel.log %}<li class="rpg-log__entry--{{ entry.kind }}">{{ entry.text }}</li>{% endfor %}
+    </ol>
+    {% if duel.status == 'active' %}
+    <form method="post" action="{% url 'rpg_duel_action' duel.id %}" class="rpg-actions">
+        {% csrf_token %}
+        {% if my_turn %}
+        <button type="submit" name="action" value="attack" class="btn btn-add">Attaquer</button>
+        <button type="submit" name="action" value="defend" class="btn">Se mettre en garde</button>
+        {% endif %}
+        {% if forfeit_possible %}<button type="submit" name="action" value="claim" class="btn">Réclamer la victoire (24 h sans réponse)</button>{% endif %}
+        <button type="submit" name="action" value="forfeit" class="btn btn-small" onclick="return confirm('Abandonner le duel ?')">Abandonner</button>
+    </form>
+    {% endif %}
+</section>
+{% if duel.status == 'active' %}
+<script>
+(function () {
+    var box = document.querySelector('[data-duel]');
+    setInterval(function () {
+        if (document.hidden) return;
+        fetch(box.dataset.state, {credentials: 'same-origin'}).then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (s) {
+                if (s && (String(s.turn || '') !== box.dataset.turn || s.status !== box.dataset.status)) location.reload();
+            }).catch(function () {});
+    }, 4000);
+})();
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'panel/ivakar/base.html' %}
+
+{% block ivakar_content %}
+<div class="panel-page-header"><h2>🍺 Taverne — modération</h2></div>
+<p class="ivk-help">Messages laissés par les héros dans les lieux. Un message masqué disparaît pour les joueurs mais reste ici.</p>
+<form method="get" class="ivk-toolbar">
+    <input type="search" name="q" value="{{ query }}" placeholder="Texte, héros ou membre…" aria-label="Rechercher">
+    <select name="lieu" aria-label="Lieu" onchange="this.form.submit()">
+        <option value="">Tous les lieux</option>
+        {% for l in locations %}<option value="{{ l.pk }}"{% if current_filter == l.pk|stringformat:"s" %} selected{% endif %}>{{ l.name }}</option>{% endfor %}
+    </select>
+    <button type="submit" class="btn btn-small">Filtrer</button>
+</form>
+<div class="panel-section">
+    <table class="panel-table">
+        <thead><tr><th>Date</th><th>Lieu</th><th>Héros (membre)</th><th>Message</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for m in page %}
+            <tr{% if m.is_hidden %} class="ivk-hidden-row"{% endif %}>
+                <td>{{ m.created_at|date:"j M H:i" }}</td>
+                <td>{{ m.location.name }}</td>
+                <td><a href="{% url 'panel_ivakar_hero' m.character_id %}">{{ m.character.name }}</a> ({{ m.character.user.username }})</td>
+                <td>{% if m.is_hidden %}<span class="panel-badge panel-badge-danger">Masqué</span> {% endif %}{{ m.text }}</td>
+                <td class="panel-actions">
+                    <form method="post" style="display:inline">{% csrf_token %}<input type="hidden" name="message" value="{{ m.pk }}">
+                        {% if m.is_hidden %}<button name="action" value="show" class="btn btn-small">Rétablir</button>
+                        {% else %}<button name="action" value="hide" class="btn btn-small">Masquer</button>{% endif %}
+                        <button name="action" value="delete" class="btn btn-small btn-danger" onclick="return confirm('Supprimer définitivement ce message ?')">Suppr.</button>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="5" class="panel-empty">Aucun message.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% include 'panel/ivakar/_pager.html' %}
+</div>
+{% endblock %}

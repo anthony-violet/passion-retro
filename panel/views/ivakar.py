@@ -12,10 +12,11 @@ from django.views.decorators.http import require_POST
 from ivakar_rpg.checks import content_problems
 from ivakar_rpg.engine import character as hero
 from ivakar_rpg.engine.rules import CHARACTERISTICS
+from ivakar_rpg.engine.events import current_event
 from ivakar_rpg.engine.worldmap import map_for
 from ivakar_rpg.models import (
-    MAP_SIZE, Character, CharacterQuest, Choice, CoinExchange, Combat, InventoryItem, Location, Outcome, Scene,
-    WorldMap, Wound,
+    MAP_SIZE, Character, CharacterQuest, Choice, CoinExchange, Combat, InventoryItem, Location, LocationMessage,
+    Outcome, Scene, WorldMap, Wound,
 )
 from panel.decorators import staff_required
 from panel.ivakar_sections import SECTIONS, ChoiceForm, OutcomeForm
@@ -69,6 +70,7 @@ def overview(request):
                                                     n=Count('id')),
         'problems': problems,
         'top_heroes': Character.objects.select_related('user').order_by('-level', '-xp')[:5],
+        'world_event': current_event(),
     })
 
 
@@ -393,4 +395,39 @@ def world_map(request):
         'section': 'carte', 'map': map_for(None), 'background': world.background_url,
         'custom_background': world.has_custom_background if world.pk else False,
         'unplaced': Location.objects.filter(Q(map_x=None) | Q(map_y=None)),
+    })
+
+
+# ---------------------------------------------------------------------------
+# Modération de la taverne
+# ---------------------------------------------------------------------------
+@staff_required
+def tavern_moderation(request):
+    if request.method == 'POST':
+        message = LocationMessage.objects.filter(pk=request.POST.get('message')).first()
+        action = request.POST.get('action')
+        if message and action == 'hide':
+            message.is_hidden = True
+            message.save(update_fields=['is_hidden'])
+            messages.success(request, "Message masqué.")
+        elif message and action == 'show':
+            message.is_hidden = False
+            message.save(update_fields=['is_hidden'])
+            messages.success(request, "Message rétabli.")
+        elif message and action == 'delete':
+            message.delete()
+            messages.success(request, "Message supprimé.")
+        return redirect(request.get_full_path())
+    queryset = LocationMessage.objects.select_related('location', 'character__user')
+    location = request.GET.get('lieu', '')
+    if location:
+        queryset = queryset.filter(location_id=location)
+    query = request.GET.get('q', '').strip()
+    if query:
+        queryset = queryset.filter(Q(text__icontains=query) | Q(character__name__icontains=query)
+                                   | Q(character__user__username__icontains=query))
+    page = Paginator(queryset, 50).get_page(request.GET.get('page'))
+    return _render(request, 'panel/ivakar/tavern.html', {
+        'section': 'taverne', 'page': page, 'query': query, 'locations': Location.objects.all(),
+        'current_filter': location, 'filter_field': 'lieu',
     })

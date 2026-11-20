@@ -1,0 +1,46 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Duels</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>🤺 Duels amicaux</h2>
+    <p class="rpg-muted">Défie un héros présent dans le même lieu (depuis la taverne). Un duel ne se joue que si les deux acceptent :
+       pas de blessure, pas de KO, rien à perdre. Chacun joue à son tour.</p>
+    <p>Bilan : {{ character.duel_wins }} victoire{{ character.duel_wins|pluralize }} · {{ character.duel_losses }} défaite{{ character.duel_losses|pluralize }}</p>
+
+    {% for d in active %}
+    <p class="rpg-notice">⚔️ Duel en cours contre <strong>{% if d.challenger_id == character.pk %}{{ d.opponent.name }}{% else %}{{ d.challenger.name }}{% endif %}</strong>
+        — {% if d.turn_id == character.pk %}<strong>à toi de jouer</strong>{% else %}tour de l'adversaire{% endif %}.
+        <a href="{% url 'rpg_duel' d.id %}" class="btn btn-small btn-add">Rejoindre</a></p>
+    {% endfor %}
+
+    <h3>Défis reçus</h3>
+    {% for d in challenges %}
+    <form method="post" action="{% url 'rpg_duel_answer' d.id %}" class="rpg-duel-row">
+        {% csrf_token %}
+        <span><strong>{{ d.challenger.name }}</strong> (niv. {{ d.challenger.level }}) te défie.</span>
+        <button type="submit" name="action" value="accept" class="btn btn-small btn-add">Accepter</button>
+        <button type="submit" name="action" value="decline" class="btn btn-small">Refuser</button>
+    </form>
+    {% empty %}<p class="rpg-muted">Aucun.</p>{% endfor %}
+
+    <h3>Défis lancés</h3>
+    {% for d in sent %}
+    <form method="post" action="{% url 'rpg_duel_answer' d.id %}" class="rpg-duel-row">
+        {% csrf_token %}
+        <span>En attente de <strong>{{ d.opponent.name }}</strong>.</span>
+        <button type="submit" name="action" value="cancel" class="btn btn-small">Retirer</button>
+    </form>
+    {% empty %}<p class="rpg-muted">Aucun.</p>{% endfor %}
+
+    {% if history %}
+    <h3>Derniers duels</h3>
+    <ul class="rpg-history">
+        {% for d in history %}
+        <li><a href="{% url 'rpg_duel' d.id %}">{{ d.challenger.name }} contre {{ d.opponent.name }}</a> — victoire de <strong>{{ d.winner.name|default:"?" }}</strong></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</section>
+{% endblock %}

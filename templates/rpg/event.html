@@ -1,0 +1,61 @@
+{% extends "rpg/game_base.html" %}
+{% load bbcode_tags rpg_tags %}
+
+{% block crumb %}<li>Événement</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen rpg-screen--event">
+    {% if not event %}
+    <h2>🌍 Événements de serveur</h2>
+    <p class="rpg-muted">Aucun événement pour l'instant. Quand une menace surgira, tous les héros seront appelés à la combattre ensemble.</p>
+    {% else %}
+    {% if event.visual_url %}<figure class="rpg-art{% if not event.has_uploaded_image %} rpg-art--sprite{% endif %}"><img src="{{ event.visual_url }}" alt="{{ event.name }}"></figure>{% endif %}
+    <h2>🌍 {{ event.name }}</h2>
+    <p>
+        {% if status == 'active' %}<span class="rpg-pill rpg-pill--live">En cours</span> jusqu'au {{ event.ends_at|date:"j F à H:i" }}
+        {% elif status == 'won' %}<span class="rpg-pill">Vaincu</span> Les héros ont triomphé !
+        {% elif status == 'failed' %}<span class="rpg-pill">Échec</span> La menace a survécu…
+        {% else %}<span class="rpg-pill">À venir</span> à partir du {{ event.starts_at|date:"j F à H:i" }}{% endif %}
+        {% if event.location %} · 📍 {{ event.location.name }}{% else %} · partout{% endif %}
+    </p>
+    <div class="rpg-bar rpg-bar--enemy">
+        <span class="rpg-bar__fill" style="width: {{ event.hp_left|hp_percent:event.hp_total }}%"></span>
+        <span class="rpg-bar__label">PV {{ event.hp_left }} / {{ event.hp_total }}</span>
+    </div>
+    {% if event.description %}<div class="rpg-text">{{ event.description|bbcode|safe }}</div>{% endif %}
+    <p class="rpg-muted">Toucher : {{ event.get_hit_difficulty_display }} · Esquiver sa riposte : {{ event.get_dodge_difficulty_display }} ·
+       un assaut toutes les {{ event.cooldown_minutes }} min. Récompense : {{ event.reward_xp }} XP et {{ event.reward_coins }} écus par participant{% if event.top_reward_item %}, {{ event.top_reward_item.name }} pour le meilleur{% endif %}.</p>
+
+    {% if status == 'active' %}
+        {% if character.is_ko %}<p class="rpg-notice">Tu es inconscient : reprends connaissance d'abord.</p>
+        {% elif not here %}<p class="rpg-notice">La menace se trouve à {{ event.location.name }} : rends-toi sur place pour combattre.</p>
+        {% elif next_attack_at %}<p class="rpg-notice">Tu reprends ton souffle. Prochain assaut possible à {{ next_attack_at|time:"H:i" }}.</p>
+        {% else %}
+        <form method="post" action="{% url 'rpg_event_attack' event.id %}">{% csrf_token %}
+            <button type="submit" class="btn btn-add btn-large">⚔️ Lancer un assaut</button></form>
+        {% endif %}
+    {% endif %}
+    {% include "rpg/partials/log.html" %}
+    {% if mine %}<p>Ta contribution : <strong>{{ mine.damage }}</strong> dégâts en {{ mine.attacks }} assaut{{ mine.attacks|pluralize }}.</p>{% endif %}
+
+    <div class="rpg-columns">
+        <div>
+            <h3>🏆 Les plus vaillants</h3>
+            <ol class="rpg-ranking">
+                {% for p in ranking %}<li><strong>{{ p.character.name }}</strong> — {{ p.damage }} dégâts</li>{% empty %}<li class="rpg-muted">Personne n'a encore frappé.</li>{% endfor %}
+            </ol>
+        </div>
+        <div>
+            <h3>📜 Chronique</h3>
+            <ol class="rpg-history">
+                {% for entry in event.log reversed %}<li>{{ entry.text }}</li>{% empty %}<li class="rpg-muted">Rien encore.</li>{% endfor %}
+            </ol>
+        </div>
+    </div>
+    {% endif %}
+    {% if past_events %}
+    <h3>Événements passés</h3>
+    <ul class="rpg-history">{% for e in past_events %}<li><a href="{% url 'rpg_event_detail' e.id %}">{{ e.name }}</a> — {% if e.hp_left == 0 %}vaincu{% else %}{{ e.hp_left }} PV restants{% endif %}</li>{% endfor %}</ul>
+    {% endif %}
+</section>
+{% endblock %}

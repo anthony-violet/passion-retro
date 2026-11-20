@@ -1,0 +1,30 @@
+<article class="rpg-trade">
+    <p>{% if incoming %}<strong>{{ t.proposer.name }}</strong> te propose{% else %}À <strong>{{ t.receiver.name }}</strong>{% endif %}
+       <span class="rpg-muted">· {{ t.created_at|date:"j M H:i" }}</span></p>
+    {% if t.message %}<p class="rpg-muted">« {{ t.message }} »</p>{% endif %}
+    <div class="rpg-trade__sides">
+        <div>
+            <h4>{% if incoming %}Tu reçois{% else %}Tu donnes{% endif %}</h4>
+            <ul>
+                {% for line in t.lines.all %}{% if line.side == 'offer' %}<li>{{ line.quantity }} × {{ line.item.name }}</li>{% endif %}{% endfor %}
+                {% if t.offer_coins %}<li>🪙 {{ t.offer_coins }} écus</li>{% endif %}
+            </ul>
+        </div>
+        <div>
+            <h4>{% if incoming %}Tu donnes{% else %}Tu reçois{% endif %}</h4>
+            <ul>
+                {% for line in t.lines.all %}{% if line.side == 'request' %}<li>{{ line.quantity }} × {{ line.item.name }}</li>{% endif %}{% endfor %}
+                {% if t.request_coins %}<li>🪙 {{ t.request_coins }} écus</li>{% endif %}
+            </ul>
+        </div>
+    </div>
+    <form method="post" action="{% url 'rpg_trade_answer' t.id %}" class="rpg-actions">
+        {% csrf_token %}
+        {% if incoming %}
+        <button type="submit" name="action" value="accept" class="btn btn-add btn-small">Accepter</button>
+        <button type="submit" name="action" value="decline" class="btn btn-small">Refuser</button>
+        {% else %}
+        <button type="submit" name="action" value="cancel" class="btn btn-small">Annuler</button>
+        {% endif %}
+    </form>
+</article>

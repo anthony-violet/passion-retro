@@ -1,0 +1,33 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Échanges</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>🤝 Échanges</h2>
+    <p class="rpg-muted">Propose un échange à un héros présent dans le même lieu que toi (depuis la taverne). Rien n'est réservé pendant l'attente : tout est vérifié quand l'autre accepte. Les objets de quête ne s'échangent pas.</p>
+
+    <h3>Propositions reçues</h3>
+    {% for t in incoming %}
+        {% include "rpg/partials/trade.html" with t=t incoming=True %}
+    {% empty %}
+        <p class="rpg-muted">Aucune.</p>
+    {% endfor %}
+
+    <h3>Mes propositions</h3>
+    {% for t in outgoing %}
+        {% include "rpg/partials/trade.html" with t=t incoming=False %}
+    {% empty %}
+        <p class="rpg-muted">Aucune.</p>
+    {% endfor %}
+
+    {% if history %}
+    <h3>Historique</h3>
+    <ul class="rpg-history">
+        {% for t in history %}
+        <li>{{ t.created_at|date:"j M" }} — {{ t.proposer.name }} → {{ t.receiver.name }} : <strong>{{ t.get_status_display }}</strong></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</section>
+{% endblock %}

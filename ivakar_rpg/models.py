@@ -168,6 +168,10 @@ class Character(models.Model):
     show_title = models.BooleanField("Afficher mon titre sur le site", default=True)
     victories = models.PositiveIntegerField(default=0)
     knockouts = models.PositiveIntegerField("KO subis", default=0)
+    duel_wins = models.PositiveIntegerField("Duels gagnés", default=0)
+    duel_losses = models.PositiveIntegerField("Duels perdus", default=0)
+    # Dernière activité dans le jeu : sert à montrer qui est présent dans un lieu.
+    last_seen_at = models.DateTimeField("Vu pour la dernière fois", null=True, blank=True)
     # Voyages effectués : sert à rythmer le risque d'aggravation lié au temps sans soins.
     travel_count = models.PositiveIntegerField("Voyages", default=0)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -651,3 +655,196 @@ class WorldMap(models.Model):
         except Exception:
             pass
         return static(self.DEFAULT_BACKGROUND)
+
+
+# ---------------------------------------------------------------------------
+# Multijoueur : taverne, échanges, duels, événements de serveur
+# ---------------------------------------------------------------------------
+class LocationMessage(models.Model):
+    """Message laissé dans la taverne d'un lieu (visible par les héros présents)."""
+
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='messages')
+    character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='messages')
+    text = models.CharField("Message", max_length=300)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    is_hidden = models.BooleanField("Masqué par la modération", default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Message de taverne"
+
+    def __str__(self):
+        return f"{self.character.name} @ {self.location} : {self.text[:40]}"
+
+
+class Trade(models.Model):
+    """Proposition d'échange : ce que l'un donne contre ce qu'il demande à l'autre."""
+
+    STATUS_PENDING = 'pending'
+    STATUS_ACCEPTED = 'accepted'
+    STATUS_DECLINED = 'declined'
+    STATUS_CANCELLED = 'cancelled'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'En attente'),
+        (STATUS_ACCEPTED, 'Accepté'),
+        (STATUS_DECLINED, 'Refusé'),
+        (STATUS_CANCELLED, 'Annulé'),
+        (STATUS_FAILED, 'Impossible'),
+    ]
+
+    proposer = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='trades_sent')
+    receiver = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='trades_received')
+    offer_coins = models.PositiveIntegerField("Écus donnés", default=0)
+    request_coins = models.PositiveIntegerField("Écus demandés", default=0)
+    message = models.CharField(max_length=200, blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Échange"
+
+    def __str__(self):
+        return f"{self.proposer.name} → {self.receiver.name} ({self.get_status_display()})"
+
+
+class TradeLine(models.Model):
+    SIDE_OFFER = 'offer'
+    SIDE_REQUEST = 'request'
+    SIDE_CHOICES = [(SIDE_OFFER, 'Donné'), (SIDE_REQUEST, 'Demandé')]
+
+    trade = models.ForeignKey(Trade, on_delete=models.CASCADE, related_name='lines')
+    side = models.CharField(max_length=10, choices=SIDE_CHOICES)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='+')
+    quantity = models.PositiveIntegerField(default=1)
+
+
+class Duel(models.Model):
+    """Duel amical : les deux héros ont accepté, aucune blessure ni perte."""
+
+    STATUS_PENDING = 'pending'
+    STATUS_ACTIVE = 'active'
+    STATUS_FINISHED = 'finished'
+    STATUS_DECLINED = 'declined'
+    STATUS_CANCELLED = 'cancelled'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Défi lancé'),
+        (STATUS_ACTIVE, 'En cours'),
+        (STATUS_FINISHED, 'Terminé'),
+        (STATUS_DECLINED, 'Refusé'),
+        (STATUS_CANCELLED, 'Annulé'),
+    ]
+
+    challenger = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='duels_sent')
+    opponent = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='duels_received')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    turn = models.ForeignKey(Character, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    challenger_hp = models.PositiveIntegerField(default=0)
+    opponent_hp = models.PositiveIntegerField(default=0)
+    challenger_max_hp = models.PositiveIntegerField(default=0)
+    opponent_max_hp = models.PositiveIntegerField(default=0)
+    # Héros en garde (il a choisi « Se défendre » à son dernier tour).
+    guarding = models.ForeignKey(Character, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    winner = models.ForeignKey(Character, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    round = models.PositiveIntegerField(default=0)
+    log = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at']
+        verbose_name = "Duel"
+
+    def __str__(self):
+        return f"{self.challenger.name} contre {self.opponent.name} ({self.get_status_display()})"
+
+    def other(self, character):
+        return self.opponent if character.pk == self.challenger_id else self.challenger
+
+
+class WorldEvent(Illustrated):
+    """Événement de serveur : une menace commune dont tous les héros entament les points de vie."""
+
+    VISUAL_FOLDER = 'evenements'
+
+    slug = models.SlugField(max_length=60, unique=True)
+    name = models.CharField("Nom", max_length=100)
+    description = models.TextField("Récit (BBCode)", blank=True)
+    location = models.ForeignKey(Location, verbose_name="Lieu", on_delete=models.SET_NULL, null=True, blank=True,
+                                 related_name='+', help_text="Vide = attaquable de partout.")
+    monster = models.ForeignKey(Monster, verbose_name="Créature (illustration de secours)", on_delete=models.SET_NULL,
+                                null=True, blank=True, related_name='+')
+    hp_total = models.PositiveIntegerField("PV de la menace", default=500)
+    hp_left = models.PositiveIntegerField("PV restants", default=500)
+    hit_difficulty = models.PositiveSmallIntegerField("Seuil pour la toucher", choices=DIFFICULTY_CHOICES,
+                                                      default=DIFFICULTY_MEDIUM)
+    dodge_difficulty = models.PositiveSmallIntegerField("Seuil pour esquiver sa riposte", choices=DIFFICULTY_CHOICES,
+                                                        default=DIFFICULTY_MEDIUM)
+    damage_min = models.PositiveSmallIntegerField("Dégâts de riposte min", default=2)
+    damage_max = models.PositiveSmallIntegerField("Dégâts de riposte max", default=6)
+    cooldown_minutes = models.PositiveSmallIntegerField("Délai entre deux assauts d'un héros (minutes)", default=30)
+    starts_at = models.DateTimeField("Début")
+    ends_at = models.DateTimeField("Fin")
+    reward_xp = models.PositiveIntegerField("XP pour chaque participant", default=50)
+    reward_coins = models.PositiveIntegerField("Écus pour chaque participant", default=20)
+    top_reward_item = models.ForeignKey(Item, verbose_name="Objet pour le meilleur participant",
+                                        on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    rewards_given = models.BooleanField(default=False)
+    log = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        ordering = ['-starts_at']
+        verbose_name = "Événement de serveur"
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            self.hp_left = self.hp_total  # une menace neuve démarre à pleine vie
+        super().save(*args, **kwargs)
+
+    @property
+    def is_defeated(self):
+        return self.hp_left == 0
+
+    @property
+    def hp_display(self):
+        return f"{self.hp_left} / {self.hp_total}"
+
+    @property
+    def status_label(self):
+        from django.utils import timezone
+
+        now = timezone.now()
+        if self.hp_left == 0:
+            return "Vaincu"
+        if now < self.starts_at:
+            return "À venir"
+        if now >= self.ends_at:
+            return "Échec"
+        return "En cours"
+
+    @property
+    def visual_url(self):
+        own = super().visual_url
+        if own or not self.monster_id:
+            return own
+        return self.monster.visual_url
+
+
+class EventParticipation(models.Model):
+    event = models.ForeignKey(WorldEvent, on_delete=models.CASCADE, related_name='participations')
+    character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='event_participations')
+    damage = models.PositiveIntegerField(default=0)
+    attacks = models.PositiveIntegerField(default=0)
+    last_attack_at = models.DateTimeField(null=True, blank=True)
+    rewarded = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-damage']
+        constraints = [
+            models.UniqueConstraint(fields=['event', 'character'], name='unique_event_participation'),
+        ]

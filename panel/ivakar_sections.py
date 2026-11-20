@@ -9,7 +9,7 @@ from django.utils.text import slugify
 
 from ivakar_rpg.models import (
     Characteristic, Choice, Item, LevelReward, Location, LocationEncounter, LocationExit, Monster, MonsterLoot,
-    Origin, OriginCharacteristic, Outcome, Quest, Scene,
+    Origin, OriginCharacteristic, Outcome, Quest, Scene, WorldEvent,
 )
 
 TEXTAREAS = {'description': 4, 'text': 8, 'summary': 3}
@@ -25,6 +25,12 @@ class IvakarForm(forms.ModelForm):
                 field.widget = forms.Textarea(attrs={'rows': TEXTAREAS[name]})
             if isinstance(field, forms.ModelMultipleChoiceField):
                 field.widget = forms.CheckboxSelectMultiple(choices=field.choices)
+            if isinstance(field, forms.DateTimeField):
+                field.widget = forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M')
+                field.input_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M']
+        if 'hp_left' in self.fields:
+            self.fields['hp_left'].help_text = "Remis aux PV de la menace à la création ; à corriger seulement en cas de souci."
+            self.fields['hp_left'].required = False
         if 'slug' in self.fields:
             self.fields['slug'].required = False
             self.fields['slug'].help_text = ("Identifiant technique. Vide = déduit du nom. Évite de le changer "
@@ -33,6 +39,8 @@ class IvakarForm(forms.ModelForm):
 
     def clean(self):
         data = super().clean()
+        if 'hp_left' in self.fields and data.get('hp_left') is None:
+            data['hp_left'] = data.get('hp_total') or 0
         if 'slug' in self.fields and not data.get('slug'):
             source = data.get('name') or data.get('title') or ''
             data['slug'] = slugify(source)[:60]
@@ -145,6 +153,20 @@ SECTIONS = {
         'search': ['label'],
         'inlines': [],
     },
+}
+
+SECTIONS['evenements'] = {
+    'model': WorldEvent, 'title': "Événements", 'singular': "un événement", 'icon': "🌍",
+    'help': "Une menace commune que tous les héros affaiblissent, chacun à son rythme, entre le début et la fin. "
+            "Vaincue, elle récompense chaque participant. Sans illustration, elle reprend celle de sa créature.",
+    'form': form_for(WorldEvent, ['name', 'slug', 'description', 'image', 'monster', 'location', 'starts_at',
+                                  'ends_at', 'hp_total', 'hp_left', 'hit_difficulty', 'dodge_difficulty',
+                                  'damage_min', 'damage_max', 'cooldown_minutes', 'reward_xp', 'reward_coins',
+                                  'top_reward_item']),
+    'columns': [("Nom", 'name'), ("État", 'status_label'), ("PV", 'hp_display'), ("Lieu", 'location'),
+                ("Début", 'starts_at'), ("Fin", 'ends_at')],
+    'search': ['name', 'slug'],
+    'inlines': [],
 }
 
 ChoiceForm = form_for(Choice, ['label', 'order', 'test_characteristic', 'test_difficulty', 'required_level',

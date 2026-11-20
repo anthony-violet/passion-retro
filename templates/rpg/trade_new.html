@@ -1,0 +1,36 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li><a href="{% url 'rpg_trades' %}">Échanges</a></li><li>Avec {{ other.name }}</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>🤝 Proposer un échange à {{ other.name }}</h2>
+    <form method="post" class="rpg-form rpg-form--wide">
+        {% csrf_token %}
+        <input type="hidden" name="receiver" value="{{ other.pk }}">
+        <div class="rpg-trade__sides">
+            <fieldset>
+                <legend>Je donne</legend>
+                {% for e in mine %}
+                <label class="rpg-stat-row"><span>{{ e.item.name }} <span class="rpg-muted">(×{{ e.quantity }}{% if e.equipped %}, équipé{% endif %})</span></span>
+                    <input type="number" name="offer_{{ e.item.id }}" min="0" max="{{ e.quantity }}" value="0"></label>
+                {% empty %}<p class="rpg-muted">Rien à donner.</p>{% endfor %}
+                <label class="rpg-stat-row"><span>🪙 Écus <span class="rpg-muted">(tu en as {{ character.coins }})</span></span>
+                    <input type="number" name="offer_coins" min="0" max="{{ character.coins }}" value="0"></label>
+            </fieldset>
+            <fieldset>
+                <legend>Je demande</legend>
+                {% for e in theirs %}
+                <label class="rpg-stat-row"><span>{{ e.item.name }} <span class="rpg-muted">(×{{ e.quantity }})</span></span>
+                    <input type="number" name="request_{{ e.item.id }}" min="0" max="{{ e.quantity }}" value="0"></label>
+                {% empty %}<p class="rpg-muted">{{ other.name }} n'a rien d'échangeable.</p>{% endfor %}
+                <label class="rpg-stat-row"><span>🪙 Écus</span>
+                    <input type="number" name="request_coins" min="0" value="0"></label>
+            </fieldset>
+        </div>
+        <label for="trade-msg">Petit mot (facultatif)</label>
+        <input id="trade-msg" type="text" name="message" maxlength="200" autocomplete="off">
+        <button type="submit" class="btn btn-add">Envoyer la proposition</button>
+    </form>
+</section>
+{% endblock %}

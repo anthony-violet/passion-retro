@@ -12,4 +12,38 @@
     </ul>
     {% block rpg_body %}{% endblock %}
 </div>
+<script>
+/* Après un formulaire du jeu, la page revient là où le joueur était au lieu de remonter en haut. */
+(function () {
+    var KEY = 'ivakar-scroll';
+    try {
+        var saved = JSON.parse(sessionStorage.getItem(KEY) || 'null');
+        sessionStorage.removeItem(KEY);
+        if (saved && Date.now() - saved.at < 15000) {
+            var restore = function () {
+                if (saved.path === location.pathname) {
+                    window.scrollTo(0, saved.y);
+                } else {
+                    // Autre page (ex. déplacement depuis la carte) : on arrive directement sur le jeu.
+                    var game = document.querySelector('.rpg');
+                    if (game) game.scrollIntoView();
+                }
+            };
+            restore();
+            window.addEventListener('load', restore, {once: true});  // après le chargement des images
+            var target = saved.focus && document.querySelector('[data-keep-focus="' + saved.focus + '"]');
+            if (target) target.focus({preventScroll: true});
+        }
+    } catch (e) {}
+    document.addEventListener('submit', function (event) {
+        var form = event.target;
+        if (!form.closest('.rpg') || form.dataset.keepPosition === 'off' || event.defaultPrevented) return;
+        try {
+            var focus = form.querySelector('[data-keep-focus]');
+            sessionStorage.setItem(KEY, JSON.stringify({path: location.pathname, y: window.scrollY, at: Date.now(),
+                                                        focus: focus ? focus.dataset.keepFocus : ''}));
+        } catch (e) {}
+    });
+})();
+</script>
 {% endblock %}

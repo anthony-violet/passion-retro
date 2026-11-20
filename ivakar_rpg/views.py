@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db.models import Q
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
@@ -8,10 +9,11 @@ from .engine import RpgError
 from .engine import character as hero
 from .engine import combat as fight
 from .engine import economy, rewards as site_rewards, scenes, world
-from .engine import wounds
+from .engine import duel as duel_engine
+from .engine import events, social, wounds
 from .engine.worldmap import map_for
 from .engine.rules import DIFFICULTY_LABELS, MAX_LEVEL, POINTS_PER_LEVEL, STAT_CAP
-from .models import Character, CharacterQuest, InventoryItem, Location, Origin, WorldMap, Wound
+from .models import Character, CharacterQuest, Duel, InventoryItem, Location, Origin, Trade, WorldMap, Wound
 
 PLAY = 'rpg_play'
 
@@ -50,6 +52,7 @@ def player_view(view_func):
         character = _character(request)
         if character is None:
             return redirect('rpg_create')
+        social.touch(character)
         return view_func(request, character, *args, **kwargs)
     wrapper.__name__ = view_func.__name__
     return wrapper
@@ -61,6 +64,10 @@ def _hud(character):
         'sheet': hero.sheet(character),
         'wounds': list(Wound.objects.filter(character=character)),
         'difficulty_labels': DIFFICULTY_LABELS,
+        'pending_trades': Trade.objects.filter(receiver=character, status=Trade.STATUS_PENDING).count(),
+        'duels_waiting': duel_engine.open_duels(character).filter(
+            Q(status=Duel.STATUS_PENDING, opponent=character) | Q(status=Duel.STATUS_ACTIVE, turn=character)).count(),
+        'world_event': events.current_event(),
     }
 
 
@@ -78,6 +85,7 @@ def home(request):
         'track': site_rewards.reward_track(character),
         'is_open': getattr(settings, 'RPG_OPEN', False),
         'banner': next((loc.visual_url for loc in Location.objects.filter(is_start=True)[:1]), ''),
+        'world_event': events.current_event(),
     })
 
 
@@ -135,7 +143,12 @@ def play(request, character):
             'can_leave': not any(reason is None for _, reason in choices),
         })
     else:
-        context.update({'mode': 'location', 'exits': world.exits_for(character)})
+        context.update({
+            'mode': 'location', 'exits': world.exits_for(character),
+            'present': social.present_heroes(character),
+            'tavern': social.tavern(character.location),
+            'message_max_length': social.MESSAGE_MAX_LENGTH,
+        })
     context['log'] = list(reversed(character.log or []))
     return render(request, 'rpg/play.html', context)
 

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import views, views_social
 
 urlpatterns = [
     path("", views.home, name="rpg_home"),
@@ -26,4 +26,19 @@ urlpatterns = [
     path("marchand/vendre/<int:item_id>", views.sell, name="rpg_sell"),
     path("change", views.exchange, name="rpg_exchange"),
     path("recompenses", views.rewards, name="rpg_rewards"),
+    # Multijoueur
+    path("jouer/taverne", views_social.tavern_say, name="rpg_tavern_say"),
+    path("jouer/taverne/fil", views_social.tavern_feed, name="rpg_tavern_feed"),
+    path("echanges", views_social.trades, name="rpg_trades"),
+    path("echanges/nouveau", views_social.trade_new, name="rpg_trade_new"),
+    path("echanges/<int:trade_id>", views_social.trade_answer, name="rpg_trade_answer"),
+    path("duels", views_social.duels, name="rpg_duels"),
+    path("duels/defier/<int:character_id>", views_social.duel_challenge, name="rpg_duel_challenge"),
+    path("duels/<int:duel_id>", views_social.duel_view, name="rpg_duel"),
+    path("duels/<int:duel_id>/reponse", views_social.duel_answer, name="rpg_duel_answer"),
+    path("duels/<int:duel_id>/action", views_social.duel_action, name="rpg_duel_action"),
+    path("duels/<int:duel_id>/etat", views_social.duel_state, name="rpg_duel_state"),
+    path("evenement", views_social.world_event, name="rpg_event"),
+    path("evenement/<int:event_id>", views_social.world_event, name="rpg_event_detail"),
+    path("evenement/<int:event_id>/assaut", views_social.world_event_attack, name="rpg_event_attack"),
 ]

@@ -28,11 +28,13 @@ class IvakarPanelTests(TestCase):
         self.assertRedirects(self.client.get(reverse('panel_ivakar')), reverse('home'), fetch_redirect_response=False)
 
     def test_all_pages_render(self):
-        urls = [reverse('panel_ivakar'), reverse('panel_ivakar_heroes'), reverse('panel_ivakar_exchanges')]
+        urls = [reverse('panel_ivakar'), reverse('panel_ivakar_heroes'), reverse('panel_ivakar_exchanges'),
+                reverse('panel_ivakar_tavern')]
         for slug, config in SECTIONS.items():
             urls += [reverse('panel_ivakar_list', args=[slug]), reverse('panel_ivakar_create', args=[slug])]
             obj = config['model'].objects.first()
-            urls.append(reverse('panel_ivakar_edit', args=[slug, obj.pk]))
+            if obj is not None:
+                urls.append(reverse('panel_ivakar_edit', args=[slug, obj.pk]))
         choice = Choice.objects.first()
         urls += [reverse('panel_ivakar_choice_edit', args=[choice.pk]),
                  reverse('panel_ivakar_choice_create', args=[choice.scene_id])]
@@ -191,6 +193,32 @@ class IvakarPanelTests(TestCase):
         exit.save()
         self.assertTrue(any('marqueur_inexistant' in p[1] for p in content_problems()))
         self.assertContains(self.client.get(reverse('panel_ivakar')), 'marqueur_inexistant')
+
+    def test_create_world_event(self):
+        response = self.client.post(reverse('panel_ivakar_create', args=['evenements']), {
+            'name': "L'Ombre d'Agasur", 'slug': '', 'description': '', 'monster': Monster.objects.first().pk,
+            'location': '', 'starts_at': '2026-11-21T18:00', 'ends_at': '2026-11-28T18:00', 'hp_total': 800,
+            'hp_left': '', 'hit_difficulty': 13, 'dodge_difficulty': 13, 'damage_min': 2, 'damage_max': 6,
+            'cooldown_minutes': 30, 'reward_xp': 50, 'reward_coins': 20, 'top_reward_item': '',
+        })
+        self.assertRedirects(response, reverse('panel_ivakar_list', args=['evenements']))
+        from ivakar_rpg.models import WorldEvent
+        event = WorldEvent.objects.get(slug='lombre-dagasur')
+        self.assertEqual((event.hp_total, event.hp_left), (800, 800))
+        self.assertContains(self.client.get(reverse('panel_ivakar_list', args=['evenements'])), "800 / 800")
+
+    def test_tavern_moderation(self):
+        from ivakar_rpg.engine import social
+        from ivakar_rpg.models import LocationMessage
+        player = User.objects.create_user(username='bavard', password='x')
+        character = hero.create_character(player, "Bavard", Origin.objects.first().pk)
+        message = social.say(character, "Message à modérer")
+        url = reverse('panel_ivakar_tavern')
+        self.assertContains(self.client.get(url), "Message à modérer")
+        self.client.post(url, {'message': message.pk, 'action': 'hide'})
+        self.assertTrue(LocationMessage.objects.get().is_hidden)
+        self.client.post(url, {'message': message.pk, 'action': 'delete'})
+        self.assertFalse(LocationMessage.objects.exists())
 
     def test_menu_link(self):
         self.assertContains(self.client.get(reverse('panel_dashboard')), reverse('panel_ivakar'))

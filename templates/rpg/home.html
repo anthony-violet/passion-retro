@@ -15,6 +15,9 @@
         <li>🎒 Équipe armes et armures, commerce avec le marchand.</li>
         <li>🏅 Tes paliers de niveau débloquent des titres, cadres et badges sur le site.</li>
     </ul>
+    {% if world_event %}
+    <p class="rpg-notice">🌍 <strong>{{ world_event.name }}</strong> menace le monde ! Tous les héros sont appelés à combattre ({{ world_event.hp_left }} / {{ world_event.hp_total }} PV).</p>
+    {% endif %}
     <div class="rpg-intro__cta">
         {% if character %}
             <a href="{% url 'rpg_play' %}" class="btn btn-add btn-large">Reprendre l'aventure avec {{ character.name }}</a>

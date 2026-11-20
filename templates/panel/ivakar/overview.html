@@ -13,6 +13,7 @@
         {% else %}
             <span class="panel-badge panel-badge-warning">Fermé</span> Le jeu n'est visible que par l'équipe.
         {% endif %}
+        {% if world_event %}<br><span class="panel-badge panel-badge-info">Événement</span> <a href="{% url 'panel_ivakar_edit' 'evenements' world_event.pk %}">{{ world_event.name }}</a> en cours ({{ world_event.hp_display }} PV).{% endif %}
         <small>Réglé par la variable <code>RPG_OPEN</code> du fichier <code>.env</code> (redémarrage nécessaire).</small>
     </p>
 </div>

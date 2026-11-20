@@ -35,3 +35,4 @@
 .ivk-preview img[src$=".svg"] { image-rendering: pixelated; }
 .ivk-preview img { display: block; width: 100%; border: 2px solid currentColor; border-radius: 6px; }
 .ivk-preview figcaption { font-size: .85em; opacity: .75; margin-top: 4px; }
+.ivk-hidden-row td { opacity: .55; }
