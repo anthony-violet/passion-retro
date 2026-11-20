@@ -44,6 +44,7 @@ fichiers, et doit être tranchée ou remplacée lors des phases de test.
 | Tâches quotidiennes | 3 par jour (minuit, heure de Paris), tirées selon leur poids parmi celles du niveau du héros ; progression = écart du compteur depuis le tirage ; récompense dès l'objectif atteint ; bonus « journée complète » +10 XP et +15 écus | `engine/progress.py` |
 | Succès | Débloqués quand un compteur atteint l'objectif (ou qu'un marqueur est obtenu), vérifiés à l'affichage des pages ; récompense une seule fois ; au-delà de 2 d'un coup, un seul popup | `engine/progress.py`, `content/progression.py` |
 | PNJ | « Parler » ouvre la scène de la première entrée de dialogue dont les conditions (niveau, marqueurs) sont remplies ; aucun moteur de dialogue à part | `engine/npcs.py` |
+| Compétences | Propres aux origines (les « classes »), obtenues au niveau requis ; s'utilisent en combat et en duel comme une action de base (type), avec leurs caractéristiques, un bonus au jet, des D6 et un bonus fixe ; recharge de N manches après usage | `engine/skills.py`, `clash.py` |
 | Origines proposées | Soldat, Éclaireur, Lettré, Héraut, Forgeron (valeurs dans `content/chapitre1.py`) | admin → Origines |
 
 ## Contenu

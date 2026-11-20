@@ -8,7 +8,7 @@ from django.forms import inlineformset_factory
 from django.utils.text import slugify
 
 from ivakar_rpg.models import (
-    Achievement, Characteristic, Choice, DailyTask, Item, Npc, NpcDialogue, LevelReward, Location, LocationEncounter, LocationExit, Monster, MonsterLoot,
+    Achievement, Characteristic, Choice, DailyTask, Item, Npc, NpcDialogue, Skill, LevelReward, Location, LocationEncounter, LocationExit, Monster, MonsterLoot,
     Origin, OriginCharacteristic, Outcome, Quest, Scene, WorldEvent,
 )
 
@@ -21,7 +21,7 @@ class IvakarForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
-            if name in TEXTAREAS:
+            if name in TEXTAREAS and not getattr(field, 'max_length', None):  # textes courts : une ligne
                 field.widget = forms.Textarea(attrs={'rows': TEXTAREAS[name]})
             if isinstance(field, forms.ModelMultipleChoiceField):
                 field.widget = forms.CheckboxSelectMultiple(choices=field.choices)
@@ -153,10 +153,26 @@ SECTIONS = {
         'help': "Le choix initial du héros : il fixe ses sept caractéristiques de départ (de 1 à 20 chacune, "
                 "sans total imposé).",
         'form': form_for(Origin, ['name', 'slug', 'description', 'order', 'is_active']),
-        'columns': [("Nom", 'name'), ("Total", 'values_total'), ("Proposée", 'is_active'), ("Ordre", 'order')],
+        'columns': [("Nom", 'name'), ("Total", 'values_total'), ("Compétences", 'skills.count'),
+                    ("Proposée", 'is_active'), ("Ordre", 'order')],
         'search': ['name', 'slug'],
         'inlines': [inline(Origin, OriginCharacteristic, ['characteristic', 'value'], title="Caractéristiques de départ",
                            extra=0, initial=_missing_characteristics)],
+    },
+    'competences': {
+        'model': Skill, 'title': "Compétences", 'singular': "une compétence", 'icon': "✨",
+        'help': "Actions de combat propres aux origines (les classes), utilisables en combat et en duel. Le héros "
+                "obtient chaque compétence de son origine en atteignant son niveau requis ; après usage, elle se "
+                "recharge pendant quelques manches. Son type dit comment elle se comporte face à l'action adverse ; "
+                "les caractéristiques, le bonus au jet et les dés en plus en font une version propre à la classe.",
+        'form': form_for(Skill, ['name', 'slug', 'icon', 'description', 'kind', 'stat', 'against', 'roll_bonus',
+                                 'extra_dice', 'flat_bonus', 'cooldown', 'min_level', 'origins', 'order',
+                                 'is_active']),
+        'columns': [("", 'icon'), ("Nom", 'name'), ("Type", 'kind'), ("Carac.", 'stat'), ("Niv.", 'min_level'),
+                    ("Recharge", 'cooldown'), ("Origines", 'origins_display'), ("Active", 'is_active')],
+        'search': ['name', 'slug', 'description'],
+        'filter': ('origins', Origin, "Toutes les origines"),
+        'inlines': [],
     },
     'paliers': {
         'model': LevelReward, 'title': "Paliers", 'singular': "un palier", 'icon': "🏅",

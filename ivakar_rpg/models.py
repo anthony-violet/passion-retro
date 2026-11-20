@@ -614,6 +614,8 @@ class Combat(models.Model):
     monster_action = models.CharField(max_length=12, blank=True)
     monster_shaken = models.BooleanField(default=False)
     hero_insight = models.BooleanField(default=False)
+    # Compétences en recharge : {slug: manches restantes}.
+    skill_cooldowns = models.JSONField(default=dict, blank=True)
     log = models.JSONField(default=list, blank=True)
     then_scene = models.ForeignKey(Scene, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     started_at = models.DateTimeField(auto_now_add=True)
@@ -792,8 +794,11 @@ class Duel(models.Model):
     challenger_max_hp = models.PositiveIntegerField(default=0)
     opponent_max_hp = models.PositiveIntegerField(default=0)
     # Actions secrètes de la manche en cours ('' = pas encore choisie). Voir engine/duel.py.
-    challenger_action = models.CharField(max_length=12, blank=True, default='')
-    opponent_action = models.CharField(max_length=12, blank=True, default='')
+    challenger_action = models.CharField(max_length=80, blank=True, default='')
+    opponent_action = models.CharField(max_length=80, blank=True, default='')
+    # Compétences en recharge de chaque camp : {slug: manches restantes}.
+    challenger_cooldowns = models.JSONField(default=dict, blank=True)
+    opponent_cooldowns = models.JSONField(default=dict, blank=True)
     # Ébranlé (Intimidation subie) : ne peut que Frapper ou se garder à la manche en cours.
     challenger_shaken = models.BooleanField(default=False)
     opponent_shaken = models.BooleanField(default=False)
@@ -901,6 +906,74 @@ class EventParticipation(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['event', 'character'], name='unique_event_participation'),
         ]
+
+
+# ---------------------------------------------------------------------------
+# Compétences (actions de combat propres à une origine)
+# ---------------------------------------------------------------------------
+SKILL_STAT_CHOICES = [
+    ('force', "Force"), ('constitution', "Constitution"), ('dexterite', "Dextérité"), ('perception', "Perception"),
+    ('intelligence', "Intelligence"), ('mental', "Mental"), ('charisme', "Charisme"),
+]
+
+
+class Skill(models.Model):
+    """Action de combat supplémentaire, débloquée au niveau requis pour les origines cochées.
+
+    Elle se comporte comme une action de base (son « type ») mais avec ses propres caractéristiques,
+    un bonus au jet et des dés de dégâts ou de soin en plus. Voir ``engine.skills``.
+    """
+
+    KIND_STRIKE, KIND_POWER, KIND_FEINT = 'strike', 'power', 'feint'
+    KIND_GUARD, KIND_SHAKE, KIND_REVEAL, KIND_HEAL = 'guard', 'shake', 'reveal', 'heal'
+    KIND_CHOICES = [
+        (KIND_STRIKE, "Attaque fiable (comme une Frappe)"),
+        (KIND_POWER, "Attaque lourde (comme un Coup puissant)"),
+        (KIND_FEINT, "Attaque rusée (comme une Feinte)"),
+        (KIND_GUARD, "Défense (comme une Garde)"),
+        (KIND_SHAKE, "Ébranler (comme une Intimidation)"),
+        (KIND_REVEAL, "Lire l'adversaire (comme Observer)"),
+        (KIND_HEAL, "Soin"),
+    ]
+
+    slug = models.SlugField(max_length=60, unique=True)
+    name = models.CharField("Nom", max_length=60)
+    icon = models.CharField("Icône (émoji)", max_length=8, default="✨")
+    description = models.CharField("Description", max_length=200, blank=True,
+                                   help_text="Ce que le joueur lit sur le bouton.")
+    kind = models.CharField("Type", max_length=10, choices=KIND_CHOICES, default=KIND_STRIKE,
+                            help_text="Comment elle interagit avec l'action adverse (triangle Feinte > Garde > "
+                                      "Coup puissant).")
+    stat = models.CharField("Caractéristique du héros", max_length=15, choices=SKILL_STAT_CHOICES,
+                            default='dexterite')
+    against = models.CharField("Contre la caractéristique adverse", max_length=15, choices=SKILL_STAT_CHOICES,
+                               default='dexterite', help_text="Ignoré pour un soin.")
+    roll_bonus = models.SmallIntegerField("Bonus au jet", default=0,
+                                          help_text="Ajouté au jet du héros (2D6 + ⌊carac ÷ 3⌋ + bonus).")
+    extra_dice = models.PositiveSmallIntegerField("D6 en plus", default=0,
+                                                  help_text="Ajoutés aux dégâts (attaque, riposte) ou au soin.")
+    flat_bonus = models.SmallIntegerField("Bonus fixe", default=0, help_text="Ajouté aux dégâts ou au soin.")
+    cooldown = models.PositiveSmallIntegerField("Recharge (manches)", default=3,
+                                                help_text="Manches à attendre avant de la réutiliser.")
+    min_level = models.PositiveSmallIntegerField("Niveau requis", default=1)
+    origins = models.ManyToManyField(Origin, verbose_name="Origines (classes)", blank=True, related_name='skills')
+    order = models.PositiveSmallIntegerField("Ordre", default=0)
+    is_active = models.BooleanField("Active", default=True)
+
+    class Meta:
+        ordering = ['min_level', 'order', 'name']
+        verbose_name = "Compétence"
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def code(self):
+        return f"skill:{self.slug}"
+
+    @property
+    def origins_display(self):
+        return ", ".join(o.name for o in self.origins.all()) or "—"
 
 
 # ---------------------------------------------------------------------------

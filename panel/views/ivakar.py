@@ -116,7 +116,7 @@ def section_list(request, section):
         filter_options = [('', all_label)] + [(str(o.pk), str(o)) for o in filter_model.objects.all()]
         current_filter = request.GET.get(field, '')
         if current_filter:
-            queryset = queryset.filter(**{f'{field}_id': current_filter})
+            queryset = queryset.filter(**{field: current_filter}).distinct()
     page = Paginator(queryset, PER_PAGE).get_page(request.GET.get('page'))
     rows = [{'obj': obj, 'cells': [_cell(obj, path) for _, path in config['columns']]} for obj in page]
     return _render(request, 'panel/ivakar/list.html', {
@@ -163,7 +163,9 @@ def _edit(request, section, instance):
     else:
         initial = {}
         if config.get('filter') and request.GET.get(config['filter'][0]):
-            initial[config['filter'][0]] = request.GET.get(config['filter'][0])
+            field = config['filter'][0]
+            value = request.GET.get(field)
+            initial[field] = [value] if config['model']._meta.get_field(field).many_to_many else value
         form = config['form'](instance=instance, initial=initial)
         formsets = _formsets(config, instance)
     context = {

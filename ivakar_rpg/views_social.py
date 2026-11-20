@@ -10,6 +10,7 @@ from django.views.decorators.http import require_POST
 
 from .engine import RpgError
 from .engine import clash
+from .engine import skills as skill_engine
 from .engine import duel as duel_engine
 from .engine import events, notifications, social, trade as trade_engine
 from .models import Character, Duel, InventoryItem, Item, Trade, WorldEvent
@@ -179,6 +180,8 @@ def duel_view(request, character, duel_id):
         'state': state, 'actions': actions,
         'action_names': {code: f"{icon} {name}" for code, (name, icon, _, _) in duel_engine.ACTIONS.items()},
         'can_claim': duel_engine.can_claim(duel, character),
+        'skill_menu': (skill_engine.menu(character, state.get('cooldowns'), state.get('shaken'))
+                       if duel.status == Duel.STATUS_ACTIVE else []),
         'rounds': clash.group_rounds(duel.log),
     })
 

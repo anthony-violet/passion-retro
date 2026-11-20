@@ -19,6 +19,7 @@ from .clash import (  # noqa: F401  (ré-exportés pour les vues et les tests)
     ACTIONS, ATTACKS, FEINT, GUARD, INTIMIDATE, OBSERVE, POWER, SHAKEN_ALLOWED, STRIKE, Fighter, log_entry,
     resolve_action,
 )
+from . import skills as skill_engine
 from .dice import get_rng
 from .notifications import notify
 
@@ -65,11 +66,16 @@ def view_state(duel, character):
     """Ce que le héros a le droit de savoir de la manche en cours."""
     me, them = side(duel, character), other_side(side(duel, character))
     their_action = getattr(duel, f'{them}_action')
+    my_action = getattr(duel, f'{me}_action')
+    revealed = their_action if getattr(duel, f'{me}_insight') and their_action else ''
     return {
-        'my_action': getattr(duel, f'{me}_action'),
+        'my_action': my_action,
+        'my_action_label': skill_engine.label(my_action) if my_action else '',
         'other_has_chosen': bool(their_action),
         # Observer réussi : l'action adverse est révélée dès qu'elle est choisie.
-        'revealed_action': their_action if getattr(duel, f'{me}_insight') and their_action else '',
+        'revealed_action': revealed,
+        'revealed_label': skill_engine.label(revealed) if revealed else '',
+        'cooldowns': getattr(duel, f'{me}_cooldowns') or {},
         'shaken': getattr(duel, f'{me}_shaken'),
         'other_shaken': getattr(duel, f'{them}_shaken'),
     }
@@ -175,11 +181,14 @@ def choose(character, duel_id, action, rng=None):
         if duel.status != Duel.STATUS_ACTIVE:
             raise RpgError("Ce duel n'est pas en cours.")
         me = side(duel, character)
-        if action not in ACTIONS:
-            raise RpgError("Action inconnue.")
         if getattr(duel, f'{me}_action'):
             raise RpgError("Tu as déjà choisi pour cette manche.")
-        if action not in allowed_actions(duel, character):
+        if skill_engine.is_skill(action):
+            skill_engine.usable(character, action, getattr(duel, f'{me}_cooldowns'),
+                                shaken=getattr(duel, f'{me}_shaken'))
+        elif action not in ACTIONS:
+            raise RpgError("Action inconnue.")
+        elif action not in allowed_actions(duel, character):
             raise RpgError("Ébranlé, tu ne peux que Frapper ou te mettre en Garde à cette manche.")
         setattr(duel, f'{me}_action', action)
         other = getattr(duel, other_side(me))
@@ -201,9 +210,10 @@ def choose(character, duel_id, action, rng=None):
 def _fighter(duel, side_name):
     hero = getattr(duel, side_name)
     stats = sheet(hero)
+    action = getattr(duel, f'{side_name}_action')
     fighter = Fighter(('c' if side_name == 'challenger' else 'o', hero.name), stat_values(hero),
-                      getattr(duel, f'{side_name}_action'), armor=stats['armor'],
-                      damage_bonus=stats['damage_bonus'])
+                      action, armor=stats['armor'], damage_bonus=stats['damage_bonus'],
+                      skill=skill_engine.skill_for(action))
     fighter.side, fighter.hero = side_name, hero
     return fighter
 
@@ -212,19 +222,19 @@ def _resolve_round(duel, rng):
     c, o = _fighter(duel, 'challenger'), _fighter(duel, 'opponent')
     log = lambda *parts, **kw: _log(duel, *parts, **kw)  # noqa: E731
     for f in (c, o):
-        name, icon = ACTIONS[f.action][:2]
-        _log(duel, f.tag, " lance ", ('act', f"{icon} {name}"), ".", kind='cast')
+        _log(duel, f.tag, " lance ", ('act', f.label), ".", kind='cast')
     resolve_action(log, c, o, rng)
     resolve_action(log, o, c, rng)
 
-    duel.challenger_hp = max(0, duel.challenger_hp - c.damage_taken)
-    duel.opponent_hp = max(0, duel.opponent_hp - o.damage_taken)
+    duel.challenger_hp = min(duel.challenger_max_hp, max(0, duel.challenger_hp - c.damage_taken + c.healed))
+    duel.opponent_hp = min(duel.opponent_max_hp, max(0, duel.opponent_hp - o.damage_taken + o.healed))
     _log(duel, ('note', "Fin de manche : "), c.tag, " ", ('hp', f"{duel.challenger_hp}/{duel.challenger_max_hp} PV"),
          ('note', " · "), o.tag, " ", ('hp', f"{duel.opponent_hp}/{duel.opponent_max_hp} PV"), kind='summary')
     for f in (c, o):
         setattr(duel, f'{f.side}_action', '')
         setattr(duel, f'{f.side}_shaken', f.shaken_next)
         setattr(duel, f'{f.side}_insight', f.insight_next)
+        setattr(duel, f'{f.side}_cooldowns', skill_engine.tick(getattr(duel, f'{f.side}_cooldowns'), f.skill))
 
     down = [f for f in (c, o) if getattr(duel, f'{f.side}_hp') == 0]
     if len(down) == 2:

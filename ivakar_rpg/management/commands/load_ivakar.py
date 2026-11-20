@@ -164,6 +164,9 @@ class Command(BaseCommand):
         from ivakar_rpg.content.progression import seed
         from ivakar_rpg.models import Achievement, DailyTask
         self.counts['Objectifs'] = seed(Achievement, DailyTask, update=self.update)
+        from ivakar_rpg.content.skills import seed as seed_skills
+        from ivakar_rpg.models import Skill
+        self.counts['Compétences'] = seed_skills(Skill, Origin, update=self.update)
 
         created = ", ".join(f"{name} : {count}" for name, count in self.counts.items() if count) or "rien de neuf"
         if options.get('verbosity', 1):

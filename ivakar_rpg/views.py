@@ -7,6 +7,7 @@ from .decorators import rpg_access, rpg_player
 from .engine import RpgError
 from .engine import character as hero
 from .engine import clash, npcs, progress
+from .engine import skills as skill_engine
 from .engine import combat as fight
 from .engine import economy, rewards as site_rewards, scenes, world
 from .engine import duel as duel_engine
@@ -137,6 +138,7 @@ def play(request, character):
             'combat_actions': [{'code': code, 'name': name, 'icon': icon, 'stat': stat, 'help': help_text}
                                for code, (name, icon, stat, help_text) in clash.ACTIONS.items()],
             'rounds': clash.group_rounds(combat.log),
+            'skill_menu': skill_engine.menu(character, combat.skill_cooldowns),
             'consumables': InventoryItem.objects.filter(
                 inventory__character=character, item__kind='consumable', quantity__gt=0,
             ).select_related('item'),
@@ -225,6 +227,8 @@ def sheet(request, character):
         'max_level': MAX_LEVEL,
         'characteristics': characteristics,
         'title': site_rewards.current_title(character, respect_visibility=False),
+        'skills_known': skill_engine.known(character),
+        'skills_upcoming': skill_engine.upcoming(character),
     })
 
 

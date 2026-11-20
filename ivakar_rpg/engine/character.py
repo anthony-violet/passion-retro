@@ -174,6 +174,7 @@ def gain_xp(character, amount):
     if amount <= 0:
         return 0
     character.xp += amount
+    old_level = character.level
     gained = 0
     while character.level < MAX_LEVEL and character.xp >= xp_for_level(character.level + 1):
         character.level += 1
@@ -186,6 +187,8 @@ def gain_xp(character, amount):
         character.save()
         notify(character, 'level_up', f"Niveau {character.level} !",
                f"{POINTS_PER_LEVEL * gained} points de progression à répartir librement.", reverse('rpg_sheet'))
+        from .skills import notify_learned
+        notify_learned(character, old_level)
         grant_level_rewards(character)
     return gained
 

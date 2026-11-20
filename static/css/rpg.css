@@ -246,3 +246,16 @@
 .rpg-npc__portrait[src$=".svg"] { image-rendering: pixelated; }
 .rpg-speaker { display: flex; gap: 10px; align-items: center; margin: 0 0 10px; }
 @media (max-width: 480px) { .rpg-npc { flex-wrap: wrap; } }
+
+/* Compétences */
+.rpg-skills { margin: 10px 0; }
+.rpg-skills h4 { margin: 0 0 6px; }
+.rpg-duel-action--skill { border-style: dashed; }
+.rpg-duel-action--skill:not([disabled]) { border-style: solid; border-color: #a35bd6; }
+.rpg-skill-list { list-style: none; padding: 0; margin: 8px 0 14px; display: grid; gap: 8px; }
+.rpg-skill-list li { display: flex; gap: 10px; align-items: flex-start; }
+.rpg-skill-list li.is-locked { opacity: .6; }
+.rpg-skill-list__icon { font-size: 1.4em; line-height: 1.2; }
+/* Le thème du site colore les boutons désactivés : une action indisponible reste lisible, simplement estompée. */
+.rpg-duel-action[disabled] { background: transparent !important; color: inherit !important; box-shadow: none !important;
+    opacity: .5; }

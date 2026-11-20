@@ -31,6 +31,20 @@
         <li>🛡️ Armure : {{ sheet.armor }}</li>
         <li>❤️ PV max : {{ sheet.max_hp }}</li>
     </ul>
+    <h3>✨ Compétences</h3>
+    {% if skills_known or skills_upcoming %}
+    <ul class="rpg-skill-list">
+        {% for s in skills_known %}
+        <li><span class="rpg-skill-list__icon">{{ s.icon }}</span><span><strong>{{ s.name }}</strong> <span class="rpg-muted">· {{ s.get_stat_display }}{% if s.kind != 'heal' %} contre {{ s.get_against_display }}{% endif %} · recharge {{ s.cooldown }} manche{{ s.cooldown|pluralize }}</span><br>{{ s.description }}</span></li>
+        {% endfor %}
+        {% for s in skills_upcoming %}
+        <li class="is-locked"><span class="rpg-skill-list__icon">🔒</span><span><strong>{{ s.name }}</strong> <span class="rpg-muted">· niveau {{ s.min_level }}</span><br>{{ s.description }}</span></li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="rpg-muted">Ton origine n'a pas encore de compétence.</p>
+    {% endif %}
+
     <h3>Blessures</h3>
     {% if wounds %}
     <ul class="rpg-wounds">

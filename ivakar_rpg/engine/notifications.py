@@ -27,6 +27,7 @@ KINDS = {
     'event_started': (POPUP, "🌍"),
     'event_won': (POPUP, "🌍"),
     'achievement': (POPUP, "🏆"),
+    'skill_learned': (POPUP, "✨"),
     'daily_done': (TOAST, "✅"),
     'daily_all': (TOAST, "🎯"),
 }

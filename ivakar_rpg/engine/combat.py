@@ -11,7 +11,8 @@ PROVISOIRE (le combat n'est pas encore défini par les règles, voir REGLES.md) 
   toujours annoncé (« il prend son élan »), le reste n'est visible qu'après l'avoir Observé ;
 - boire une potion ou tenter de fuir prend la manche : le monstre joue son action contre un héros qui ne
   riposte pas ; la fuite est une opposition Dextérité contre Dextérité (impossible face à un boss) ;
-- si le monstre et le héros tombent dans la même manche, le héros l'emporte de justesse et garde 1 PV.
+- si le monstre et le héros tombent dans la même manche, le héros l'emporte de justesse et garde 1 PV ;
+- les compétences du héros (``engine.skills``) s'utilisent comme une action, puis se rechargent.
 """
 from django.db import transaction
 
@@ -22,6 +23,7 @@ from .clash import (
     ACTIONS, FEINT, GUARD, POWER, SHAKEN_ALLOWED, STRIKE, Fighter, action_label, log_entry, oppose,
     resolve_action,
 )
+from . import skills as skill_engine
 from .dice import get_rng, weighted_pick
 from .world import enter_scene
 
@@ -94,10 +96,10 @@ def _locked_combat(character):
     return combat
 
 
-def _fighters(character, combat, hero_action):
+def _fighters(character, combat, hero_action, skill=None):
     stats = sheet(character)
     hero = Fighter(_tag_hero(character), stat_values(character), hero_action, armor=stats['armor'],
-                   damage_bonus=stats['damage_bonus'])
+                   damage_bonus=stats['damage_bonus'], skill=skill)
     monster = combat.monster
     beast = Fighter(_tag_monster(combat), monster.stat_values, combat.monster_action, armor=monster.armor,
                     damage_range=(monster.damage_min, monster.damage_max))
@@ -122,29 +124,30 @@ def _victory(character, combat, rng):
     enter_scene(character, then_scene)
 
 
-def _resolve_round(character, combat, hero_action, rng):
+def _resolve_round(character, combat, hero_action, rng, skill=None):
     """Joue la manche : l'action du héros contre celle du monstre, puis l'issue."""
     from .wounds import knock_out
 
     if not combat.monster_action:  # combat engagé avant les manches à actions
         combat.monster_action = next_monster_action(combat.monster, combat.monster_shaken, rng)
-    hero, beast = _fighters(character, combat, hero_action)
+    hero, beast = _fighters(character, combat, hero_action, skill)
     log = lambda *parts, **kw: _log(combat, *parts, **kw)  # noqa: E731
-    if hero_action in ACTIONS:
-        log(hero.tag, " lance ", ('act', action_label(hero_action)), ".", kind='cast')
+    if hero_action in ACTIONS or skill:
+        log(hero.tag, " lance ", ('act', hero.label), ".", kind='cast')
     log(beast.tag, " lance ", ('act', action_label(beast.action)), ".", kind='cast')
     resolve_action(log, hero, beast, rng)
     resolve_action(log, beast, hero, rng)
 
     combat.monster_hp = max(0, combat.monster_hp - beast.damage_taken)
-    character.hp = max(0, character.hp - hero.damage_taken)
+    max_hp = sheet(character)['max_hp']
+    character.hp = min(max_hp, max(0, character.hp - hero.damage_taken + hero.healed))
     if combat.monster_hp == 0:
         if character.hp == 0:
             character.hp = 1
             add_log(character, "Tu t'effondres… juste après ton adversaire.", 'bad')
         _victory(character, combat, rng)
         return
-    log(('note', "Fin de manche : "), hero.tag, " ", ('hp', f"{character.hp}/{sheet(character)['max_hp']} PV"),
+    log(('note', "Fin de manche : "), hero.tag, " ", ('hp', f"{character.hp}/{max_hp} PV"),
         ('note', " · "), beast.tag, " ", ('hp', f"{combat.monster_hp}/{combat.monster.hp} PV"), kind='summary')
     if character.hp == 0:
         combat.save()
@@ -152,13 +155,15 @@ def _resolve_round(character, combat, hero_action, rng):
         return
     combat.hero_insight = hero.insight_next
     combat.monster_shaken = beast.shaken_next
+    combat.skill_cooldowns = skill_engine.tick(combat.skill_cooldowns, skill)
     combat.turn += 1
     combat.monster_action = next_monster_action(combat.monster, combat.monster_shaken, rng)
     combat.save()
 
 
 def act(character, action, item_id=None, rng=None):
-    """Action de combat : une action de ``clash.ACTIONS``, ``item`` (boire) ou ``flee`` (fuir)."""
+    """Action de combat : une action de ``clash.ACTIONS``, une compétence (``skill:<slug>``), ``item`` (boire)
+    ou ``flee`` (fuir)."""
     rng = get_rng(rng)
     with transaction.atomic():
         character = lock(character)
@@ -167,6 +172,9 @@ def act(character, action, item_id=None, rng=None):
 
         if action in HERO_ACTIONS:
             _resolve_round(character, combat, action, rng)
+        elif skill_engine.is_skill(action):
+            skill = skill_engine.usable(character, action, combat.skill_cooldowns)
+            _resolve_round(character, combat, action, rng, skill=skill)
         elif action == ITEM:
             restored = consume(character, item_id)
             _log(combat, _tag_hero(character), " boit une potion : ", ('hp', f"+{restored} PV"), ".", kind='cast')
