@@ -30,8 +30,8 @@ from django.urls import reverse
 from django.utils import timezone
 
 from ..models import (
-    BEHAVIOR_BALANCED, BEHAVIOR_BRUTE, BEHAVIOR_CAUTIOUS, BEHAVIOR_CUNNING, Character, Combat, CombatSeat,
-    InventoryItem, Item, Party,
+    BEHAVIOR_BALANCED, BEHAVIOR_BRUTE, BEHAVIOR_CAUTIOUS, BEHAVIOR_CUNNING, Character, Combat, CombatReport,
+    CombatSeat, InventoryItem, Item, Party, Wound,
 )
 from . import RpgError
 from .character import add_item, add_log, change_coins, consume, ensure_free, gain_xp, lock, sheet, stat_values
@@ -152,6 +152,56 @@ def _tag_monster(combat):
     return ('o', combat.monster.name)
 
 
+# ---------------------------------------------------------------------------
+# Rapport de fin de combat
+# ---------------------------------------------------------------------------
+def _tally(combat, character, dealt=0, taken=0, healed=0, played=True):
+    """Ajoute au bilan du héros pour le rapport de fin."""
+    stats = dict(combat.stats or {})
+    row = dict(stats.get(str(character.pk)) or {'name': character.name, 'dealt': 0, 'taken': 0, 'healed': 0,
+                                                 'rounds': 0})
+    row['dealt'] += dealt
+    row['taken'] += taken
+    row['healed'] += healed
+    row['rounds'] += 1 if played else 0
+    stats[str(character.pk)] = row
+    combat.stats = stats
+
+
+def _report(combat, character, outcome, rewards=None, rounds=None):
+    """Remet au héros le rapport du combat qui s'achève pour lui (le combat peut continuer pour d'autres)."""
+    stats = [{'id': int(pk), **row} for pk, row in (combat.stats or {}).items()]
+    stats.sort(key=lambda row: (row['id'] != character.pk, row['name']))
+    if not stats:
+        stats = [{'id': character.pk, 'name': character.name, 'dealt': 0, 'taken': 0, 'healed': 0, 'rounds': 0}]
+    report = CombatReport.objects.create(
+        character=character, monster=combat.monster, monster_name=combat.monster.name, outcome=outcome,
+        rounds=rounds or combat.turn, stats=stats, rewards=rewards or {}, log=list(combat.log or []))
+    old = CombatReport.objects.filter(character=character).values_list('pk', flat=True)[CombatReport.KEEP:]
+    CombatReport.objects.filter(pk__in=list(old)).delete()
+    return report
+
+
+def _knocked_out(combat, character, rng, rounds=None):
+    """Le héros tombe : KO (blessure comprise) puis rapport."""
+    from .wounds import knock_out
+
+    knock_out(character, rng)
+    wound = Wound.objects.filter(character=character).order_by('-created_at', '-pk').first()
+    _report(combat, character, CombatReport.OUTCOME_KO,
+            {'wound': f"{wound.get_severity_display()}{' — ' + wound.label if wound.label else ''}" if wound else ''},
+            rounds=rounds)
+
+
+def latest_report(character):
+    """Rapport du dernier combat, tant que le joueur ne l'a pas refermé."""
+    return CombatReport.objects.filter(character=character, seen_at=None).first()
+
+
+def close_reports(character):
+    CombatReport.objects.filter(character=character, seen_at=None).update(seen_at=timezone.now())
+
+
 def _locked_combat(character):
     combat = (Combat.objects.select_for_update().select_related('monster', 'then_scene')
               .filter(character=character).first())
@@ -178,13 +228,15 @@ def _fighters(character, combat, hero_action, skill=None):
 
 def _victory(character, combat, rng):
     then_scene = combat.then_scene
-    _reward(character, combat.monster, rng)
+    _log(combat, _tag_monster(combat), " est vaincu !", kind='end')
+    _report(combat, character, CombatReport.OUTCOME_VICTORY, _reward(character, combat.monster, rng))
     combat.delete()
     enter_scene(character, then_scene)
 
 
 def _reward(character, monster, rng):
-    """Récompenses complètes d'un vainqueur (personnage verrouillé, non sauvegardé)."""
+    """Récompenses complètes d'un vainqueur (personnage verrouillé, non sauvegardé). Renvoie leur détail."""
+    loot_won = []
     character.victories += 1
     add_log(character, f"Victoire contre {monster.name} ! +{monster.xp} XP.", 'good')
     coins = rng.randint(monster.coins_min, max(monster.coins_min, monster.coins_max))
@@ -195,13 +247,13 @@ def _reward(character, monster, rng):
         if rng.randint(1, 100) <= loot.chance:
             add_item(character, loot.item)
             add_log(character, f"Butin : {loot.item.name}.", 'good')
-    gain_xp(character, monster.xp)
+            loot_won.append(loot.item.name)
+    levels = gain_xp(character, monster.xp)
+    return {'xp': monster.xp, 'coins': coins, 'loot': loot_won, 'levels': levels, 'level': character.level}
 
 
 def _resolve_round(character, combat, hero_action, rng, skill=None):
     """Joue la manche : l'action du héros contre celle du monstre, puis l'issue."""
-    from .wounds import knock_out
-
     if not combat.monster_action:  # combat engagé avant les manches à actions
         combat.monster_action = next_monster_action(combat.monster, combat.monster_shaken, rng)
     hero, beast = _fighters(character, combat, hero_action, skill)
@@ -215,6 +267,7 @@ def _resolve_round(character, combat, hero_action, rng, skill=None):
     combat.monster_hp = max(0, combat.monster_hp - beast.damage_taken)
     max_hp = sheet(character)['max_hp']
     character.hp = min(max_hp, max(0, character.hp - hero.damage_taken + hero.healed))
+    _tally(combat, character, dealt=beast.damage_taken, taken=hero.damage_taken, healed=hero.healed)
     if combat.monster_hp == 0:
         if character.hp == 0:
             character.hp = 1
@@ -224,8 +277,9 @@ def _resolve_round(character, combat, hero_action, rng, skill=None):
     log(('note', "Fin de manche : "), hero.tag, " ", ('hp', f"{character.hp}/{max_hp} PV"),
         ('note', " · "), beast.tag, " ", ('hp', f"{combat.monster_hp}/{combat.max_hp} PV"), kind='summary')
     if character.hp == 0:
+        _log(combat, hero.tag, " s'effondre, inconscient.", kind='end')
         combat.save()
-        knock_out(character, rng)
+        _knocked_out(combat, character, rng)
         return
     combat.hero_insight = hero.insight_next
     combat.monster_shaken = beast.shaken_next
@@ -258,6 +312,7 @@ def act(character, action, item_id=None, rng=None):
         elif action == ITEM:
             restored = consume(character, item_id)
             _log(combat, _tag_hero(character), " boit une potion : ", ('hp', f"+{restored} PV"), ".", kind='cast')
+            _tally(combat, character, healed=restored, played=False)
             _resolve_round(character, combat, ITEM, rng)
         elif action == FLEE:
             if monster.is_boss:
@@ -266,6 +321,9 @@ def act(character, action, item_id=None, rng=None):
             log = lambda *parts, **kw: _log(combat, *parts, **kw)  # noqa: E731
             log(hero.tag, " tente de fuir.", kind='cast')
             if oppose(log, hero, 'dexterite', "Dextérité", beast, 'dexterite', "Dextérité", rng) > 0:
+                log(hero.tag, " prend la fuite.", kind='end')
+                _tally(combat, character)
+                _report(combat, character, CombatReport.OUTCOME_FLED)
                 combat.delete()
                 add_log(character, f"Tu prends la fuite, {monster.name} ne te suit pas.")
             else:
@@ -434,9 +492,8 @@ def force_round(character, rng=None, now=None):
 
 def _resolve_group_round(combat, rng, now=None):
     """Joue la manche de groupe : actions des héros contre le monstre, puis celle du monstre contre sa cible."""
-    from .wounds import knock_out
-
     now = now or timezone.now()
+    played = combat.turn
     seats = {s.character_id: s for s in combat.seats.all()}
     heroes = list(Character.objects.select_for_update().select_related('location', 'scene')
                   .filter(pk__in=seats).order_by('pk'))
@@ -459,6 +516,7 @@ def _resolve_group_round(combat, rng, now=None):
                 log(_tag_hero(hero), " cherche une potion… il n'en a plus.", kind='cast')
             else:
                 log(_tag_hero(hero), " boit une potion : ", ('hp', f"+{restored} PV"), ".", kind='cast')
+                _tally(combat, hero, healed=restored, played=False)
             fighter = _hero_fighter(hero, ITEM)
         elif code == FLEE:
             fighter = _hero_fighter(hero, FLEE)
@@ -479,15 +537,20 @@ def _resolve_group_round(combat, rng, now=None):
         ".", kind='cast')
 
     monster_action = beast.action
+    dealt = dict.fromkeys(order, 0)
     for pk in order:
         if pk in gone:
             continue
         # Un monstre occupé à attaquer un autre héros n'est ni en garde ni prêt à punir une Feinte.
         beast.action = monster_action if pk == target_id or monster_action not in ATTACKS else BUSY
+        before = beast.damage_taken
         resolve_action(log, fighters[pk], beast, rng)
+        dealt[pk] += beast.damage_taken - before
     beast.action = monster_action
     if target is not None:
+        before = beast.damage_taken
         resolve_action(log, beast, target, rng)
+        dealt[target_id] += beast.damage_taken - before  # riposte du héros visé
     elif monster_action in ATTACKS:
         log(beast.tag, " frappe dans le vide.")
 
@@ -495,6 +558,9 @@ def _resolve_group_round(combat, rng, now=None):
     for pk in order:
         hero, fighter = by_pk[pk], fighters[pk]
         hero.hp = min(sheet(hero)['max_hp'], max(0, hero.hp - fighter.damage_taken + fighter.healed))
+        _tally(combat, hero, dealt=dealt[pk], taken=fighter.damage_taken, healed=fighter.healed)
+    for pk in gone:
+        _report(combat, by_pk[pk], CombatReport.OUTCOME_FLED)
 
     if combat.monster_hp == 0:
         winners = [by_pk[pk] for pk in order if pk not in gone]
@@ -504,9 +570,10 @@ def _resolve_group_round(combat, rng, now=None):
                 add_log(hero, "Tu t'effondres… juste après ton adversaire.", 'bad')
         owner_id, then_scene, monster = combat.character_id, combat.then_scene, combat.monster
         log(beast.tag, " s'effondre sous les coups du groupe !", kind='end')
+        for hero in winners:
+            _report(combat, hero, CombatReport.OUTCOME_VICTORY, _reward(hero, monster, rng))
         combat.delete()
         for hero in winners:
-            _reward(hero, monster, rng)
             if hero.pk == owner_id:
                 enter_scene(hero, then_scene)
             elif len(winners) > 1:
@@ -561,7 +628,7 @@ def _resolve_group_round(combat, rng, now=None):
                 seat.save(update_fields=['action', 'insight', 'cooldowns'])
         combat.save()
     for pk in fallen:
-        knock_out(by_pk[pk], rng)
+        _knocked_out(combat, by_pk[pk], rng, rounds=played)
     for hero in heroes:
         hero.save()
     for pk in remaining:

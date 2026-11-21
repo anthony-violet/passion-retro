@@ -322,3 +322,16 @@ body.rpg-wide > .row > .col:not(:has(.rpg)) { display: none; }
 body.rpg-wide > .row > .col:has(.rpg) { flex: 0 0 calc(100% - 20px) !important; max-width: none !important; width: auto !important; }
 body.rpg-wide .container.rpg { max-width: none; }
 @media (min-width: 1100px) { body.rpg-wide .rpg-layout { grid-template-columns: 300px 1fr; } }
+
+/* Rapport de fin de combat */
+.rpg-report { display: grid; gap: 10px; }
+.rpg-report--victory { border-color: var(--rpg-good); }
+.rpg-report--ko { border-color: var(--rpg-bad); }
+.rpg-report__head h2 { margin: 0; }
+.rpg-report__table { width: 100%; border-collapse: collapse; font-size: .95em; }
+.rpg-report__table th, .rpg-report__table td { padding: 4px 8px; text-align: right; border-bottom: 1px dashed currentColor; }
+.rpg-report__table th:first-child { text-align: left; }
+.rpg-report__table .is-me th { text-decoration: underline; }
+.rpg-report__rewards { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-weight: bold; }
+.rpg-report__log > summary { cursor: pointer; }
+.rpg-report__log[open] > summary { margin-bottom: 8px; }

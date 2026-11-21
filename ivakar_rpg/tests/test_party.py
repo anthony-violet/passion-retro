@@ -11,7 +11,7 @@ from ..engine import character as hero
 from ..engine import combat as fight
 from ..engine import party, world
 from ..models import (
-    Character, CharacterCharacteristic, Combat, CombatSeat, Location, Monster, Notification, Party, PartyInvite,
+    Character, CharacterCharacteristic, Combat, CombatReport, CombatSeat, Location, Monster, Notification, Party, PartyInvite,
     PartyMember, PartyMessage,
 )
 from .helpers import IvakarTestCase
@@ -266,3 +266,75 @@ class GroupCombatTests(PartyTestCase):
         response = self.client.get(reverse('rpg_play'))
         self.assertContains(response, "rpg-party-fighters")
         self.assertEqual(self.client.get(reverse('rpg_combat_state')).json()['fighters'], 2)
+
+
+class CombatReportTests(PartyTestCase):
+    """Rapport remis à chaque héros quand le combat se termine pour lui."""
+
+    def setUp(self):
+        super().setUp()
+        self.wolf = Monster.objects.get(slug='loup-gris')
+
+    def test_solo_victory_report_and_play_page(self):
+        self.stat(self.character, 'dexterite', 30)
+        fight.start_combat(self.character, self.wolf, rng=MaxRng())
+        Combat.objects.filter(character=self.character).update(monster_action='strike')
+        fight.act(self.character, 'strike', rng=MaxRng())
+        report = CombatReport.objects.get(character=self.character)
+        self.assertEqual(report.outcome, CombatReport.OUTCOME_VICTORY)
+        self.assertEqual(report.rewards['xp'], self.wolf.xp)
+        self.assertEqual(report.stats[0]['name'], "Aldric")
+        self.assertGreaterEqual(report.stats[0]['dealt'], self.wolf.hp)
+        self.assertTrue(any(e['kind'] == 'end' for e in report.log))
+        self.client.login(username='heros', password='pass')
+        self.assertContains(self.client.get(reverse('rpg_play')), "Victoire contre Loup gris")
+        self.client.post(reverse('rpg_report_close'))
+        self.assertNotContains(self.client.get(reverse('rpg_play')), "Rapport de combat")
+        self.assertContains(self.client.get(reverse('rpg_reports')), "Loup gris")
+        self.assertContains(self.client.get(reverse('rpg_report', args=[report.pk])), "Revoir le déroulé")
+
+    def test_solo_knockout_report_mentions_the_wound(self):
+        self.stat(self.character, 'dexterite', 1)
+        Character.objects.filter(pk=self.character.pk).update(hp=1)
+        fight.start_combat(self.reload(), self.wolf, rng=MaxRng())
+        Combat.objects.filter(character=self.character).update(monster_action='strike')
+        fight.act(self.character, 'observe', rng=MaxRng())
+        report = CombatReport.objects.get(character=self.character)
+        self.assertEqual(report.outcome, CombatReport.OUTCOME_KO)
+        self.assertTrue(report.rewards['wound'])
+
+    def test_solo_flight_report(self):
+        self.stat(self.character, 'dexterite', 30)
+        fight.start_combat(self.character, self.wolf, rng=MaxRng())
+        fight.act(self.character, 'flee', rng=MaxRng())
+        self.assertEqual(CombatReport.objects.get(character=self.character).outcome, CombatReport.OUTCOME_FLED)
+
+    def test_group_reports_list_every_fighter(self):
+        self.group(self.brann)
+        for h in (self.character, self.brann):
+            self.stat(h, 'dexterite', 30)
+        fight.start_combat(self.character, self.wolf, rng=MaxRng())
+        fight.join(self.brann, Combat.objects.get().pk)
+        fight.act(self.character, 'strike', rng=MaxRng())
+        fight.act(self.brann, 'strike', rng=MaxRng())
+        for h in (self.character, self.brann):
+            report = CombatReport.objects.get(character=h)
+            self.assertEqual(report.outcome, CombatReport.OUTCOME_VICTORY)
+            self.assertEqual({row['name'] for row in report.stats}, {"Aldric", "Brann"})
+            self.assertEqual(report.stats[0]['id'], h.pk)  # le héros du rapport en premier
+            self.assertGreaterEqual(sum(row['dealt'] for row in report.stats), 18)
+
+    def test_fallen_group_member_gets_a_report_while_the_fight_goes_on(self):
+        self.group(self.brann)
+        fight.start_combat(self.character, self.wolf, rng=MaxRng())
+        combat = Combat.objects.get()
+        fight.join(self.brann, combat.pk)
+        self.stat(self.character, 'dexterite', 1)
+        Character.objects.filter(pk=self.character.pk).update(hp=1)
+        Combat.objects.filter(pk=combat.pk).update(monster_action='strike', monster_target=self.character)
+        fight.act(self.character, 'observe', rng=MaxRng())
+        fight.act(self.brann, 'observe', rng=MaxRng())
+        report = CombatReport.objects.get(character=self.character)
+        self.assertEqual((report.outcome, report.rounds), (CombatReport.OUTCOME_KO, 1))
+        self.assertFalse(CombatReport.objects.filter(character=self.brann).exists())
+        self.assertTrue(Combat.objects.filter(pk=combat.pk).exists())

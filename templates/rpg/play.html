@@ -4,6 +4,7 @@
 {% block crumb %}<li>{% if mode == 'combat' %}Combat{% elif mode == 'scene' %}{{ scene.title }}{% else %}{{ character.location.name }}{% endif %}</li>{% endblock %}
 
 {% block game %}
+{% if report %}{% include "rpg/partials/combat_report.html" with closable=True %}{% endif %}
 {% if mode == 'ko' %}
 <section class="rpg-screen rpg-screen--combat">
     <h2>💫 Inconscient</h2>

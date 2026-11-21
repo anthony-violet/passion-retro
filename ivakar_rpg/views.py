@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
+from django.http import Http404
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
@@ -14,7 +15,7 @@ from .engine import duel as duel_engine
 from .engine import events, party as party_engine, social, wounds
 from .engine.worldmap import map_for
 from .engine.rules import DIFFICULTY_LABELS, MAX_LEVEL, POINTS_PER_LEVEL, STAT_CAP
-from .models import Character, CharacterQuest, InventoryItem, Location, Origin, Trade, WorldMap, Wound
+from .models import Character, CharacterQuest, CombatReport, InventoryItem, Location, Origin, Trade, WorldMap, Wound
 
 PLAY = 'rpg_play'
 
@@ -166,8 +167,38 @@ def play(request, character):
             'tavern': social.tavern(character.location),
             'message_max_length': social.MESSAGE_MAX_LENGTH,
         })
+    if context['mode'] != 'combat':
+        report = fight.latest_report(character)
+        if report:
+            context.update({'report': report, 'report_rounds': clash.group_rounds(report.log)})
     context['log'] = list(reversed(character.log or []))
     return render(request, 'rpg/play.html', context)
+
+
+@require_POST
+@player_view
+def close_report(request, character):
+    fight.close_reports(character)
+    return redirect(PLAY)
+
+
+@player_view
+def reports(request, character):
+    return render(request, 'rpg/reports.html', {
+        **_meta("Rapports de combat"), **_hud(character),
+        'reports': CombatReport.objects.filter(character=character),
+    })
+
+
+@player_view
+def report_detail(request, character, report_id):
+    report = CombatReport.objects.filter(character=character, pk=report_id).first()
+    if report is None:
+        raise Http404
+    return render(request, 'rpg/report.html', {
+        **_meta(f"Rapport : {report.monster_name}"), **_hud(character),
+        'report': report, 'report_rounds': clash.group_rounds(report.log),
+    })
 
 
 @require_POST

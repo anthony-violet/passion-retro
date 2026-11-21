@@ -1,0 +1,48 @@
+{% comment %}Rapport de fin de combat. Contexte : report, report_rounds, closable (bouton « Fermer » sur la page de jeu).{% endcomment %}
+<section class="rpg-screen rpg-report rpg-report--{{ report.outcome }}" aria-labelledby="rpg-report-{{ report.id }}">
+    <div class="rpg-report__head">
+        <h2 id="rpg-report-{{ report.id }}">
+            {% if report.outcome == 'victory' %}🏆 Victoire contre {{ report.monster_name }}
+            {% elif report.outcome == 'ko' %}💫 Vaincu par {{ report.monster_name }}
+            {% else %}🏃 Fuite face à {{ report.monster_name }}{% endif %}
+        </h2>
+        <span class="rpg-muted">📜 Rapport de combat · {{ report.rounds }} manche{{ report.rounds|pluralize }} · {{ report.created_at|date:"j F, H:i" }}</span>
+    </div>
+
+    <table class="rpg-report__table">
+        <thead><tr><th scope="col">Héros</th><th scope="col">Manches</th><th scope="col">⚔️ Infligés</th><th scope="col">🩸 Subis</th><th scope="col">💚 Soins</th></tr></thead>
+        <tbody>
+            {% for row in report.stats %}
+            <tr{% if row.id == report.character_id %} class="is-me"{% endif %}>
+                <th scope="row">{{ row.name }}{% if row.id == report.character_id %} <span class="rpg-muted">(toi)</span>{% endif %}</th>
+                <td>{{ row.rounds }}</td><td>{{ row.dealt }}</td><td>{{ row.taken }}</td><td>{{ row.healed }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if report.outcome == 'victory' %}
+    <ul class="rpg-report__rewards" aria-label="Récompenses">
+        <li>✨ +{{ report.rewards.xp }} XP</li>
+        {% if report.rewards.coins %}<li>🪙 +{{ report.rewards.coins }} écus</li>{% endif %}
+        {% for name in report.rewards.loot %}<li>🎁 {{ name }}</li>{% endfor %}
+        {% if report.rewards.levels %}<li>⭐ Niveau {{ report.rewards.level }} atteint !</li>{% endif %}
+    </ul>
+    {% elif report.outcome == 'ko' %}
+    <p class="rpg-notice">Tu as perdu connaissance.{% if report.rewards.wound %} Blessure : <strong>{{ report.rewards.wound }}</strong>.{% endif %} Aucune récompense.</p>
+    {% else %}
+    <p class="rpg-notice">Tu t'es échappé sans récompense.</p>
+    {% endif %}
+
+    <details class="rpg-report__log">
+        <summary>Revoir le déroulé du combat</summary>
+        {% include 'rpg/partials/clash_log.html' with rounds=report_rounds %}
+    </details>
+
+    <div class="rpg-actions">
+        {% if closable %}
+        <form method="post" action="{% url 'rpg_report_close' %}" data-keep-position="off">{% csrf_token %}<button type="submit" class="btn btn-small">Fermer le rapport</button></form>
+        {% endif %}
+        <a href="{% url 'rpg_reports' %}" class="btn btn-small">📜 Tous mes rapports</a>
+    </div>
+</section>

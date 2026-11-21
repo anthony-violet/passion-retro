@@ -640,10 +640,40 @@ class Combat(models.Model):
     monster_max_hp = models.PositiveIntegerField(default=0)
     monster_target = models.ForeignKey(Character, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     round_started_at = models.DateTimeField(null=True, blank=True)
+    # Bilan par héros pour le rapport de fin : {pk: {name, dealt, taken, healed, rounds}}.
+    stats = models.JSONField(default=dict, blank=True)
 
     @property
     def max_hp(self):
         return self.monster_max_hp or self.monster.hp
+
+
+class CombatReport(models.Model):
+    """Rapport remis à un héros quand un combat se termine pour lui (victoire, KO ou fuite)."""
+
+    OUTCOME_VICTORY, OUTCOME_KO, OUTCOME_FLED = 'victory', 'ko', 'fled'
+    OUTCOME_CHOICES = [(OUTCOME_VICTORY, "Victoire"), (OUTCOME_KO, "Hors de combat"), (OUTCOME_FLED, "Fuite")]
+    KEEP = 20  # rapports conservés par héros
+
+    character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='combat_reports')
+    monster = models.ForeignKey(Monster, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    monster_name = models.CharField(max_length=60)
+    outcome = models.CharField(max_length=10, choices=OUTCOME_CHOICES)
+    rounds = models.PositiveIntegerField(default=1)
+    # [{id, name, dealt, taken, healed, rounds}] : le héros et ses compagnons de combat.
+    stats = models.JSONField(default=list, blank=True)
+    # {xp, coins, loot: [noms], levels, wound}
+    rewards = models.JSONField(default=dict, blank=True)
+    log = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    seen_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+        verbose_name = "Rapport de combat"
+
+    def __str__(self):
+        return f"{self.character.name} : {self.get_outcome_display()} contre {self.monster_name}"
 
 
 class CombatSeat(models.Model):

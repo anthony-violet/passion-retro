@@ -1,0 +1,25 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li>Rapports de combat</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>📜 Rapports de combat</h2>
+    <p class="rpg-muted">Tes {{ reports|length }} dernier{{ reports|length|pluralize }} combat{{ reports|length|pluralize }}.</p>
+    {% if reports %}
+    <ul class="rpg-party-list">
+        {% for r in reports %}
+        <li>
+            <span class="rpg-party-list__who">
+                <strong>{% if r.outcome == 'victory' %}🏆{% elif r.outcome == 'ko' %}💫{% else %}🏃{% endif %} {{ r.get_outcome_display }} — {{ r.monster_name }}</strong>
+                <span class="rpg-muted">{{ r.created_at|date:"j F, H:i" }} · {{ r.rounds }} manche{{ r.rounds|pluralize }}{% if r.stats|length > 1 %} · en groupe{% endif %}{% if r.outcome == 'victory' %} · +{{ r.rewards.xp }} XP{% endif %}</span>
+            </span>
+            <a href="{% url 'rpg_report' r.id %}" class="btn btn-small">Voir le rapport</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Aucun combat pour l'instant. Pars explorer !</p>
+    {% endif %}
+</section>
+{% endblock %}

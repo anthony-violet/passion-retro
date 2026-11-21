@@ -1,0 +1,7 @@
+{% extends "rpg/game_base.html" %}
+
+{% block crumb %}<li><a href="{% url 'rpg_reports' %}">Rapports de combat</a></li><li>{{ report.monster_name }}</li>{% endblock %}
+
+{% block game %}
+{% include "rpg/partials/combat_report.html" %}
+{% endblock %}
