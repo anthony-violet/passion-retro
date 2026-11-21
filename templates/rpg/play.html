@@ -18,7 +18,7 @@
 <section class="rpg-screen rpg-screen--combat">
     {% if combat.monster.visual_url %}<figure class="rpg-art rpg-art--sprite"><img src="{{ combat.monster.visual_url }}" alt="{{ combat.monster.name }}"></figure>{% endif %}
     <h2>⚔️ {{ combat.monster.name }}{% if combat.monster.is_boss %} <span class="rpg-pill rpg-pill--boss">Boss</span>{% endif %}</h2>
-    {% if combat.monster.description %}<p class="rpg-muted">{{ combat.monster.description }}</p>{% endif %}
+    {% if combat.monster.description %}<p class="rpg-muted">{{ combat.monster.description|bbcode|safe }}</p>{% endif %}
     <p class="rpg-muted">{{ combat.monster.get_behavior_display }} · Force {{ combat.monster.force }} · Dextérité {{ combat.monster.dexterite }}{% if combat.monster.armor %} · Armure {{ combat.monster.armor }}{% endif %}</p>
     <div class="rpg-bar rpg-bar--enemy">
         <span class="rpg-bar__fill" style="width: {{ combat.monster_hp|hp_percent:combat.monster.hp }}%"></span>
