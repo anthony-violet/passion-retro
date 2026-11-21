@@ -1,0 +1,9 @@
+{# Rappel repliable des actions de combat. Attend `actions` (et `skill_menu`), paramètre `intro`. #}
+<details class="rpg-actions-help">
+    <summary>📖 Rappel des actions</summary>
+    <p>{{ intro }} La Feinte trompe la Garde, la Garde punit le Coup puissant, et une attaque rend la Feinte inutile.</p>
+    <dl>
+        {% for a in actions %}<dt>{{ a.icon }} {{ a.name }} <small>· {{ a.stat }}</small></dt><dd>{{ a.help }}</dd>{% endfor %}
+        {% for s in skill_menu %}<dt>{{ s.skill.icon }} {{ s.skill.name }} <small>· {{ s.skill.get_stat_display }}{% if s.skill.kind != 'heal' %} contre {{ s.skill.get_against_display }}{% endif %} · recharge {{ s.skill.cooldown }}</small></dt><dd>{{ s.skill.description }}</dd>{% endfor %}
+    </dl>
+</details>

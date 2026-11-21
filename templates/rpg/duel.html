@@ -31,7 +31,7 @@
             <form method="post" action="{% url 'rpg_duel_action' duel.id %}" class="rpg-duel-actions">
                 {% csrf_token %}
                 {% for a in actions %}
-                <button type="submit" name="action" value="{{ a.code }}" class="rpg-duel-action"{% if not a.allowed %} disabled{% endif %}>
+                <button type="submit" name="action" value="{{ a.code }}" title="{{ a.stat }} — {{ a.help }}" class="rpg-duel-action"{% if not a.allowed %} disabled{% endif %}>
                     <span class="rpg-duel-action__name">{{ a.icon }} {{ a.name }}</span>
                     <span class="rpg-duel-action__stat">{{ a.stat }}</span>
                     <span class="rpg-duel-action__help">{{ a.help }}</span>
@@ -40,20 +40,20 @@
             </form>
             {% if skill_menu %}
             <div class="rpg-skills">
-                <h4>✨ Compétences</h4>
+                <h4 class="rpg-actions-title">✨ Compétences</h4>
                 <form method="post" action="{% url 'rpg_duel_action' duel.id %}" class="rpg-duel-actions">
                     {% csrf_token %}
                     {% for s in skill_menu %}
-                    <button type="submit" name="action" value="{{ s.code }}" class="rpg-duel-action rpg-duel-action--skill"{% if not s.ready %} disabled{% endif %}>
+                    <button type="submit" name="action" value="{{ s.code }}" title="{{ s.skill.get_stat_display }}{% if s.skill.kind != 'heal' %} contre {{ s.skill.get_against_display }}{% endif %} — {{ s.skill.description }}" class="rpg-duel-action rpg-duel-action--skill"{% if not s.ready %} disabled{% endif %}>
                         <span class="rpg-duel-action__name">{{ s.skill.icon }} {{ s.skill.name }}</span>
-                        <span class="rpg-duel-action__stat">{{ s.skill.get_stat_display }}{% if s.skill.kind != 'heal' %} contre {{ s.skill.get_against_display }}{% endif %}{% if s.wait %} · recharge : {{ s.wait }} manche{{ s.wait|pluralize }}{% endif %}</span>
+                        <span class="rpg-duel-action__stat">{% if s.wait %}⏳ {{ s.wait }} manche{{ s.wait|pluralize }}{% else %}{{ s.skill.get_stat_display }}{% endif %}</span>
                         <span class="rpg-duel-action__help">{{ s.skill.description }}</span>
                     </button>
                     {% endfor %}
                 </form>
             </div>
             {% endif %}
-            <p class="rpg-muted">Ton choix reste secret jusqu'à la résolution. Retiens : la Feinte trompe la Garde, la Garde punit le Coup puissant, le Coup puissant frappe fort tout le reste.</p>
+            {% include 'rpg/partials/actions_help.html' with intro="Ton choix reste secret jusqu'à la résolution." %}
         {% else %}
             <p class="rpg-muted">En attente du choix de {{ other.name }}… la page se met à jour toute seule.</p>
         {% endif %}

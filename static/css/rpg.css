@@ -259,3 +259,22 @@
 /* Le thème du site colore les boutons désactivés : une action indisponible reste lisible, simplement estompée. */
 .rpg-duel-action[disabled] { background: transparent !important; color: inherit !important; box-shadow: none !important;
     opacity: .5; }
+
+/* Actions de combat compactes : icône, nom, caractéristique ; l'aide est dans l'infobulle et le rappel. */
+.rpg-duel-actions { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 5px; margin: 8px 0; }
+.rpg-duel-action { gap: 0; padding: 5px 7px; border-radius: 5px; text-align: center; line-height: 1.25;
+    border-color: rgba(127, 127, 127, .55); }
+.rpg-duel-action:hover:not([disabled]), .rpg-duel-action:focus-visible { border-color: currentColor; }
+.rpg-duel-action__name { font-size: .88em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rpg-duel-action__stat { font-size: .68em; letter-spacing: .02em; }
+.rpg-duel-action__help { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.rpg-duel-action--hint { border-width: 2px; }
+.rpg-skills { margin: 6px 0; }
+.rpg-actions-title { margin: 6px 0 2px; font-size: .9em; }
+.rpg-actions-help { margin: 6px 0 10px; font-size: .88em; }
+.rpg-actions-help summary { cursor: pointer; opacity: .8; }
+.rpg-actions-help dl { margin: 6px 0 0; display: grid; gap: 2px; }
+.rpg-actions-help dt { font-weight: bold; margin-top: 4px; }
+.rpg-actions-help dd { margin: 0 0 0 4px; opacity: .85; }
+.rpg-duel-actions .rpg-duel-action { width: 100% !important; max-width: none !important; justify-self: stretch; margin: 0; box-sizing: border-box; }
+.rpg-duel-action__name { white-space: normal; overflow: visible; }

@@ -34,7 +34,7 @@
     <form method="post" action="{% url 'rpg_combat' %}" class="rpg-duel-actions">
         {% csrf_token %}
         {% for a in combat_actions %}
-        <button type="submit" name="action" value="{{ a.code }}" class="rpg-duel-action{% if intention.0 == 'power' and a.code == 'guard' or intention.0 == 'guard' and a.code == 'feint' or intention.0 == 'feint' and a.code == 'strike' %} rpg-duel-action--hint{% endif %}">
+        <button type="submit" name="action" value="{{ a.code }}" title="{{ a.stat }} — {{ a.help }}" class="rpg-duel-action{% if intention.0 == 'power' and a.code == 'guard' or intention.0 == 'guard' and a.code == 'feint' or intention.0 == 'feint' and a.code == 'strike' %} rpg-duel-action--hint{% endif %}">
             <span class="rpg-duel-action__name">{{ a.icon }} {{ a.name }}</span>
             <span class="rpg-duel-action__stat">{{ a.stat }}</span>
             <span class="rpg-duel-action__help">{{ a.help }}</span>
@@ -43,20 +43,20 @@
     </form>
     {% if skill_menu %}
     <div class="rpg-skills">
-        <h4>✨ Compétences</h4>
+        <h4 class="rpg-actions-title">✨ Compétences</h4>
         <form method="post" action="{% url 'rpg_combat' %}" class="rpg-duel-actions">
             {% csrf_token %}
             {% for s in skill_menu %}
-            <button type="submit" name="action" value="{{ s.code }}" class="rpg-duel-action rpg-duel-action--skill{% if intention.0 == 'power' and s.is_guard %} rpg-duel-action--hint{% endif %}"{% if not s.ready %} disabled{% endif %}>
+            <button type="submit" name="action" value="{{ s.code }}" title="{{ s.skill.get_stat_display }}{% if s.skill.kind != 'heal' %} contre {{ s.skill.get_against_display }}{% endif %} — {{ s.skill.description }}" class="rpg-duel-action rpg-duel-action--skill{% if intention.0 == 'power' and s.is_guard %} rpg-duel-action--hint{% endif %}"{% if not s.ready %} disabled{% endif %}>
                 <span class="rpg-duel-action__name">{{ s.skill.icon }} {{ s.skill.name }}</span>
-                <span class="rpg-duel-action__stat">{{ s.skill.get_stat_display }}{% if s.skill.kind != 'heal' %} contre {{ s.skill.get_against_display }}{% endif %}{% if s.wait %} · recharge : {{ s.wait }} manche{{ s.wait|pluralize }}{% endif %}</span>
+                <span class="rpg-duel-action__stat">{% if s.wait %}⏳ {{ s.wait }} manche{{ s.wait|pluralize }}{% else %}{{ s.skill.get_stat_display }}{% endif %}</span>
                 <span class="rpg-duel-action__help">{{ s.skill.description }}</span>
             </button>
             {% endfor %}
         </form>
     </div>
     {% endif %}
-    <p class="rpg-muted">Le monstre agit en même temps que toi. Retiens : la Feinte trompe la Garde, la Garde punit le Coup puissant, et une attaque rend la Feinte inutile.</p>
+    {% include "rpg/partials/actions_help.html" with actions=combat_actions intro="Le monstre agit en même temps que toi." %}
     <form method="post" action="{% url 'rpg_combat' %}" class="rpg-actions">
         {% csrf_token %}
         {% for entry in consumables %}
