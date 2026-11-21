@@ -158,7 +158,7 @@ SECTIONS = {
         'columns': [("Nom", 'name'), ("Rôle", 'role'), ("Lieux", 'locations_display'),
                     ("Dialogues", 'dialogues.count'), ("Présent", 'is_active')],
         'search': ['name', 'slug', 'role'],
-        'inlines': [inline(Npc, NpcDialogue, ['scene', 'label', 'order', 'min_level', 'required_flag',
+        'inlines': [inline(Npc, NpcDialogue, ['scene', 'tags', 'label', 'order', 'min_level', 'required_flag',
                                               'forbidden_flag'], title="Dialogues (la première entrée valable "
                                                                        "l'emporte)")],
     },
@@ -273,7 +273,7 @@ SECTIONS['evenements'] = {
 
 SECTION_FOR_MODEL = {config['model']: slug for slug, config in SECTIONS.items()}
 
-ChoiceForm = form_for(Choice, ['label', 'order', 'test_characteristic', 'test_difficulty', 'required_level',
+ChoiceForm = form_for(Choice, ['label', 'tags', 'order', 'test_characteristic', 'test_difficulty', 'required_level',
                                'required_item', 'required_coins', 'required_flag', 'forbidden_flag',
                                'hide_if_unavailable'])
 _OutcomeBase = form_for(Outcome, ['text', 'xp', 'coins', 'hp', 'wound', 'wound_label', 'strain_wounds',

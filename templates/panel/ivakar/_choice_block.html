@@ -4,6 +4,7 @@
     <summary>
         {% include 'panel/ivakar/_sort_handle.html' %}
         <span class="ivk-choice-block__title">▸ {% if block.new %}Nouveau choix{% else %}{{ block.choice.label }}{% endif %}</span>
+        {% include 'panel/ivakar/_tags.html' with obj=block.choice %}
         {% if block.choice.test_characteristic %}<span class="ivk-tag ivk-tag--test">🎲 {{ block.choice.test_characteristic.name }} {{ block.choice.test_difficulty }}</span>{% endif %}
         {% if not block.new %}
             {% for o in block.choice.outcomes.all %}{% if o.next_scene %}<span class="ivk-tag">→ {{ o.next_scene.title }}</span>{% endif %}{% if o.combat %}<span class="ivk-tag ivk-tag--combat">⚔️ {{ o.combat.name }}</span>{% endif %}{% endfor %}

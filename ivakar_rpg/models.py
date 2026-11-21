@@ -530,7 +530,22 @@ class Scene(Illustrated):
         return self.location.visual_url
 
 
-class Choice(models.Model):
+class Tagged(models.Model):
+    """Étiquettes visibles seulement dans le panel, pour distinguer des éléments qui se ressemblent."""
+
+    tags = models.CharField("Étiquettes (panel)", max_length=120, blank=True,
+                            help_text="Visibles seulement dans le panel, pour s'y retrouver. Plusieurs : séparées "
+                                      "par des virgules (ex. « avant quête, poli »).")
+
+    class Meta:
+        abstract = True
+
+    @property
+    def tag_list(self):
+        return [t.strip() for t in (self.tags or '').split(',') if t.strip()]
+
+
+class Choice(Tagged):
     scene = models.ForeignKey(Scene, on_delete=models.CASCADE, related_name='choices')
     label = models.CharField("Libellé", max_length=150)
     order = models.PositiveSmallIntegerField("Ordre", default=0)
@@ -555,7 +570,8 @@ class Choice(models.Model):
         verbose_name_plural = "Choix"
 
     def __str__(self):
-        return f"{self.scene} → {self.label}"
+        tags = f" [{self.tags}]" if self.tags else ''
+        return f"{self.scene} → {self.label}{tags}"
 
 
 class Outcome(models.Model):
@@ -1010,7 +1026,7 @@ class Npc(Illustrated):
         return ", ".join(loc.name for loc in self.locations.all()) or "—"
 
 
-class NpcDialogue(models.Model):
+class NpcDialogue(Tagged):
     """Entrée de dialogue : la scène ouverte par « Parler », si ses conditions sont remplies.
     Le jeu prend la première entrée valable dans l'ordre."""
 
@@ -1027,7 +1043,8 @@ class NpcDialogue(models.Model):
         verbose_name = "Dialogue"
 
     def __str__(self):
-        return f"{self.npc} → {self.scene}"
+        tags = f" [{self.tags}]" if self.tags else ''
+        return f"{self.npc} → {self.scene}{tags}"
 
 
 # ---------------------------------------------------------------------------

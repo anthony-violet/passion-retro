@@ -38,6 +38,7 @@
                 {% for d in entry.dialogues %}
                 <li class="ivk-tree__dialogue">
                     <span class="ivk-tag ivk-tag--test">💬 {{ d.dialogue.label|default:"Parler" }}</span>
+                    {% include 'panel/ivakar/_tags.html' with obj=d.dialogue %}
                     {% for c in d.conditions %}<span class="ivk-tag ivk-tag--cond">{{ c }}</span>{% empty %}<span class="ivk-tag">toujours</span>{% endfor %}
                     <ul class="ivk-tree__list">{% include 'panel/ivakar/_tree_scene.html' with node=d.node %}</ul>
                 </li>

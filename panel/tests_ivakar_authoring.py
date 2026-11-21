@@ -299,3 +299,34 @@ class OrderTests(AuthoringTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(maela.dialogues.count(), n)
         self.assertEqual([d.pk for d in maela.dialogues.order_by('order')], [d.pk for d in reversed(dialogues)])
+
+
+class TagTests(AuthoringTestCase):
+    def test_tags_show_in_panel_only(self):
+        maela = Npc.objects.get(slug='maela')
+        dialogue = maela.dialogues.order_by('order').first()
+        dialogue.tags = "avant quête, accueil"
+        dialogue.save()
+        choice = Choice.objects.get(scene__slug='maela-comptoir', label__startswith="Proposer")
+        choice.tags = "accepte"
+        choice.save()
+        self.assertEqual(dialogue.tag_list, ["avant quête", "accueil"])
+        tree = self.client.get(reverse('panel_ivakar_tree'))
+        self.assertContains(tree, "🏷️ avant quête")
+        self.assertContains(tree, "🏷️ accepte")
+        scene_page = self.client.get(reverse('panel_ivakar_edit', args=['scenes', choice.scene_id]))
+        self.assertContains(scene_page, "🏷️ accepte")
+        self.assertContains(scene_page, 'name="ch%d-tags"' % choice.pk)
+        self.assertContains(self.client.get(reverse('panel_ivakar_edit', args=['pnj', maela.pk])),
+                            'name="inline0-0-tags"')
+        # Jamais côté joueur.
+        from ivakar_rpg.engine import character as hero
+        from ivakar_rpg.models import Origin
+        user = User.objects.create_user(username='joueuse', password='pass', is_staff=True)
+        hero.create_character(user, "Ilse", Origin.objects.get(slug='heraut').pk)
+        self.client.login(username='joueuse', password='pass')
+        self.client.post(reverse('rpg_talk', args=[maela.pk]))
+        page = self.client.get(reverse('rpg_play'))
+        self.assertContains(page, "Au comptoir de Maela")
+        self.assertNotContains(page, "accepte")
+        self.assertNotContains(page, "avant quête")

@@ -14,7 +14,11 @@ def _choice_url(choice):
 def _outcome(outcome, what):
     choice = outcome.choice
     case = "réussite" if outcome.result == Outcome.RESULT_SUCCESS else "échec"
-    return (f"{what} — « {choice.scene.title} › {choice.label} » ({case})", _choice_url(choice))
+    return (f"{what} — « {choice.scene.title} › {choice.label} »{_tags(choice)} ({case})", _choice_url(choice))
+
+
+def _tags(obj):
+    return f" [{obj.tags}]" if getattr(obj, 'tags', '') else ''
 
 
 def _edit(section, obj):
@@ -49,13 +53,13 @@ def usages(obj):
         found += [_outcome(o, "Démarrée") for o in outcomes.filter(start_quest=obj)]
         found += [_outcome(o, "Terminée") for o in outcomes.filter(complete_quest=obj)]
     elif isinstance(obj, Npc):
-        found += [(f"Dialogue « {d.scene.title} »", _edit('scenes', d.scene))
+        found += [(f"Dialogue « {d.scene.title} »{_tags(d)}", _edit('scenes', d.scene))
                   for d in NpcDialogue.objects.filter(npc=obj).select_related('scene')]
         found += [(f"Interlocuteur de la scène « {s.title} »", _edit('scenes', s))
                   for s in Scene.objects.filter(npc=obj).exclude(npc_entries__npc=obj)]
     elif isinstance(obj, Scene):
         found += [_outcome(o, "Mène ici") for o in outcomes.filter(next_scene=obj)]
-        found += [(f"Dialogue de {d.npc.name}", _edit('pnj', d.npc))
+        found += [(f"Dialogue de {d.npc.name}{_tags(d)}", _edit('pnj', d.npc))
                   for d in NpcDialogue.objects.filter(scene=obj).select_related('npc')]
         if obj.explore_weight and obj.location_id:
             found.append((f"Découverte en explorant {obj.location.name} (poids {obj.explore_weight})",

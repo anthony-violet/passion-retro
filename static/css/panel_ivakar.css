@@ -136,3 +136,4 @@
 [data-ivk-sortable].is-saving { opacity: .7; }
 [data-ivk-sortable].is-error { outline: 2px solid #c9413a; }
 .ivk-sort-col { width: 1%; }
+.ivk-tag--label { border-color: #6b7f99; background: rgba(107, 127, 153, .14); }

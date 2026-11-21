@@ -15,6 +15,7 @@
         <li class="ivk-tree__choice">
             <div class="ivk-tree__choice-head">
                 ▸ <a href="{% url 'panel_ivakar_choice_edit' item.choice.pk %}" data-ivk-popup="Choix « {{ item.choice.label }} »" data-ivk-reload>{{ item.choice.label }}</a>
+                {% include 'panel/ivakar/_tags.html' with obj=item.choice %}
                 {% if item.choice.test_characteristic %}<span class="ivk-tag ivk-tag--test">🎲 {{ item.choice.test_characteristic.name }} {{ item.choice.test_difficulty }}</span>{% endif %}
                 {% for c in item.conditions %}<span class="ivk-tag ivk-tag--cond">{{ c }}</span>{% endfor %}
                 {% if item.choice.hide_if_unavailable %}<span class="ivk-tag">masqué si indisponible</span>{% endif %}
