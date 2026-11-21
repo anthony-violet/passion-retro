@@ -5,7 +5,7 @@
     <h2>{{ config.icon }} {{ config.title }}</h2>
     <a href="{% url 'panel_ivakar_create' section %}{% if current_filter %}?{{ filter_field }}={{ current_filter }}{% endif %}" class="btn btn-add">+ Ajouter {{ config.singular }}</a>
 </div>
-<p class="ivk-help">{{ config.help }}</p>
+<p class="ivk-help">{{ config.help }}{% if sortable %} Glisse les lignes par leur poignée ⠿ (ou utilise ↑ ↓) pour changer leur position : c'est enregistré aussitôt.{% endif %}</p>
 
 <form method="get" class="ivk-toolbar">
     <input type="search" name="q" value="{{ query }}" placeholder="Rechercher…" aria-label="Rechercher">
@@ -19,10 +19,11 @@
 
 <div class="panel-section">
     <table class="panel-table">
-        <thead><tr>{% for label, path in config.columns %}<th>{{ label }}</th>{% endfor %}<th>Actions</th></tr></thead>
-        <tbody>
+        <thead><tr>{% if sortable %}<th class="ivk-sort-col"><span class="sr-only">Position</span></th>{% endif %}{% for label, path in config.columns %}<th>{{ label }}</th>{% endfor %}<th>Actions</th></tr></thead>
+        <tbody{% if sortable %} data-ivk-sortable data-ivk-sort-url="{% url 'panel_ivakar_reorder' section %}"{% endif %}>
         {% for row in rows %}
-            <tr>
+            <tr{% if sortable %} data-ivk-sort-item data-id="{{ row.obj.pk }}"{% endif %}>
+                {% if sortable %}<td>{% include 'panel/ivakar/_sort_handle.html' %}</td>{% endif %}
                 {% for cell in row.cells %}
                 <td>
                     {% if cell is True %}<span class="panel-badge panel-badge-success">Oui</span>
@@ -40,7 +41,7 @@
                 </td>
             </tr>
         {% empty %}
-            <tr><td colspan="{{ config.columns|length|add:1 }}" class="panel-empty">Rien pour l'instant.</td></tr>
+            <tr><td colspan="{{ config.columns|length|add:2 }}" class="panel-empty">Rien pour l'instant.</td></tr>
         {% endfor %}
         </tbody>
     </table>

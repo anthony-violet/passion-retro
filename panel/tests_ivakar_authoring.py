@@ -233,3 +233,69 @@ class QuestWizardTests(AuthoringTestCase):
         ordered = list(NpcDialogue.objects.filter(npc=maela).values_list('scene__slug', flat=True))
         self.assertEqual(ordered[3:], before)
         self.assertTrue(Scene.objects.filter(title="Le tonneau : après le combat").exists())
+
+
+class OrderTests(AuthoringTestCase):
+    def test_new_items_go_last(self):
+        from ivakar_rpg.models import Quest
+        last = max(Quest.objects.values_list('order', flat=True))
+        data = form_data(SECTIONS['quetes']['form']())
+        data.update({'title': "Une de plus"})
+        self.client.post(reverse('panel_ivakar_create', args=['quetes']), data)
+        self.assertEqual(Quest.objects.get(title="Une de plus").order, last + 1)
+
+    def test_new_choice_goes_last_in_its_scene(self):
+        scene = Scene.objects.get(slug='puits-ancien')
+        last = max(scene.choices.values_list('order', flat=True))
+        data = ScenePageTests.scene_data(self, scene)
+        new = form_data(ChoiceForm(prefix='new0'))
+        new.update(form_data(OutcomeForm(prefix='new0-s')))
+        new.update(form_data(OutcomeForm(prefix='new0-f')))
+        new['new0-label'] = "Jeter une pièce"
+        data.update(new)
+        data['new_choices'] = '1'
+        self.client.post(reverse('panel_ivakar_edit', args=['scenes', scene.pk]), data)
+        self.assertEqual(scene.choices.get(label="Jeter une pièce").order, last + 1)
+
+    def test_drag_and_drop_reorders_the_whole_list(self):
+        from ivakar_rpg.models import Location
+        ordered = list(Location.objects.order_by('order', 'pk').values_list('pk', flat=True))
+        first, second, third = ordered[:3]
+        response = self.client.post(reverse('panel_ivakar_reorder', args=['lieux']), {'ids': [third, first, second]})
+        self.assertEqual(response.json(), {'ok': True})
+        now = list(Location.objects.order_by('order', 'pk').values_list('pk', flat=True))
+        self.assertEqual(now[:3], [third, first, second])
+        self.assertEqual(now[3:], ordered[3:])
+        self.assertEqual(sorted(Location.objects.values_list('order', flat=True)), list(range(1, len(ordered) + 1)))
+
+    def test_reorder_is_refused_without_an_order_field(self):
+        self.assertEqual(self.client.post(reverse('panel_ivakar_reorder', args=['monstres']), {'ids': [1]})
+                         .status_code, 404)
+
+    def test_lists_and_sublists_are_sortable(self):
+        self.assertContains(self.client.get(reverse('panel_ivakar_list', args=['lieux'])), 'data-ivk-sortable')
+        self.assertNotContains(self.client.get(reverse('panel_ivakar_list', args=['monstres'])), 'data-ivk-sortable')
+        maela = Npc.objects.get(slug='maela')
+        page = self.client.get(reverse('panel_ivakar_edit', args=['pnj', maela.pk]))
+        self.assertContains(page, 'data-ivk-sortable')
+        self.assertContains(page, 'type="hidden" name="inline0-0-order"')
+
+    def test_empty_sub_row_with_only_a_position_is_ignored(self):
+        maela = Npc.objects.get(slug='maela')
+        form = SECTIONS['pnj']['form'](instance=maela)
+        data = form_data(form)
+        dialogues = list(maela.dialogues.all())
+        data.update({'inline0-TOTAL_FORMS': len(dialogues) + 1, 'inline0-INITIAL_FORMS': len(dialogues),
+                     'inline0-MIN_NUM_FORMS': 0, 'inline0-MAX_NUM_FORMS': 1000})
+        for i, d in enumerate(reversed(dialogues)):  # ordre inversé, comme après un glisser-déposer
+            data.update({f'inline0-{i}-id': d.pk, f'inline0-{i}-npc': maela.pk, f'inline0-{i}-scene': d.scene_id,
+                         f'inline0-{i}-label': d.label, f'inline0-{i}-order': i + 1,
+                         f'inline0-{i}-min_level': d.min_level, f'inline0-{i}-required_flag': d.required_flag,
+                         f'inline0-{i}-forbidden_flag': d.forbidden_flag})
+        n = len(dialogues)
+        data.update({f'inline0-{n}-scene': '', f'inline0-{n}-label': '', f'inline0-{n}-order': n + 1,
+                     f'inline0-{n}-min_level': 0, f'inline0-{n}-required_flag': '', f'inline0-{n}-forbidden_flag': ''})
+        response = self.client.post(reverse('panel_ivakar_edit', args=['pnj', maela.pk]), data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(maela.dialogues.count(), n)
+        self.assertEqual([d.pk for d in maela.dialogues.order_by('order')], [d.pk for d in reversed(dialogues)])

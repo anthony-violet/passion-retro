@@ -99,6 +99,7 @@ urlpatterns = [
     path('ivakar/choix/<int:pk>/delete/', ivakar.choice_delete, name='panel_ivakar_choice_delete'),
     path('ivakar/<slug:section>/', ivakar.section_list, name='panel_ivakar_list'),
     path('ivakar/<slug:section>/create/', ivakar.section_create, name='panel_ivakar_create'),
+    path('ivakar/<slug:section>/ordre/', ivakar.section_reorder, name='panel_ivakar_reorder'),
     path('ivakar/<slug:section>/<int:pk>/edit/', ivakar.section_edit, name='panel_ivakar_edit'),
     path('ivakar/<slug:section>/<int:pk>/delete/', ivakar.section_delete, name='panel_ivakar_delete'),
 

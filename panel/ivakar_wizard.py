@@ -116,7 +116,7 @@ def build_quest(data):
 
     # Les nouveaux dialogues passent devant les anciens, qui restent valables une fois la quête finie.
     NpcDialogue.objects.filter(npc=npc).update(order=F('order') + 3)
-    NpcDialogue.objects.create(npc=npc, scene=report, order=0, required_flag=done_objective, forbidden_flag=finished)
-    NpcDialogue.objects.create(npc=npc, scene=waiting, order=1, required_flag=started, forbidden_flag=done_objective)
-    NpcDialogue.objects.create(npc=npc, scene=offer, order=2, forbidden_flag=started)
+    NpcDialogue.objects.create(npc=npc, scene=report, order=1, required_flag=done_objective, forbidden_flag=finished)
+    NpcDialogue.objects.create(npc=npc, scene=waiting, order=2, required_flag=started, forbidden_flag=done_objective)
+    NpcDialogue.objects.create(npc=npc, scene=offer, order=3, forbidden_flag=started)
     return quest, npc, location

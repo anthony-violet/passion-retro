@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, Q, Sum
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_sameorigin
@@ -192,9 +192,12 @@ def quest_wizard(request):
 # ---------------------------------------------------------------------------
 @staff_required
 def section_list(request, section):
+    from ivakar_rpg.authoring import has_order
+
     config = _section(section)
     model = config['model']
-    queryset = model.objects.all()
+    sortable = has_order(model)
+    queryset = model.objects.order_by('order', 'pk') if sortable else model.objects.all()
     query = request.GET.get('q', '').strip()
     if query:
         condition = Q()
@@ -214,8 +217,25 @@ def section_list(request, section):
     return _render(request, 'panel/ivakar/list.html', {
         'section': section, 'config': config, 'rows': rows, 'page': page, 'query': query,
         'filter_field': config['filter'][0] if config.get('filter') else '',
-        'filter_options': filter_options, 'current_filter': current_filter,
+        'filter_options': filter_options, 'current_filter': current_filter, 'sortable': sortable,
     })
+
+
+@staff_required
+@require_POST
+def section_reorder(request, section):
+    """Glisser-déposer dans une liste : enregistre le nouvel ordre des éléments affichés."""
+    from ivakar_rpg.authoring import has_order, reorder
+
+    model = _section(section)['model']
+    if not has_order(model):
+        raise Http404
+    try:
+        ids = [int(i) for i in request.POST.getlist('ids')]
+    except ValueError:
+        return JsonResponse({'ok': False}, status=400)
+    reorder(model, ids)
+    return JsonResponse({'ok': True})
 
 
 def _formsets(config, instance, data=None):
@@ -334,8 +354,13 @@ def _block_is_valid(block):
 
 
 def _save_block(block, scene):
+    from ivakar_rpg.authoring import next_order
+
+    auto = block['form'].auto_order
     choice = block['form'].save(commit=False)
     choice.scene = scene
+    if auto:
+        choice.order = next_order(choice)
     choice.save()
     _save_outcomes(choice, scene, block['success'], block['failure'], block['drop_failure'])
 
@@ -395,9 +420,14 @@ def _choice_page(request, choice, scene):
                               instance=outcomes['failure'] or Outcome(result=Outcome.RESULT_FAILURE))
         drop_failure = 'drop_failure' in request.POST
         if form.is_valid() and success.is_valid() and (drop_failure or failure.is_valid()):
+            from ivakar_rpg.authoring import next_order
+
             with transaction.atomic():
+                auto = form.auto_order
                 choice = form.save(commit=False)
                 choice.scene = scene
+                if auto:
+                    choice.order = next_order(choice)
                 choice.save()
                 _save_outcomes(choice, scene, success, failure, drop_failure)
             if _is_popup(request):

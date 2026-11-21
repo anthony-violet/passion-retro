@@ -34,7 +34,8 @@
                 <button type="button" class="btn btn-add btn-small" data-add-choice>+ Ajouter un choix</button>
             </div>
             <input type="hidden" name="new_choices" value="{{ new_count|default:0 }}" data-new-count>
-            <div data-choice-list>
+            <p class="ivk-help">Glisse un choix par sa poignée ⠿ (ou ↑ ↓) pour changer sa place ; l'ordre est enregistré avec la scène.</p>
+            <div data-choice-list data-ivk-sortable>
             {% for block in choice_blocks %}{% include 'panel/ivakar/_choice_block.html' with block=block %}{% empty %}
                 <p class="ivk-help" data-no-choice>Aucun choix : le joueur verra seulement « Continuer ». Ajoute un choix ci-dessus.</p>
             {% endfor %}

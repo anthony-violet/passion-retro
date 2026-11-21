@@ -9,6 +9,7 @@
  *   dans toutes les listes du même type et sélectionné dans la liste d'où l'on vient.
  * - Un lien a[data-ivk-popup] s'ouvre en fenêtre ; avec data-ivk-reload, la page se recharge ensuite.
  * - Le contexte de la page (data-ivk-context sur le formulaire ou la page) pré-remplit les créations.
+ * - [data-ivk-sortable] : classement par glisser-déposer (ou boutons ↑ ↓).
  */
 (function () {
     'use strict';
@@ -249,6 +250,91 @@
     });
 
     // ------------------------------------------------------------------
+    // Glisser-déposer : [data-ivk-sortable] contient des [data-ivk-sort-item] avec une poignée
+    // [data-ivk-handle] et des boutons [data-ivk-move="up|down"]. Les champs « order » des éléments
+    // sont renumérotés ; avec data-ivk-sort-url, le nouvel ordre est enregistré tout de suite.
+    // ------------------------------------------------------------------
+    var dragged = null;
+
+    function items(container) {
+        return Array.prototype.filter.call(container.children, function (el) { return el.matches('[data-ivk-sort-item]'); });
+    }
+
+    function renumber(container) {
+        items(container).forEach(function (item, index) {
+            item.querySelectorAll('input[name$="-order"], input[name="order"]').forEach(function (input) {
+                if (input.closest('[data-ivk-sort-item]') === item) input.value = index + 1;
+            });
+        });
+    }
+
+    function commit(container) {
+        renumber(container);
+        var url = container.dataset.ivkSortUrl;
+        if (!url) return;
+        var body = new FormData();
+        items(container).forEach(function (item) { body.append('ids', item.dataset.id); });
+        var token = document.querySelector('[name=csrfmiddlewaretoken]');
+        container.classList.add('is-saving');
+        fetch(url, {method: 'POST', body: body, credentials: 'same-origin',
+                    headers: {'X-CSRFToken': token ? token.value : ''}})
+            .then(function (r) { container.classList.toggle('is-error', !r.ok); })
+            .catch(function () { container.classList.add('is-error'); })
+            .then(function () { container.classList.remove('is-saving'); });
+    }
+
+    function makeSortable(container) {
+        if (container.dataset.ivkSortReady) return;
+        container.dataset.ivkSortReady = '1';
+        container.addEventListener('mousedown', function (event) {
+            var handle = event.target.closest('[data-ivk-handle]');
+            var item = handle && handle.closest('[data-ivk-sort-item]');
+            if (item && item.parentElement === container) item.draggable = true;
+        });
+        container.addEventListener('click', function (event) {
+            if (event.target.closest('[data-ivk-handle]')) event.preventDefault();  // pas de dépliage
+            var move = event.target.closest('[data-ivk-move]');
+            var item = move && move.closest('[data-ivk-sort-item]');
+            if (!item || item.parentElement !== container) return;
+            event.preventDefault();
+            var siblings = items(container), index = siblings.indexOf(item);
+            if (move.dataset.ivkMove === 'up' && index > 0) container.insertBefore(item, siblings[index - 1]);
+            if (move.dataset.ivkMove === 'down' && index < siblings.length - 1) siblings[index + 1].after(item);
+            move.focus();
+            commit(container);
+        });
+        container.addEventListener('dragstart', function (event) {
+            var item = event.target.closest && event.target.closest('[data-ivk-sort-item]');
+            if (!item || item.parentElement !== container) return;
+            dragged = item;
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', '');
+            item.classList.add('is-dragging');
+        });
+        container.addEventListener('dragover', function (event) {
+            if (!dragged || dragged.parentElement !== container) return;
+            event.preventDefault();
+            var target = event.target.closest && event.target.closest('[data-ivk-sort-item]');
+            if (!target || target === dragged || target.parentElement !== container) return;
+            var box = target.getBoundingClientRect();
+            if (event.clientY < box.top + box.height / 2) container.insertBefore(dragged, target);
+            else target.after(dragged);
+        });
+        container.addEventListener('drop', function (event) { if (dragged) event.preventDefault(); });
+        container.addEventListener('dragend', function () {
+            if (!dragged) return;
+            dragged.classList.remove('is-dragging');
+            dragged.draggable = false;
+            dragged = null;
+            commit(container);
+        });
+    }
+
+    document.addEventListener('submit', function (event) {
+        event.target.querySelectorAll('[data-ivk-sortable]').forEach(renumber);
+    }, true);
+
+    // ------------------------------------------------------------------
     // Mise en place (et pour les lignes ajoutées plus tard)
     // ------------------------------------------------------------------
     function setup(root) {
@@ -256,6 +342,11 @@
         Array.prototype.forEach.call(selects, function (select) {
             enhance(select);
             addRelatedButtons(select);
+        });
+        var sortables = root.matches && root.matches('[data-ivk-sortable]') ? [root]
+            : root.querySelectorAll('[data-ivk-sortable]');
+        Array.prototype.forEach.call(sortables, function (container) {
+            if (!container.closest('template')) makeSortable(container);
         });
     }
 

@@ -32,14 +32,41 @@ class IvakarForm(forms.ModelForm):
             self.fields['hp_left'].help_text = "Remis aux PV de la menace à la création ; à corriger seulement en cas de souci."
             self.fields['hp_left'].required = False
         _link_related_fields(self)
+        if 'order' in self.fields:  # réglé par glisser-déposer, ou automatique à la création
+            self.fields['order'].widget = forms.HiddenInput()
+            self.fields['order'].required = False
         if 'slug' in self.fields:
             self.fields['slug'].required = False
             self.fields['slug'].help_text = ("Identifiant technique. Vide = déduit du nom. Évite de le changer "
                                              "ensuite : la commande load_ivakar s'en sert pour reconnaître les "
                                              "éléments du scénario.")
 
+    def has_changed(self):
+        # Une ligne neuve dont seule la position a bougé reste vide ; une ligne existante déplacée, elle,
+        # doit être enregistrée.
+        if self.instance.pk:
+            return super().has_changed()
+        return bool(set(self.changed_data) - {'order'})
+
+    @property
+    def auto_order(self):
+        return 'order' in self.fields and self.instance.pk is None and not self.cleaned_data.get('order')
+
+    def save(self, commit=True):
+        from ivakar_rpg.authoring import next_order
+
+        obj = super().save(commit=False)
+        if self.auto_order:
+            obj.order = next_order(obj)
+        if commit:
+            obj.save()
+            self._save_m2m()
+        return obj
+
     def clean(self):
         data = super().clean()
+        if 'order' in self.fields and data.get('order') is None:
+            data['order'] = self.instance.order or 0
         if 'hp_left' in self.fields and data.get('hp_left') is None:
             data['hp_left'] = data.get('hp_total') or 0
         if 'slug' in self.fields and not data.get('slug'):
@@ -100,7 +127,7 @@ SECTIONS = {
                                     'inn_price', 'has_merchant', 'recommended_level', 'calm_weight', 'order',
                                     'map_x', 'map_y']),
         'columns': [("Nom", 'name'), ("Niv.", 'recommended_level'), ("Départ", 'is_start'), ("Sûr", 'is_safe'),
-                    ("Auberge", 'has_inn'), ("Marchand", 'has_merchant'), ("Ordre", 'order')],
+                    ("Auberge", 'has_inn'), ("Marchand", 'has_merchant')],
         'search': ['name', 'slug'],
         'inlines': [
             inline(Location, LocationExit, ['to_location', 'label', 'required_level', 'required_item',
@@ -164,8 +191,7 @@ SECTIONS = {
         'help': "Une quête démarre et se termine par les conséquences des choix (« Démarre / Termine la quête »).",
         'form': form_for(Quest, ['title', 'slug', 'summary', 'objective', 'reward_xp', 'reward_coins',
                                  'reward_item', 'order']),
-        'columns': [("Titre", 'title'), ("XP", 'reward_xp'), ("Écus", 'reward_coins'), ("Objet", 'reward_item'),
-                    ("Ordre", 'order')],
+        'columns': [("Titre", 'title'), ("XP", 'reward_xp'), ("Écus", 'reward_coins'), ("Objet", 'reward_item')],
         'search': ['title', 'slug'],
         'inlines': [],
     },
@@ -175,7 +201,7 @@ SECTIONS = {
                 "sans total imposé).",
         'form': form_for(Origin, ['name', 'slug', 'description', 'order', 'is_active']),
         'columns': [("Nom", 'name'), ("Total", 'values_total'), ("Compétences", 'skills.count'),
-                    ("Proposée", 'is_active'), ("Ordre", 'order')],
+                    ("Proposée", 'is_active')],
         'search': ['name', 'slug'],
         'inlines': [inline(Origin, OriginCharacteristic, ['characteristic', 'value'], title="Caractéristiques de départ",
                            extra=0, initial=_missing_characteristics)],

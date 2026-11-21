@@ -1,4 +1,5 @@
 {# Sous-liste éditable (formset en ligne). Paramètres : formset, title #}
+{% with sortable=formset.empty_form.order %}
 <div class="ivk-formset" data-prefix="{{ formset.prefix }}">
     <h3>{{ title }}</h3>
     {{ formset.management_form }}
@@ -6,12 +7,14 @@
     <div class="ivk-table-wrap">
     <table class="panel-table ivk-inline">
         <thead><tr>
+            {% if sortable %}<th class="ivk-sort-col"><span class="sr-only">Position</span></th>{% endif %}
             {% for field in formset.empty_form.visible_fields %}{% if field.name != 'DELETE' %}<th>{{ field.label }}</th>{% endif %}{% endfor %}
             <th>Suppr.</th>
         </tr></thead>
-        <tbody data-rows>
+        <tbody data-rows{% if sortable %} data-ivk-sortable{% endif %}>
         {% for f in formset %}
-            <tr>
+            <tr{% if sortable %} data-ivk-sort-item{% endif %}>
+                {% if sortable %}<td>{% include 'panel/ivakar/_sort_handle.html' %}</td>{% endif %}
                 {% for field in f.visible_fields %}{% if field.name != 'DELETE' %}
                 <td>{{ field }}{% if field.errors %}<div class="ivk-errors">{{ field.errors }}</div>{% endif %}</td>
                 {% endif %}{% endfor %}
@@ -23,10 +26,13 @@
     </table>
     </div>
     <template data-empty-row>
-        <tr>
+        <tr{% if sortable %} data-ivk-sort-item{% endif %}>
+            {% if sortable %}<td>{% include 'panel/ivakar/_sort_handle.html' %}</td>{% endif %}
             {% for field in formset.empty_form.visible_fields %}{% if field.name != 'DELETE' %}<td>{{ field }}</td>{% endif %}{% endfor %}
             <td>{% for hidden in formset.empty_form.hidden_fields %}{{ hidden }}{% endfor %}</td>
         </tr>
     </template>
     <button type="button" class="btn btn-small" data-add-row>+ Ajouter une ligne</button>
+    {% if sortable %}<small class="ivk-help">Glisse les lignes par leur poignée ⠿ (ou ↑ ↓) pour changer leur ordre.</small>{% endif %}
 </div>
+{% endwith %}

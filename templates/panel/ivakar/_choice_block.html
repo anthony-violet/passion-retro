@@ -1,8 +1,9 @@
 {# Un choix de la scène et ses conséquences, éditables sur la page de la scène. Paramètre : block #}
 {% with f=block.form %}
-<details class="ivk-choice-block{% if block.new %} is-new{% endif %}"{% if block.new or f.errors or block.success.errors or block.failure.errors %} open{% endif %}>
+<details data-ivk-sort-item class="ivk-choice-block{% if block.new %} is-new{% endif %}"{% if block.new or f.errors or block.success.errors or block.failure.errors %} open{% endif %}>
     <summary>
-        <span class="ivk-choice-block__title">▸ {% if block.new %}Nouveau choix{% else %}{{ block.choice.order }}. {{ block.choice.label }}{% endif %}</span>
+        {% include 'panel/ivakar/_sort_handle.html' %}
+        <span class="ivk-choice-block__title">▸ {% if block.new %}Nouveau choix{% else %}{{ block.choice.label }}{% endif %}</span>
         {% if block.choice.test_characteristic %}<span class="ivk-tag ivk-tag--test">🎲 {{ block.choice.test_characteristic.name }} {{ block.choice.test_difficulty }}</span>{% endif %}
         {% if not block.new %}
             {% for o in block.choice.outcomes.all %}{% if o.next_scene %}<span class="ivk-tag">→ {{ o.next_scene.title }}</span>{% endif %}{% if o.combat %}<span class="ivk-tag ivk-tag--combat">⚔️ {{ o.combat.name }}</span>{% endif %}{% endfor %}

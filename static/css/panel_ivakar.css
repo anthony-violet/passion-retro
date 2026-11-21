@@ -125,3 +125,14 @@
 .ivk-combo__list li { display: block; float: none; margin: 0; border: 0; text-align: left; }
 .ivk-combo .ivk-combo__list:not([hidden]) { display: block !important; columns: auto !important; }
 .ivk-combo .ivk-combo__list li { display: block !important; width: auto !important; box-sizing: border-box; }
+
+/* Glisser-déposer */
+.ivk-sort { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.ivk-sort__handle { cursor: grab; padding: 0 4px; font-size: 1.15em; opacity: .65; user-select: none; }
+.ivk-sort__handle:hover { opacity: 1; }
+.ivk-sort__btn { padding: 0 5px; border: 1px solid rgba(127, 127, 127, .5); border-radius: 3px; background: transparent;
+    color: inherit; cursor: pointer; font-size: .8em; line-height: 1.5; }
+[data-ivk-sort-item].is-dragging { opacity: .45; outline: 2px dashed #4a7bd0; }
+[data-ivk-sortable].is-saving { opacity: .7; }
+[data-ivk-sortable].is-error { outline: 2px solid #c9413a; }
+.ivk-sort-col { width: 1%; }
