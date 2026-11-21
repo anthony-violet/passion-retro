@@ -3,7 +3,8 @@
 {% if node.state == 'full' %}
 <details open id="scene-{{ node.scene.pk }}">
     <summary>
-        <span class="ivk-tree__title">📜 <a href="{% url 'panel_ivakar_edit' 'scenes' node.scene.pk %}">{{ node.scene.title }}</a></span>
+        <span class="ivk-tree__title">📜 <a href="{% url 'panel_ivakar_edit' 'scenes' node.scene.pk %}" data-ivk-popup="Scène « {{ node.scene.title }} »" data-ivk-reload>{{ node.scene.title }}</a></span>
+        {% if not node.scene.text %}<span class="ivk-tag ivk-tag--warn">📝 ébauche à compléter</span>{% endif %}
         {% if node.scene.explore_weight %}<span class="ivk-tag">poids {{ node.scene.explore_weight }}</span>{% endif %}
         {% if node.scene.once %}<span class="ivk-tag">unique</span>{% endif %}
         {% for c in node.conditions %}<span class="ivk-tag ivk-tag--cond">{{ c }}</span>{% endfor %}
@@ -13,7 +14,7 @@
         {% for item in node.choices %}
         <li class="ivk-tree__choice">
             <div class="ivk-tree__choice-head">
-                ▸ <a href="{% url 'panel_ivakar_choice_edit' item.choice.pk %}">{{ item.choice.label }}</a>
+                ▸ <a href="{% url 'panel_ivakar_choice_edit' item.choice.pk %}" data-ivk-popup="Choix « {{ item.choice.label }} »" data-ivk-reload>{{ item.choice.label }}</a>
                 {% if item.choice.test_characteristic %}<span class="ivk-tag ivk-tag--test">🎲 {{ item.choice.test_characteristic.name }} {{ item.choice.test_difficulty }}</span>{% endif %}
                 {% for c in item.conditions %}<span class="ivk-tag ivk-tag--cond">{{ c }}</span>{% endfor %}
                 {% if item.choice.hide_if_unavailable %}<span class="ivk-tag">masqué si indisponible</span>{% endif %}
@@ -25,9 +26,11 @@
                     {% if branch.outcome %}
                         {% for kind, text in branch.effects %}<span class="ivk-tag ivk-tag--{{ kind }}">{{ text }}</span>{% empty %}<span class="ivk-tag">sans effet</span>{% endfor %}
                         {% if not branch.next and not branch.outcome.combat_id %}<span class="ivk-tag">fin de la scène</span>{% endif %}
+                        {% if not branch.next %}{% include 'panel/ivakar/_tree_new_scene.html' with choice=item.choice result=branch.result %}{% endif %}
                         {% if branch.outcome.combat_id and branch.next %}<span class="ivk-tag">puis, après la victoire :</span>{% endif %}
                     {% else %}
                         <span class="ivk-tag ivk-tag--warn">rien de prévu : la scène se termine</span>
+                        {% include 'panel/ivakar/_tree_new_scene.html' with choice=item.choice result=branch.result %}
                     {% endif %}
                     {% if branch.next %}
                     <ul class="ivk-tree__list">{% include 'panel/ivakar/_tree_scene.html' with node=branch.next %}</ul>
@@ -37,7 +40,7 @@
             </ul>
         </li>
         {% endfor %}
-        <li class="ivk-tree__add"><a href="{% url 'panel_ivakar_choice_create' node.scene.pk %}">+ Ajouter un choix</a></li>
+        <li class="ivk-tree__add"><a href="{% url 'panel_ivakar_choice_create' node.scene.pk %}" data-ivk-popup="Nouveau choix dans « {{ node.scene.title }} »" data-ivk-reload>+ Ajouter un choix</a></li>
     </ul>
 </details>
 {% elif node.state == 'loop' %}

@@ -1,9 +1,9 @@
-{% extends 'panel/ivakar/base.html' %}
+{% extends base_template %}
 
 {% block ivakar_content %}
 <div class="panel-page-header">
     <h2>{% if creating %}Ajouter {{ config.singular }}{% else %}{{ config.icon }} {{ obj }}{% endif %}</h2>
-    <a href="{% url 'panel_ivakar_list' section %}" class="btn btn-small">← {{ config.title }}</a>
+    {% if not popup %}<a href="{% url 'panel_ivakar_list' section %}" class="btn btn-small">← {{ config.title }}</a>{% endif %}
 </div>
 <p class="ivk-help">{{ config.help }}</p>
 
@@ -12,52 +12,65 @@
     <figure class="ivk-preview"><img src="{{ obj.visual_url }}" alt="Illustration actuelle">
         <figcaption>{% if obj.has_uploaded_image %}Image envoyée{% else %}Illustration fournie (remplacée dès qu'une image est envoyée){% endif %}</figcaption></figure>
     {% endif %}
-    <form method="post" class="panel-form" enctype="multipart/form-data">
+    {% if usages %}
+    <details class="ivk-usages">
+        <summary>🔗 Utilisé dans {{ usages|length }} endroit{{ usages|pluralize }}</summary>
+        <ul>{% for text, url in usages %}<li><a href="{{ url }}" data-ivk-popup="{{ text }}">{{ text }}</a></li>{% endfor %}</ul>
+    </details>
+    {% elif obj.pk %}
+    <p class="ivk-usages ivk-usages--none">🔗 Utilisé nulle part pour l'instant.</p>
+    {% endif %}
+    <form method="post" class="panel-form" enctype="multipart/form-data" data-ivk-context="{{ page_context_json }}">
         {% csrf_token %}
         {% include 'panel/ivakar/_fields.html' with form=form %}
         {% for f in formsets %}
             {% include 'panel/ivakar/_formset.html' with formset=f.formset title=f.title %}
         {% endfor %}
+
+        {% if config.has_choices %}
+        <div class="ivk-choices" data-choices>
+            <div class="panel-section-header">
+                <h3>Choix proposés au joueur</h3>
+                <button type="button" class="btn btn-add btn-small" data-add-choice>+ Ajouter un choix</button>
+            </div>
+            <input type="hidden" name="new_choices" value="{{ new_count|default:0 }}" data-new-count>
+            <div data-choice-list>
+            {% for block in choice_blocks %}{% include 'panel/ivakar/_choice_block.html' with block=block %}{% empty %}
+                <p class="ivk-help" data-no-choice>Aucun choix : le joueur verra seulement « Continuer ». Ajoute un choix ci-dessus.</p>
+            {% endfor %}
+            </div>
+            <template data-choice-template>{% include 'panel/ivakar/_choice_block.html' with block=new_block %}</template>
+        </div>
+        {% endif %}
+
         <div class="panel-form-actions">
             <button type="submit" class="btn btn-add">Enregistrer</button>
+            {% if not popup %}
             <button type="submit" name="continue" value="1" class="btn">Enregistrer et continuer</button>
             <a href="{% url 'panel_ivakar_list' section %}" class="btn btn-danger">Annuler</a>
+            {% endif %}
         </div>
     </form>
 </div>
 
-{% if config.has_choices %}
-<div class="panel-section">
-    <div class="panel-section-header">
-        <h3>Choix proposés au joueur</h3>
-        {% if not creating %}<a href="{% url 'panel_ivakar_choice_create' obj.pk %}" class="btn btn-add btn-small">+ Ajouter un choix</a>{% endif %}
-    </div>
-    {% if creating %}
-        <p class="ivk-help">Enregistre d'abord la scène pour lui ajouter des choix.</p>
-    {% else %}
-    <table class="panel-table">
-        <thead><tr><th>#</th><th>Libellé</th><th>Test</th><th>Conséquences</th><th>Actions</th></tr></thead>
-        <tbody>
-        {% for choice in choices %}
-            <tr>
-                <td>{{ choice.order }}</td>
-                <td><a href="{% url 'panel_ivakar_choice_edit' choice.pk %}"><strong>{{ choice.label }}</strong></a></td>
-                <td>{% if choice.test_characteristic %}{{ choice.test_characteristic.name }} · {{ choice.get_test_difficulty_display }}{% else %}—{% endif %}</td>
-                <td>{% for o in choice.outcomes.all %}<span class="panel-badge {% if o.result == 'success' %}panel-badge-success{% else %}panel-badge-danger{% endif %}">{{ o.get_result_display }}</span> {% empty %}<span class="panel-badge panel-badge-warning">Aucune</span>{% endfor %}</td>
-                <td class="panel-actions">
-                    <a href="{% url 'panel_ivakar_choice_edit' choice.pk %}" class="btn btn-small">Éditer</a>
-                    <form method="post" action="{% url 'panel_ivakar_choice_delete' choice.pk %}" style="display:inline" onsubmit="return confirm('Supprimer ce choix ?')">
-                        {% csrf_token %}<button type="submit" class="btn btn-small btn-danger">Suppr.</button>
-                    </form>
-                </td>
-            </tr>
-        {% empty %}
-            <tr><td colspan="5" class="panel-empty">Aucun choix : le joueur verra seulement « Continuer ».</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
-</div>
-{% endif %}
 {% include 'panel/ivakar/_formset_js.html' %}
+<script>
+(function () {
+    var box = document.querySelector('[data-choices]');
+    if (!box) return;
+    var counter = box.querySelector('[data-new-count]');
+    box.querySelector('[data-add-choice]').addEventListener('click', function () {
+        var index = parseInt(counter.value || '0', 10);
+        var html = box.querySelector('[data-choice-template]').innerHTML.replace(/__i__/g, String(index));
+        var empty = box.querySelector('[data-no-choice]');
+        if (empty) empty.remove();
+        box.querySelector('[data-choice-list]').insertAdjacentHTML('beforeend', html);
+        counter.value = index + 1;
+        var added = box.querySelector('[data-choice-list]').lastElementChild;
+        added.open = true;
+        var first = added.querySelector('input[type=text]');
+        if (first) first.focus();
+    });
+})();
+</script>
 {% endblock %}

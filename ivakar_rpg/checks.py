@@ -49,6 +49,10 @@ def content_problems():
         problems.append(('warning', f"La scène « {scene.title} » a un poids d'exploration mais aucun lieu.",
                          'panel_ivakar_edit', ('scenes', scene.pk)))
 
+    for scene in Scene.objects.filter(text=''):
+        problems.append(('warning', f"La scène « {scene.title} » est une ébauche : son texte est encore vide.",
+                         'panel_ivakar_edit', ('scenes', scene.pk)))
+
     # Choix avec test mais sans conséquence d'échec : l'échec termine simplement la scène.
     for choice in Choice.objects.exclude(test_characteristic=None).select_related('scene'):
         if not choice.outcomes.filter(result=Outcome.RESULT_FAILURE).exists():

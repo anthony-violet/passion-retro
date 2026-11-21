@@ -3,7 +3,10 @@
 {% block ivakar_content %}
 <div class="panel-page-header">
     <h2>🌳 Arbre des scénarios</h2>
-    <a href="{% url 'panel_ivakar_create' 'scenes' %}" class="btn btn-small btn-add">+ Nouvelle scène</a>
+    <span>
+        <a href="{% url 'panel_ivakar_quest_wizard' %}" class="btn btn-small btn-add">🧭 Assistant quête</a>
+        <a href="{% url 'panel_ivakar_create' 'scenes' %}" class="btn btn-small btn-add" data-ivk-popup="Nouvelle scène" data-ivk-reload>+ Nouvelle scène</a>
+    </span>
 </div>
 <p class="ivk-help">Chaque lieu montre ses PNJ (une scène par entrée de dialogue, la première valable l'emporte) et les scènes qu'on y découvre en explorant, puis où mène chacun de leurs choix.
     Une scène n'est déroulée qu'une fois : ailleurs, un lien y renvoie. ↩ signale une boucle.</p>
@@ -24,9 +27,13 @@
             <h3>🗺️ <a href="{% url 'panel_ivakar_edit' 'lieux' group.location.pk %}">{{ group.location.name }}</a></h3>
             <small>{% if group.npcs %}{{ group.npcs|length }} PNJ · {% endif %}{{ group.roots|length }} scène{{ group.roots|pluralize }} en exploration</small>
         </div>
+        <p class="ivk-tree__tools">
+            <a href="{% url 'panel_ivakar_create' 'scenes' %}?location={{ group.location.pk }}&explore_weight=1" class="btn btn-small" data-ivk-popup="Nouvelle scène à {{ group.location.name }}" data-ivk-reload>＋ Scène à découvrir ici</a>
+            <a href="{% url 'panel_ivakar_create' 'pnj' %}?locations={{ group.location.pk }}" class="btn btn-small" data-ivk-popup="Nouveau PNJ à {{ group.location.name }}" data-ivk-reload>＋ PNJ ici</a>
+        </p>
         {% for entry in group.npcs %}
         <div class="ivk-tree__npc">
-            <h4>🧑 <a href="{% url 'panel_ivakar_edit' 'pnj' entry.npc.pk %}">{{ entry.npc.name }}</a>{% if entry.npc.role %} <small>· {{ entry.npc.role }}</small>{% endif %}{% if not entry.npc.is_active %} <span class="ivk-tag">absent du jeu</span>{% endif %}</h4>
+            <h4>🧑 <a href="{% url 'panel_ivakar_edit' 'pnj' entry.npc.pk %}" data-ivk-popup="PNJ {{ entry.npc.name }}" data-ivk-reload>{{ entry.npc.name }}</a>{% if entry.npc.role %} <small>· {{ entry.npc.role }}</small>{% endif %}{% if not entry.npc.is_active %} <span class="ivk-tag">absent du jeu</span>{% endif %}</h4>
             <ul class="ivk-tree__list">
                 {% for d in entry.dialogues %}
                 <li class="ivk-tree__dialogue">

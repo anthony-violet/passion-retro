@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><title>Enregistré</title></head>
+<body>
+<p>Enregistré.</p>
+{{ payload|json_script:"ivk-saved" }}
+<script>
+(function () {
+    var data = JSON.parse(document.getElementById('ivk-saved').textContent);
+    if (window.parent && window.parent !== window) window.parent.postMessage(data, window.location.origin);
+})();
+</script>
+</body></html>

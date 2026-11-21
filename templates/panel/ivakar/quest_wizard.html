@@ -1,0 +1,36 @@
+{% extends base_template %}
+
+{% block ivakar_content %}
+<div class="panel-page-header">
+    <h2>🧭 Assistant « Nouvelle quête »</h2>
+    <a href="{% url 'panel_ivakar_tree' %}" class="btn btn-small">← Arbre des scénarios</a>
+</div>
+<p class="ivk-help">Un seul formulaire pour une quête jouable de bout en bout : le PNJ la propose, l'objectif se découvre
+    en explorant son lieu (avec un combat si tu veux), puis le PNJ reçoit ton rapport et verse la récompense.
+    L'assistant crée la quête, les scènes, les dialogues et les marqueurs qui les relient ; tu peux tout retoucher ensuite.</p>
+
+<form method="post" class="panel-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="ivk-errors">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="panel-section">
+        <h3>1. La quête</h3>
+        {% include 'panel/ivakar/_wizard_fields.html' with names='title summary objective' %}
+    </div>
+    <div class="panel-section">
+        <h3>2. Qui la donne</h3>
+        {% include 'panel/ivakar/_wizard_fields.html' with names='npc new_npc_name new_npc_role giver_location offer_text accept_label' %}
+    </div>
+    <div class="panel-section">
+        <h3>3. L'objectif</h3>
+        {% include 'panel/ivakar/_wizard_fields.html' with names='objective_location objective_title objective_text objective_action monster' %}
+    </div>
+    <div class="panel-section">
+        <h3>4. Le retour et la récompense</h3>
+        {% include 'panel/ivakar/_wizard_fields.html' with names='return_text reward_xp reward_coins reward_item' %}
+    </div>
+    <div class="panel-form-actions">
+        <button type="submit" class="btn btn-add">Créer la quête</button>
+        <a href="{% url 'panel_ivakar_tree' %}" class="btn btn-danger">Annuler</a>
+    </div>
+</form>
+{% endblock %}

@@ -67,3 +67,61 @@
 .ivk-tree__npc { margin: 8px 0 12px; padding: 8px 10px; border-left: 3px solid #3a9aa8; }
 .ivk-tree__npc h4, .ivk-tree__explore { margin: 0 0 6px; }
 .ivk-tree__dialogue { margin: 6px 0; }
+
+/* Listes avec recherche */
+.ivk-combo { position: relative; display: inline-block; width: 100%; min-width: 140px; }
+.ivk-combo__native { position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0;
+    pointer-events: none; left: 0; bottom: 0; }
+.ivk-combo__input { width: 100%; box-sizing: border-box; padding: 5px 26px 5px 8px;
+    background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23777'/%3E%3C/svg%3E") no-repeat right 9px center; }
+.ivk-combo__list { position: absolute; z-index: 50; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 4px 0;
+    list-style: none; max-height: 260px; overflow-y: auto; background: var(--panel-bg, #fff); color: #222;
+    border: 1px solid rgba(0, 0, 0, .25); border-radius: 6px; box-shadow: 0 6px 18px rgba(0, 0, 0, .18); }
+.ivk-combo__list li { padding: 5px 10px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ivk-combo__list li:hover, .ivk-combo__list li.is-active { background: rgba(74, 123, 208, .15); }
+.ivk-combo__list li[aria-selected="true"] { font-weight: bold; }
+.ivk-combo__list li.is-empty, .ivk-combo__list li.is-none { opacity: .6; font-style: italic; }
+.ivk-combo__list li.is-none { cursor: default; }
+.ivk-inline .ivk-combo { min-width: 160px; }
+
+/* Créer / modifier depuis une liste */
+.panel-form-group > .ivk-combo, .panel-form-group > select { flex: 1; }
+.ivk-related { display: inline-flex; gap: 4px; margin-top: 4px; }
+.ivk-related__btn { padding: 2px 9px; border: 1px solid currentColor; border-radius: 4px; background: transparent;
+    color: inherit; cursor: pointer; font-size: .95em; line-height: 1.5; }
+.ivk-related__btn:hover:not([disabled]) { background: rgba(74, 123, 208, .15); }
+.ivk-related__btn[disabled] { opacity: .35; cursor: default; }
+
+/* Fenêtre */
+.ivk-modal { width: min(980px, 94vw); height: min(86vh, 900px); padding: 0; border: 1px solid #888; border-radius: 10px;
+    margin: auto; inset: 0; display: none; flex-direction: column; overflow: hidden; }
+.ivk-modal[open] { display: flex; }
+.ivk-modal::backdrop { background: rgba(0, 0, 0, .45); }
+.ivk-modal__bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px;
+    border-bottom: 1px solid rgba(127, 127, 127, .4); }
+.ivk-modal__frame { flex: 1; width: 100%; border: 0; background: #fff; }
+.ivk-popup-body { margin: 0; padding: 14px 18px; }
+.ivk-popup-main { max-width: none; }
+
+/* Scène sur une page : un bloc par choix */
+.ivk-choices { margin-top: 18px; }
+.ivk-choice-block { margin: 8px 0; border: 1px solid rgba(127, 127, 127, .45); border-radius: 8px; }
+.ivk-choice-block.is-new { border-style: dashed; }
+.ivk-choice-block > summary { cursor: pointer; padding: 8px 12px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.ivk-choice-block__title { font-weight: bold; }
+.ivk-choice-block__body { padding: 4px 12px 12px; }
+.ivk-choice-block .ivk-outcome { margin-top: 10px; padding-left: 10px; }
+.ivk-choice-block .ivk-outcome h4 { margin: 4px 0 8px; }
+.ivk-choice-block__delete { display: block; margin-top: 10px; color: #b42318; }
+.ivk-usages { margin: 0 0 12px; padding: 8px 12px; border: 1px dashed rgba(127, 127, 127, .6); border-radius: 6px; }
+.ivk-usages summary { cursor: pointer; font-weight: bold; }
+.ivk-usages ul { margin: 6px 0 0; padding-left: 18px; }
+.ivk-usages--none { opacity: .7; }
+.ivk-tree__tools { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 8px; }
+.ivk-tree__new { display: inline-flex; gap: 4px; align-items: center; margin-left: 4px; }
+.ivk-tree__new input { padding: 2px 6px; font-size: .85em; width: 190px; }
+.ivk-combo__list { display: block; }
+.ivk-combo__list[hidden] { display: none; }
+.ivk-combo__list li { display: block; float: none; margin: 0; border: 0; text-align: left; }
+.ivk-combo .ivk-combo__list:not([hidden]) { display: block !important; columns: auto !important; }
+.ivk-combo .ivk-combo__list li { display: block !important; width: auto !important; box-sizing: border-box; }

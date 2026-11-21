@@ -1,0 +1,12 @@
+{# Quelques champs d'un formulaire, dans l'ordre donné. Paramètres : form, names (séparés par des espaces) #}
+{% load ivakar_panel %}
+<div class="panel-form-grid">
+{% for name in names.split %}{% with field=form|field:name %}
+    <div class="panel-form-group{% if field.widget_type == 'textarea' %} panel-form-full{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+        {{ field }}
+        {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+        {% if field.errors %}<div class="ivk-errors">{{ field.errors }}</div>{% endif %}
+    </div>
+{% endwith %}{% endfor %}
+</div>

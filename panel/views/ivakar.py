@@ -1,5 +1,8 @@
 """Panel — Ivakar : tout le contenu du RPG, les héros et le bureau de change."""
+import json
+
 from django.conf import settings
+from django import forms
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -7,6 +10,7 @@ from django.db.models import Count, Q, Sum
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
 from ivakar_rpg import scenario_tree
@@ -47,8 +51,53 @@ def _nav():
     return [{'slug': slug, 'title': s['title'], 'icon': s['icon']} for slug, s in SECTIONS.items()]
 
 
+def _is_popup(request):
+    return request.GET.get('popup') == '1'
+
+
 def _render(request, template, context):
-    return render(request, template, {'ivakar_sections': _nav(), **context})
+    popup = _is_popup(request)
+    return render(request, template, {
+        'ivakar_sections': _nav(),
+        'popup': popup,
+        'base_template': 'panel/ivakar/popup_base.html' if popup else 'panel/ivakar/base.html',
+        'known_flags': [flag for flag, _ in scenario_tree.flag_index()],
+        **context,
+    })
+
+
+def _popup_done(request, section, obj):
+    """Fin d'une création ou d'une modification en fenêtre : prévient la page d'origine."""
+    return render(request, 'panel/ivakar/popup_done.html', {'payload': {
+        'type': 'ivakar-saved', 'section': section, 'id': obj.pk, 'label': str(obj),
+    }})
+
+
+def _page_context(section, obj):
+    """Valeurs proposées aux créations faites depuis cette page (lieu, PNJ…), en JSON pour le script."""
+    if obj is None or not obj.pk:
+        return {}
+    if section == 'scenes':
+        return {'location': obj.location_id, 'npc': obj.npc_id, 'locations': obj.location_id}
+    if section == 'lieux':
+        return {'location': obj.pk, 'locations': obj.pk}
+    if section == 'pnj':
+        first = obj.locations.first()
+        return {'npc': obj.pk, 'location': first.pk if first else None, 'locations': first.pk if first else None}
+    return {}
+
+
+def _initial_from_query(request, form_class):
+    """Pré-remplissage d'une création à partir de l'adresse (ex. ``?location=3&npc=5``)."""
+    initial = {}
+    for name, field in form_class.base_fields.items():
+        if name not in request.GET:
+            continue
+        if isinstance(field, forms.ModelMultipleChoiceField):
+            initial[name] = request.GET.getlist(name)
+        else:
+            initial[name] = request.GET.get(name)
+    return initial
 
 
 # ---------------------------------------------------------------------------
@@ -93,6 +142,49 @@ def scenario_tree_view(request):
         'locations': Location.objects.all(),
         'location_id': location_id,
     })
+
+
+@staff_required
+@require_POST
+def branch_scene(request, choice_id, result):
+    """Depuis l'arbre : crée en ébauche la scène suivante d'une branche (réussite ou échec) et la relie."""
+    from ivakar_rpg.authoring import stub_scene
+
+    choice = get_object_or_404(Choice.objects.select_related('scene'), pk=choice_id)
+    if result not in (Outcome.RESULT_SUCCESS, Outcome.RESULT_FAILURE):
+        raise Http404
+    title = request.POST.get('title', '').strip()
+    target = reverse('panel_ivakar_tree')
+    location = request.POST.get('lieu', '')
+    if location.isdigit():
+        target += f'?lieu={location}'
+    if not title:
+        messages.error(request, "Donne un titre à la nouvelle scène.")
+        return redirect(target)
+    outcome = Outcome.objects.filter(choice=choice, result=result).first() or Outcome(choice=choice, result=result)
+    if outcome.next_scene_id:
+        messages.error(request, "Cette branche mène déjà à une scène.")
+        return redirect(target)
+    with transaction.atomic():
+        scene = stub_scene(title, choice.scene.location, choice.scene.npc)
+        outcome.next_scene = scene
+        outcome.save()
+    messages.success(request, f"Ébauche « {scene.title} » créée et reliée : complète-la quand tu veux.")
+    return redirect(f'{target}#scene-{scene.pk}')
+
+
+@staff_required
+def quest_wizard(request):
+    from panel.ivakar_wizard import QuestWizardForm, build_quest
+
+    form = QuestWizardForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        quest, npc, location = build_quest(form.cleaned_data)
+        messages.success(request, f"Quête « {quest.title} » créée : {npc.name} la propose, l'objectif attend à "
+                                  f"{form.cleaned_data['objective_location'].name}. Tout est modifiable ci-dessous.")
+        target = reverse('panel_ivakar_tree')
+        return redirect(f"{target}?lieu={location.pk}" if location else target)
+    return _render(request, 'panel/ivakar/quest_wizard.html', {'section': 'arbre', 'form': form})
 
 
 # ---------------------------------------------------------------------------
@@ -142,46 +234,136 @@ def _formsets(config, instance, data=None):
 
 
 def _edit(request, section, instance):
+    from ivakar_rpg.usages import usages
+
     config = _section(section)
     creating = instance.pk is None
-    if request.method == 'POST':
-        form = config['form'](request.POST, request.FILES, instance=instance)
-        formsets = _formsets(config, instance, request.POST)
-        if form.is_valid() and all(f['formset'].is_valid() for f in formsets):
+    data = request.POST if request.method == 'POST' else None
+    if data is not None:
+        form = config['form'](data, request.FILES, instance=instance)
+    else:
+        form = config['form'](instance=instance, initial=_initial_from_query(request, config['form']))
+    formsets = _formsets(config, instance, data)
+    blocks = _choice_blocks(instance, data) if config.get('has_choices') else []
+    if data is not None:
+        active = [b for b in blocks if _block_is_active(b)]
+        if form.is_valid() and all(f['formset'].is_valid() for f in formsets) \
+                and all(_block_is_valid(b) for b in active):
             with transaction.atomic():
                 obj = form.save()
                 for f in formsets:
                     f['formset'].instance = obj
                     f['formset'].save()
+                for block in blocks:
+                    if block['delete'] and block['choice'].pk:
+                        block['choice'].delete()
+                for block in active:
+                    _save_block(block, obj)
+            if _is_popup(request):
+                return _popup_done(request, section, obj)
             messages.success(request, f"{config['title']} : « {obj} » enregistré.")
-            if config.get('has_choices') and creating:
-                return redirect('panel_ivakar_edit', section, obj.pk)
-            if 'continue' in request.POST:
+            if 'continue' in request.POST or (config.get('has_choices') and creating):
                 return redirect('panel_ivakar_edit', section, obj.pk)
             return redirect('panel_ivakar_list', section)
         messages.error(request, "Le formulaire contient des erreurs.")
-    else:
-        initial = {}
-        if config.get('filter') and request.GET.get(config['filter'][0]):
-            field = config['filter'][0]
-            value = request.GET.get(field)
-            initial[field] = [value] if config['model']._meta.get_field(field).many_to_many else value
-        form = config['form'](instance=instance, initial=initial)
-        formsets = _formsets(config, instance)
     context = {
         'section': section, 'config': config, 'form': form, 'formsets': formsets, 'obj': instance,
-        'creating': creating,
+        'creating': creating, 'page_context_json': json.dumps(_page_context(section, instance)),
+        'usages': usages(instance) if not creating else [],
     }
-    if config.get('has_choices') and not creating:
-        context['choices'] = instance.choices.select_related('test_characteristic').prefetch_related('outcomes')
+    if config.get('has_choices'):
+        context['choice_blocks'] = blocks
+        context['new_count'] = sum(1 for b in blocks if b['new'])
+        context['new_block'] = _block('new__i__', Choice(scene=instance), {}, None, new=True)
     return _render(request, 'panel/ivakar/form.html', context)
 
 
+# ---------------------------------------------------------------------------
+# Choix d'une scène, édités sur la page de la scène
+# ---------------------------------------------------------------------------
+MAX_NEW_CHOICES = 30
+
+
+def _block(prefix, choice, outcomes, data, new=False):
+    def bound(form_class, sub_prefix, instance):
+        return form_class(data, prefix=sub_prefix, instance=instance) if data is not None \
+            else form_class(prefix=sub_prefix, instance=instance)
+
+    return {
+        'prefix': prefix, 'choice': choice, 'new': new,
+        'form': bound(ChoiceForm, prefix, choice),
+        'success': bound(OutcomeForm, f'{prefix}-s', outcomes.get(Outcome.RESULT_SUCCESS)
+                         or Outcome(result=Outcome.RESULT_SUCCESS)),
+        'failure': bound(OutcomeForm, f'{prefix}-f', outcomes.get(Outcome.RESULT_FAILURE)
+                         or Outcome(result=Outcome.RESULT_FAILURE)),
+        'has_failure': Outcome.RESULT_FAILURE in outcomes,
+        'delete': data is not None and f'{prefix}-delete' in data,
+        'drop_failure': data is not None and f'{prefix}-drop_failure' in data,
+    }
+
+
+def _choice_blocks(scene, data):
+    blocks = []
+    if scene.pk:
+        for choice in scene.choices.prefetch_related('outcomes').order_by('order', 'pk'):
+            outcomes = {o.result: o for o in choice.outcomes.all()}
+            blocks.append(_block(f'ch{choice.pk}', choice, outcomes, data))
+    try:
+        count = min(int((data or {}).get('new_choices', 0)), MAX_NEW_CHOICES)
+    except (TypeError, ValueError):
+        count = 0
+    for index in range(count):
+        blocks.append(_block(f'new{index}', Choice(scene=scene if scene.pk else None), {}, data, new=True))
+    return blocks
+
+
+def _block_is_active(block):
+    """Un choix existant est enregistré (sauf suppression) ; un nouveau seulement s'il a été rempli."""
+    if block['delete']:
+        return False
+    if block['new']:
+        return block['form'].has_changed() or block['success'].has_changed()
+    return True
+
+
+def _block_is_valid(block):
+    ok = block['form'].is_valid() & block['success'].is_valid()
+    if not block['drop_failure']:
+        ok &= block['failure'].is_valid()
+    return ok
+
+
+def _save_block(block, scene):
+    choice = block['form'].save(commit=False)
+    choice.scene = scene
+    choice.save()
+    _save_outcomes(choice, scene, block['success'], block['failure'], block['drop_failure'])
+
+
+def _save_outcomes(choice, scene, success, failure, drop_failure):
+    for outcome_form, result in ((success, Outcome.RESULT_SUCCESS), (failure, Outcome.RESULT_FAILURE)):
+        outcome = outcome_form.instance
+        if result == Outcome.RESULT_FAILURE:
+            if drop_failure:
+                if outcome.pk:
+                    outcome.delete()
+                continue
+            if not outcome.pk and not outcome_form.has_changed():
+                continue
+        outcome_form.create_stub(scene)
+        outcome = outcome_form.save(commit=False)
+        outcome.choice = choice
+        outcome.result = result
+        outcome.save()
+
+
+@xframe_options_sameorigin
 @staff_required
 def section_create(request, section):
     return _edit(request, section, _section(section)['model']())
 
 
+@xframe_options_sameorigin
 @staff_required
 def section_edit(request, section, pk):
     return _edit(request, section, get_object_or_404(_section(section)['model'], pk=pk))
@@ -217,19 +399,9 @@ def _choice_page(request, choice, scene):
                 choice = form.save(commit=False)
                 choice.scene = scene
                 choice.save()
-                for outcome_form, result in ((success, Outcome.RESULT_SUCCESS), (failure, Outcome.RESULT_FAILURE)):
-                    outcome = outcome_form.instance
-                    if result == Outcome.RESULT_FAILURE:
-                        if drop_failure:
-                            if outcome.pk:
-                                outcome.delete()
-                            continue
-                        if not outcome.pk and not outcome_form.has_changed():
-                            continue
-                    outcome = outcome_form.save(commit=False)
-                    outcome.choice = choice
-                    outcome.result = result
-                    outcome.save()
+                _save_outcomes(choice, scene, success, failure, drop_failure)
+            if _is_popup(request):
+                return _popup_done(request, 'choix', choice)
             messages.success(request, f"Choix « {choice.label} » enregistré.")
             if 'continue' in request.POST:
                 return redirect('panel_ivakar_choice_edit', choice.pk)
@@ -242,15 +414,18 @@ def _choice_page(request, choice, scene):
     return _render(request, 'panel/ivakar/choice_form.html', {
         'section': 'scenes', 'scene': scene, 'choice': choice, 'creating': creating, 'form': form,
         'success': success, 'failure': failure, 'has_failure': outcomes['failure'] is not None,
+        'page_context_json': json.dumps(_page_context('scenes', scene)),
     })
 
 
+@xframe_options_sameorigin
 @staff_required
 def choice_create(request, scene_id):
     scene = get_object_or_404(Scene, pk=scene_id)
     return _choice_page(request, Choice(scene=scene), scene)
 
 
+@xframe_options_sameorigin
 @staff_required
 def choice_edit(request, pk):
     choice = get_object_or_404(Choice.objects.select_related('scene'), pk=pk)

@@ -1,14 +1,14 @@
-{% extends 'panel/ivakar/base.html' %}
+{% extends base_template %}
 
 {% block ivakar_content %}
 <div class="panel-page-header">
     <h2>{% if creating %}Nouveau choix{% else %}Choix : {{ choice.label }}{% endif %}</h2>
-    <a href="{% url 'panel_ivakar_edit' 'scenes' scene.pk %}" class="btn btn-small">← Scène « {{ scene.title }} »</a>
+    {% if not popup %}<a href="{% url 'panel_ivakar_edit' 'scenes' scene.pk %}" class="btn btn-small">← Scène « {{ scene.title }} »</a>{% endif %}
 </div>
 <p class="ivk-help">Un choix peut demander un test : 2D6 + ⌊caractéristique ÷ 3⌋ contre le seuil (10, 13 ou 16).
    Sans test, seule la conséquence « Réussite / sans test » s'applique. Avec un test raté et sans conséquence d'échec, la scène se termine.</p>
 
-<form method="post" class="panel-form">
+<form method="post" class="panel-form" data-ivk-context="{{ page_context_json }}">
     {% csrf_token %}
     <div class="panel-section">
         <h3>Le choix</h3>
@@ -25,8 +25,10 @@
     </div>
     <div class="panel-form-actions">
         <button type="submit" class="btn btn-add">Enregistrer</button>
+        {% if not popup %}
         <button type="submit" name="continue" value="1" class="btn">Enregistrer et continuer</button>
         <a href="{% url 'panel_ivakar_edit' 'scenes' scene.pk %}" class="btn btn-danger">Annuler</a>
+        {% endif %}
     </div>
 </form>
 {% endblock %}

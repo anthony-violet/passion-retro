@@ -16,4 +16,6 @@
     <a href="{% url 'panel_ivakar_exchanges' %}" class="{% if section == 'change' %}is-active{% endif %}">💱 Change</a>
 </nav>
 {% block ivakar_content %}{% endblock %}
+{% include 'panel/ivakar/_flags_datalist.html' %}
+<script src="{% static 'js/ivakar_panel.js' %}?v=1"></script>
 {% endblock %}

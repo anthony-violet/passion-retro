@@ -1,0 +1,6 @@
+{# Dans l'arbre : créer la scène suivante d'une branche en ébauche, en un titre. Paramètres : choice, result #}
+<form method="post" action="{% url 'panel_ivakar_branch_scene' choice.pk result %}" class="ivk-tree__new">
+    {% csrf_token %}<input type="hidden" name="lieu" value="{{ location_id|default:'' }}">
+    <input type="text" name="title" maxlength="100" placeholder="＋ Scène suivante (titre)" aria-label="Titre de la nouvelle scène suivante" required>
+    <button type="submit" class="ivk-related__btn" title="Créer l'ébauche et la relier">Créer</button>
+</form>

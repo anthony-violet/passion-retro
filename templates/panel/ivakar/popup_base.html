@@ -1,0 +1,22 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ivakar — panel</title>
+    {% if request.theme_active != 'default' %}<link rel="stylesheet" href="{% static 'themes/default/theme.css' %}">{% endif %}
+    <link rel="stylesheet" href="{% static 'themes/' %}{{ request.theme_active }}/theme.css">
+    <link rel="stylesheet" href="{% static 'themes/' %}generic.css">
+    <link rel="stylesheet" href="{% static 'css/panel_ivakar.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ivakar_map.css' %}">
+    <script src="{% static 'js/utils/bbcode_display.js' %}?v=collection"></script>
+</head>
+<body class="ivk-popup-body">
+<main class="panel-main ivk-popup-main">
+    {% if messages %}<ul class="messages">{% for message in messages %}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>{% endif %}
+    {% block ivakar_content %}{% endblock %}
+</main>
+{% include 'panel/ivakar/_flags_datalist.html' %}
+<script src="{% static 'js/ivakar_panel.js' %}?v=1"></script>
+</body>
+</html>

@@ -31,6 +31,7 @@ class IvakarForm(forms.ModelForm):
         if 'hp_left' in self.fields:
             self.fields['hp_left'].help_text = "Remis aux PV de la menace à la création ; à corriger seulement en cas de souci."
             self.fields['hp_left'].required = False
+        _link_related_fields(self)
         if 'slug' in self.fields:
             self.fields['slug'].required = False
             self.fields['slug'].help_text = ("Identifiant technique. Vide = déduit du nom. Évite de le changer "
@@ -47,6 +48,26 @@ class IvakarForm(forms.ModelForm):
             if not data['slug']:
                 self.add_error('slug', "Impossible de déduire l'identifiant : renseigne un nom.")
         return data
+
+
+def _link_related_fields(form):
+    """Listes vers une autre rubrique : boutons « créer » et « modifier » (voir static/js/ivakar_panel.js) ;
+    champs de marqueur : suggestions des marqueurs existants."""
+    from django.urls import reverse
+
+    for name, field in form.fields.items():
+        if name.endswith('_flag'):
+            field.widget.attrs.update({'list': 'ivk-flags', 'autocomplete': 'off'})
+            continue
+        if isinstance(field, forms.ModelMultipleChoiceField) or not isinstance(field, forms.ModelChoiceField):
+            continue
+        slug = SECTION_FOR_MODEL.get(field.queryset.model)
+        if slug:
+            field.widget.attrs.update({
+                'data-ivk-related': slug, 'data-ivk-singular': SECTIONS[slug]['singular'],
+                'data-ivk-create-url': reverse('panel_ivakar_create', args=[slug]),
+                'data-ivk-edit-url': reverse('panel_ivakar_edit', args=[slug, 0]),
+            })
 
 
 def form_for(model, fields):
@@ -224,9 +245,38 @@ SECTIONS['evenements'] = {
     'inlines': [],
 }
 
+SECTION_FOR_MODEL = {config['model']: slug for slug, config in SECTIONS.items()}
+
 ChoiceForm = form_for(Choice, ['label', 'order', 'test_characteristic', 'test_difficulty', 'required_level',
                                'required_item', 'required_coins', 'required_flag', 'forbidden_flag',
                                'hide_if_unavailable'])
-OutcomeForm = form_for(Outcome, ['text', 'xp', 'coins', 'hp', 'wound', 'wound_label', 'strain_wounds', 'give_item',
-                                 'take_item', 'set_flag', 'start_quest', 'complete_quest', 'move_to', 'combat',
-                                 'next_scene'])
+_OutcomeBase = form_for(Outcome, ['text', 'xp', 'coins', 'hp', 'wound', 'wound_label', 'strain_wounds',
+                                  'give_item', 'take_item', 'set_flag', 'start_quest', 'complete_quest', 'move_to',
+                                  'combat', 'next_scene'])
+
+
+class OutcomeForm(_OutcomeBase):
+    """Conséquence, avec la possibilité de créer la scène suivante en ébauche (un titre suffit)."""
+
+    new_next_scene = forms.CharField(
+        label="… ou nouvelle scène suivante (ébauche)", max_length=100, required=False,
+        help_text="Un titre suffit : la scène est créée vide, à compléter ensuite (signalée dans l'arbre).")
+
+    def clean(self):
+        data = super().clean()
+        if data.get('new_next_scene') and data.get('next_scene'):
+            self.add_error('new_next_scene', "Choisis une scène existante ou une nouvelle, pas les deux.")
+        return data
+
+    def has_changed(self):
+        return super().has_changed() or bool(self.data.get(self.add_prefix('new_next_scene')))
+
+    def create_stub(self, scene):
+        """Crée l'ébauche demandée (dans le lieu et avec l'interlocuteur de ``scene``) et la relie."""
+        from ivakar_rpg.authoring import stub_scene
+
+        title = self.cleaned_data.get('new_next_scene')
+        if title:
+            self.instance.next_scene = stub_scene(title, scene.location if scene else None,
+                                                  scene.npc if scene else None)
+        return self.instance.next_scene
