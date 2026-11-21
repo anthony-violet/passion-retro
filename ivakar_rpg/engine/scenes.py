@@ -2,10 +2,11 @@
 from django.db import transaction
 from django.utils import timezone
 
-from ..models import CharacterQuest, Choice, Combat, Outcome
+from ..models import CharacterQuest, Choice, Outcome
 from . import RpgError
 from .character import (
-    add_item, add_log, change_coins, change_hp, gain_xp, lock, owned_item_ids, remove_item, stat_values, visit,
+    add_item, add_log, change_coins, change_hp, gain_xp, in_combat, lock, owned_item_ids, remove_item, stat_values,
+    visit,
 )
 from .dice import get_rng
 from .rules import resolve
@@ -48,7 +49,7 @@ def choose(character, choice_id, rng=None):
         character = lock(character)
         if character.is_ko:
             raise RpgError("Tu es inconscient.")
-        if Combat.objects.filter(character=character).exists():
+        if in_combat(character):
             raise RpgError("Tu es en plein combat !")
         choice = (Choice.objects.select_related('required_item', 'test_characteristic')
                   .filter(pk=choice_id, scene_id=character.scene_id).first())

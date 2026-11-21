@@ -635,6 +635,33 @@ class Combat(models.Model):
     log = models.JSONField(default=list, blank=True)
     then_scene = models.ForeignKey(Scene, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     started_at = models.DateTimeField(auto_now_add=True)
+    # Combat de groupe : PV max du monstre (renforcé à chaque allié qui rejoint ; 0 = ceux du monstre),
+    # héros qu'il vise à cette manche, début de la manche (pour ne pas attendre un absent indéfiniment).
+    monster_max_hp = models.PositiveIntegerField(default=0)
+    monster_target = models.ForeignKey(Character, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    round_started_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def max_hp(self):
+        return self.monster_max_hp or self.monster.hp
+
+
+class CombatSeat(models.Model):
+    """Place d'un héros dans un combat de groupe (le héros qui a engagé le combat en a une aussi).
+
+    Sans aucune place, le combat est solo : chaque action se résout aussitôt.
+    """
+
+    combat = models.ForeignKey(Combat, on_delete=models.CASCADE, related_name='seats')
+    character = models.OneToOneField(Character, on_delete=models.CASCADE, related_name='combat_seat')
+    # Action choisie en secret pour la manche en cours ('' = pas encore choisi).
+    action = models.CharField(max_length=80, blank=True, default='')
+    insight = models.BooleanField(default=False)
+    cooldowns = models.JSONField(default=dict, blank=True)
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['joined_at', 'pk']
 
 
 # ---------------------------------------------------------------------------
@@ -1172,3 +1199,54 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.character.name} : {self.title}"
+
+
+# ---------------------------------------------------------------------------
+# Groupes
+# ---------------------------------------------------------------------------
+class Party(models.Model):
+    """Groupe de héros : discussion commune et combats à plusieurs. Chacun voyage librement."""
+
+    MAX_SIZE = 4
+
+    leader = models.ForeignKey(Character, verbose_name="Chef", on_delete=models.CASCADE, related_name='led_parties')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Groupe"
+
+    def __str__(self):
+        return f"Groupe de {self.leader.name}"
+
+
+class PartyMember(models.Model):
+    party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='members')
+    character = models.OneToOneField(Character, on_delete=models.CASCADE, related_name='party_membership')
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['joined_at', 'pk']
+        verbose_name = "Membre de groupe"
+
+
+class PartyInvite(models.Model):
+    party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='invites')
+    character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='party_invites')
+    invited_by = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='+')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Invitation de groupe"
+        constraints = [models.UniqueConstraint(fields=['party', 'character'], name='rpg_party_invite_unique')]
+
+
+class PartyMessage(models.Model):
+    party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='messages')
+    character = models.ForeignKey(Character, on_delete=models.CASCADE, related_name='party_messages')
+    text = models.CharField("Message", max_length=300)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Message de groupe"

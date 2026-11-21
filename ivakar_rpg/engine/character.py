@@ -253,11 +253,19 @@ def rest(character):
     return character
 
 
+def in_combat(character):
+    """Le héros se bat-il (combat qu'il a engagé ou place dans un combat de groupe) ?"""
+    from ..models import CombatSeat
+
+    return (Combat.objects.filter(character=character).exists()
+            or CombatSeat.objects.filter(character=character).exists())
+
+
 def ensure_free(character):
     """Refuse l'action si le héros est KO, en combat ou au milieu d'une scène."""
     if character.is_ko:
         raise RpgError("Tu es inconscient.")
-    if Combat.objects.filter(character=character).exists():
+    if in_combat(character):
         raise RpgError("Tu es en plein combat !")
     if character.scene_id:
         raise RpgError("Termine d'abord ce qui se passe ici.")
@@ -348,7 +356,7 @@ def use_item(character, item_id):
         character = lock(character)
         if character.is_ko:
             raise RpgError("Tu es inconscient.")
-        if Combat.objects.filter(character=character).exists():
+        if in_combat(character):
             raise RpgError("En combat, utilise l'objet depuis l'écran de combat.")
         consume(character, item_id)
         character.save()

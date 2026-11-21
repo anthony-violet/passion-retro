@@ -1,0 +1,72 @@
+{% comment %}Discussion du groupe : visible d'où que l'on soit. Contexte : party, character, party_max_length.{% endcomment %}
+{% if party %}
+<section class="rpg-tavern rpg-party-chat" data-party-chat data-feed="{% url 'rpg_party_feed' %}">
+    <h3>👥 <a href="{% url 'rpg_party' %}">Groupe de {{ party.leader.name }}</a></h3>
+    <ul class="rpg-party-members" data-party-members aria-label="Membres du groupe"></ul>
+    <ol class="rpg-tavern__messages" data-messages aria-live="polite">
+        <li class="rpg-muted" data-empty>Aucun message dans le groupe pour l'instant.</li>
+    </ol>
+    <form method="post" action="{% url 'rpg_party_say' %}" class="rpg-tavern__form" data-party-form>
+        {% csrf_token %}
+        <input type="text" name="text" maxlength="{{ party_max_length }}" placeholder="Parler à ton groupe, où qu'il soit…" aria-label="Message au groupe" required autocomplete="off">
+        <button type="submit" class="btn btn-small">Envoyer</button>
+    </form>
+    <p class="rpg-tavern__error" data-party-error role="alert" hidden></p>
+</section>
+<script>
+(function () {
+    var box = document.querySelector('[data-party-chat]');
+    if (!box) return;
+    var list = box.querySelector('[data-messages]');
+    var roster = box.querySelector('[data-party-members]');
+    var after = 0;
+    function text(tag, value, cls) { var el = document.createElement(tag); el.textContent = value; if (cls) el.className = cls; return el; }
+    function refresh(force) {
+        if (document.hidden && !force) return;
+        fetch(box.dataset.feed + '?after=' + after, {credentials: 'same-origin'})
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+                if (!data) return;
+                if (!data.party) { box.hidden = true; return; }
+                if (data.messages.length) {
+                    var empty = list.querySelector('[data-empty]'); if (empty) empty.remove();
+                    data.messages.forEach(function (m) {
+                        var li = document.createElement('li'); li.dataset.id = m.id; if (m.mine) li.className = 'is-mine';
+                        li.append(text('span', m.time, 'rpg-muted'), ' ', text('strong', m.name), ' : ' + m.text);
+                        list.append(li); after = m.id;
+                    });
+                    list.scrollTop = list.scrollHeight;
+                }
+                roster.innerHTML = '';
+                data.members.forEach(function (h) {
+                    var li = text('li', '', h.me ? 'is-me' : '');
+                    li.append(text('strong', h.name), ' ', text('span', 'niv. ' + h.level, 'rpg-muted'), ' · ');
+                    li.append(text('span', h.ko ? '💫 KO' : '❤️ ' + h.hp + '/' + h.max_hp));
+                    li.append(' · ', text('span', (h.here ? '📍 ici' : '🧭 ' + h.location), 'rpg-muted'));
+                    roster.append(li);
+                });
+            }).catch(function () {});
+    }
+    refresh(true);
+    setInterval(refresh, 5000);
+
+    var form = box.querySelector('[data-party-form]');
+    var input = form.querySelector('input[name=text]');
+    var error = box.querySelector('[data-party-error]');
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (!input.value.trim()) return;
+        var button = form.querySelector('button');
+        button.disabled = true;
+        fetch(form.action, {method: 'POST', body: new FormData(form), credentials: 'same-origin'})
+            .then(function (r) { return r.json().catch(function () { return {ok: false}; }); })
+            .then(function (data) {
+                if (data.ok) { input.value = ''; error.hidden = true; refresh(true); }
+                else { error.textContent = data.error || "Le message n'a pas pu être envoyé."; error.hidden = false; }
+            })
+            .catch(function () { error.textContent = "Connexion perdue : réessaie."; error.hidden = false; })
+            .finally(function () { button.disabled = false; input.focus(); });
+    });
+})();
+</script>
+{% endif %}

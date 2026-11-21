@@ -1,0 +1,92 @@
+{% extends "rpg/game_base.html" %}
+{% load rpg_tags %}
+
+{% block crumb %}<li>Groupe</li>{% endblock %}
+
+{% block game %}
+<section class="rpg-screen">
+    <h2>👥 Groupe</h2>
+    <p class="rpg-muted">Jusqu'à {{ max_size }} héros. Chacun voyage librement ; la discussion de groupe vous suit partout, et quand vous êtes au même endroit, vous pouvez rejoindre le combat d'un compagnon.</p>
+
+    {% if invites %}
+    <h3>Invitations reçues</h3>
+    <ul class="rpg-party-list">
+        {% for invite in invites %}
+        <li>
+            <span><strong>{{ invite.invited_by.name }}</strong> t'invite dans le groupe de {{ invite.party.leader.name }}.</span>
+            <form method="post" action="{% url 'rpg_party_answer' invite.id %}">
+                {% csrf_token %}
+                <button type="submit" name="action" value="accept" class="btn btn-small btn-add">Rejoindre</button>
+                <button type="submit" name="action" value="decline" class="btn btn-small">Refuser</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if party %}
+    <h3>Membres</h3>
+    <ul class="rpg-party-list">
+        {% for m in members %}
+        <li>
+            <span class="rpg-party-list__who">
+                <strong>{{ m.hero.name }}</strong>{% if m.hero.pk == party.leader_id %} <span class="rpg-pill">chef</span>{% endif %}
+                <span class="rpg-muted">niv. {{ m.hero.level }} · {% if m.here %}📍 ici{% else %}🧭 {{ m.hero.location.name }}{% endif %}</span>
+            </span>
+            <span class="rpg-bar rpg-party-list__bar" title="Points de vie">
+                <span class="rpg-bar__fill" style="width: {{ m.hero.hp|hp_percent:m.max_hp }}%"></span>
+                <span class="rpg-bar__label">{% if m.hero.is_ko %}💫 KO{% else %}PV {{ m.hero.hp }} / {{ m.max_hp }}{% endif %}</span>
+            </span>
+            {% if m.combat %}
+            <form method="post" action="{% url 'rpg_combat_join' m.combat.id %}">{% csrf_token %}<button type="submit" class="btn btn-small btn-add">⚔️ Rejoindre son combat ({{ m.combat.monster.name }})</button></form>
+            {% endif %}
+            {% if is_leader and m.hero.pk != character.pk %}
+            <form method="post" action="{% url 'rpg_party_member' m.hero.pk %}">
+                {% csrf_token %}
+                <button type="submit" name="action" value="promote" class="btn btn-small">👑 Nommer chef</button>
+                <button type="submit" name="action" value="kick" class="btn btn-small" onclick="return confirm('Retirer {{ m.hero.name|escapejs }} du groupe ?')">Exclure</button>
+            </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% if sent %}
+    <h3>Invitations en attente</h3>
+    <ul class="rpg-party-list">
+        {% for invite in sent %}
+        <li>
+            <span>{{ invite.character.name }}</span>
+            {% if is_leader %}<form method="post" action="{% url 'rpg_party_answer' invite.id %}">{% csrf_token %}<button type="submit" name="action" value="cancel" class="btn btn-small">Retirer</button></form>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endif %}
+
+    {% if not party or is_leader %}
+    <h3>Inviter un héros présent</h3>
+    {% if present %}
+    <ul class="rpg-party-list">
+        {% for h in present %}
+        <li>
+            <span>{{ h.name }} <span class="rpg-muted">niv. {{ h.level }}</span></span>
+            <form method="post" action="{% url 'rpg_party_invite' h.pk %}">{% csrf_token %}<button type="submit" class="btn btn-small btn-add">👥 Inviter</button></form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="rpg-muted">Aucun autre héros dans ton lieu pour l'instant. Pour inviter quelqu'un, retrouvez-vous au même endroit.</p>
+    {% endif %}
+    {% endif %}
+
+    {% if party %}
+    <form method="post" action="{% url 'rpg_party_leave' %}" class="rpg-actions">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-small" onclick="return confirm('Quitter le groupe ?')">Quitter le groupe</button>
+    </form>
+    {% endif %}
+</section>
+
+{% include "rpg/partials/party_chat.html" %}
+{% endblock %}

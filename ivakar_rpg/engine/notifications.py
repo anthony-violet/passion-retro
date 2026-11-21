@@ -30,6 +30,14 @@ KINDS = {
     'skill_learned': (POPUP, "✨"),
     'daily_done': (TOAST, "✅"),
     'daily_all': (TOAST, "🎯"),
+    'party_invite': (POPUP, "👥"),
+    'party_joined': (TOAST, "👥"),
+    'party_declined': (TOAST, "👥"),
+    'party_left': (TOAST, "👥"),
+    'party_kicked': (TOAST, "👥"),
+    'party_help': (POPUP, "🆘"),
+    'party_combat': (TOAST, "⚔️"),
+    'party_victory': (TOAST, "🏆"),
 }
 POLL_SECONDS = 10
 MAX_DELIVERED = 10

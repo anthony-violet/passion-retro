@@ -9,7 +9,7 @@ from django.utils.html import format_html
 
 from .models import (
     Character, CharacterCharacteristic, CharacterQuest, CharacterReward, Characteristic, Choice,
-    CoinExchange, Combat, InventoryItem, Item, LevelReward, Location, LocationEncounter, LocationExit,
+    CoinExchange, Combat, CombatSeat, Party, PartyMember, PartyMessage, InventoryItem, Item, LevelReward, Location, LocationEncounter, LocationExit,
     Monster, MonsterLoot, Origin, OriginCharacteristic, Outcome, Quest, Scene, Wound,
 )
 
@@ -189,4 +189,24 @@ class CoinExchangeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Combat)
+admin.site.register(CombatSeat)
+
+
+class PartyMemberInline(admin.TabularInline):
+    model = PartyMember
+    extra = 0
+    raw_id_fields = ['character']
+
+
+@admin.register(Party)
+class PartyAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'created_at']
+    raw_id_fields = ['leader']
+    inlines = [PartyMemberInline]
+
+
+@admin.register(PartyMessage)
+class PartyMessageAdmin(admin.ModelAdmin):
+    list_display = ['character', 'party', 'text', 'created_at']
+    search_fields = ['character__name', 'text']
 admin.site.register(CharacterReward)

@@ -20,7 +20,7 @@ from ivakar_rpg.engine.rules import CHARACTERISTICS
 from ivakar_rpg.engine.events import current_event
 from ivakar_rpg.engine.worldmap import map_for
 from ivakar_rpg.models import (
-    MAP_SIZE, Character, CharacterQuest, Choice, CoinExchange, Combat, InventoryItem, Location, LocationMessage,
+    MAP_SIZE, Character, CharacterQuest, Choice, CoinExchange, Combat, CombatSeat, InventoryItem, Location, LocationMessage,
     Outcome, Scene, WorldMap, Wound,
 )
 from panel.decorators import staff_required
@@ -482,7 +482,8 @@ def hero_list(request):
     if query:
         heroes = heroes.filter(Q(name__icontains=query) | Q(user__username__icontains=query))
     page = Paginator(heroes, PER_PAGE).get_page(request.GET.get('page'))
-    in_combat = set(Combat.objects.values_list('character_id', flat=True))
+    in_combat = set(Combat.objects.values_list('character_id', flat=True)) \
+        | set(CombatSeat.objects.values_list('character_id', flat=True))
     return _render(request, 'panel/ivakar/heroes.html', {
         'section': 'heros', 'page': page, 'query': query, 'in_combat': in_combat,
     })
@@ -556,6 +557,7 @@ def _hero_action(character, action):
         character.hp = hero.max_hp(character)
     elif action == 'end_combat':
         Combat.objects.filter(character=character).delete()
+        CombatSeat.objects.filter(character=character).delete()
     elif action == 'leave_scene':
         character.scene = None
     elif action == 'wake':

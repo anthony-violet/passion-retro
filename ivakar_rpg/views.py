@@ -11,7 +11,7 @@ from .engine import skills as skill_engine
 from .engine import combat as fight
 from .engine import economy, rewards as site_rewards, scenes, world
 from .engine import duel as duel_engine
-from .engine import events, social, wounds
+from .engine import events, party as party_engine, social, wounds
 from .engine.worldmap import map_for
 from .engine.rules import DIFFICULTY_LABELS, MAX_LEVEL, POINTS_PER_LEVEL, STAT_CAP
 from .models import Character, CharacterQuest, InventoryItem, Location, Origin, Trade, WorldMap, Wound
@@ -72,6 +72,9 @@ def _hud(character):
         'pending_trades': Trade.objects.filter(receiver=character, status=Trade.STATUS_PENDING).count(),
         'duels_waiting': duel_engine.waiting_for(character).count(),
         'world_event': events.current_event(),
+        'party_invites': party_engine.invites_for(character).count(),
+        'party': party_engine.party_of(character),
+        'party_max_length': party_engine.MESSAGE_MAX_LENGTH,
     }
 
 
@@ -131,14 +134,16 @@ def play(request, character):
     if character.is_ko:
         context['mode'] = 'ko'
     elif combat:
+        group = fight.group_state(combat, character) if fight.is_group(combat) else None
         context.update({
             'mode': 'combat',
             'combat': combat,
-            'intention': fight.intention(combat),
+            'group': group,
+            'intention': fight.intention(combat, character),
             'combat_actions': [{'code': code, 'name': name, 'icon': icon, 'stat': stat, 'help': help_text}
                                for code, (name, icon, stat, help_text) in clash.ACTIONS.items()],
             'rounds': clash.group_rounds(combat.log),
-            'skill_menu': skill_engine.menu(character, combat.skill_cooldowns),
+            'skill_menu': skill_engine.menu(character, group['cooldowns'] if group else combat.skill_cooldowns),
             'consumables': InventoryItem.objects.filter(
                 inventory__character=character, item__kind='consumable', quantity__gt=0,
             ).select_related('item'),
@@ -156,6 +161,8 @@ def play(request, character):
             'mode': 'location', 'exits': world.exits_for(character),
             'npcs': npcs.npcs_here(character),
             'present': social.present_heroes(character),
+            'joinable': fight.joinable(character),
+            'party_member_ids': party_engine.member_ids(context['party']),
             'tavern': social.tavern(character.location),
             'message_max_length': social.MESSAGE_MAX_LENGTH,
         })
@@ -198,6 +205,8 @@ def leave_scene(request, character):
 def combat_action(request, character):
     action = request.POST.get('action', '')
     item_id = request.POST.get('item') or None
+    if action == 'force':
+        return _run(request, fight.force_round, character)
     return _run(request, fight.act, character, action, item_id)
 
 

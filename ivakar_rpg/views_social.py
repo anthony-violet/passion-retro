@@ -1,4 +1,4 @@
-"""Vues multijoueur d'Ivakar : taverne, échanges, duels et événements de serveur."""
+"""Vues multijoueur d'Ivakar : taverne, groupes, combats à plusieurs, échanges, duels et événements de serveur."""
 from django.contrib import messages
 from django.db.models import Q
 from django.http import Http404, JsonResponse
@@ -10,9 +10,12 @@ from django.views.decorators.http import require_POST
 
 from .engine import RpgError
 from .engine import clash
+from .engine import combat as fight
+from .engine import party as party_engine
 from .engine import skills as skill_engine
 from .engine import duel as duel_engine
 from .engine import events, notifications, social, trade as trade_engine
+from .engine.character import max_hp
 from .models import Character, Duel, InventoryItem, Item, Trade, WorldEvent
 from .views import _hud, _meta, _run, player_view
 
@@ -48,6 +51,133 @@ def tavern_feed(request, character):
             'time': date_format(timezone.localtime(m.created_at), 'H:i'),
         } for m in social.tavern(character.location, after)],
         'present': [{'id': h.pk, 'name': h.name, 'level': h.level} for h in social.present_heroes(character)],
+    })
+
+
+# ---------------------------------------------------------------------------
+# Groupes
+# ---------------------------------------------------------------------------
+def _back(request, default='rpg_party'):
+    """Retour à la page d'où vient le formulaire (jeu ou groupe)."""
+    return 'rpg_play' if request.POST.get('next') == 'play' else default
+
+
+@player_view
+def party_view(request, character):
+    party = party_engine.party_of(character)
+    members = party_engine.members(party)
+    combats = {}
+    for c in fight.joinable(character) if party else []:
+        for hero in fight.participants(c):
+            combats[hero.pk] = c
+    return render(request, 'rpg/party.html', {
+        **_meta("Groupe"), **_hud(character),
+        'members': [{'hero': m, 'max_hp': max_hp(m), 'combat': combats.get(m.pk),
+                     'here': m.location_id == character.location_id} for m in members],
+        'invites': party_engine.invites_for(character),
+        'sent': party.invites.select_related('character') if party else [],
+        'is_leader': bool(party and party.leader_id == character.pk),
+        'max_size': party_engine.Party.MAX_SIZE,
+        'present': [h for h in social.present_heroes(character) if h.pk not in {m.pk for m in members}],
+        'chat': party_engine.chat(party),
+    })
+
+
+@require_POST
+@player_view
+def party_invite(request, character, character_id):
+    try:
+        party_engine.invite(character, character_id)
+    except RpgError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(request, "Invitation envoyée.")
+    return redirect(_back(request))
+
+
+@require_POST
+@player_view
+def party_answer(request, character, invite_id):
+    handlers = {'accept': (party_engine.accept, "Bienvenue dans le groupe !"),
+                'decline': (party_engine.decline, "Invitation refusée."),
+                'cancel': (party_engine.cancel_invite, "Invitation retirée.")}
+    action = request.POST.get('action')
+    if action not in handlers:
+        raise Http404
+    handler, success = handlers[action]
+    return _run(request, handler, character, invite_id, success=success, to='rpg_party')
+
+
+@require_POST
+@player_view
+def party_member(request, character, character_id):
+    handlers = {'kick': (party_engine.kick, "Membre retiré du groupe."),
+                'promote': (party_engine.promote, "Tu as passé la tête du groupe.")}
+    action = request.POST.get('action')
+    if action not in handlers:
+        raise Http404
+    handler, success = handlers[action]
+    return _run(request, handler, character, character_id, success=success, to='rpg_party')
+
+
+@require_POST
+@player_view
+def party_leave(request, character):
+    return _run(request, party_engine.leave, character, success="Tu as quitté le groupe.", to='rpg_party')
+
+
+@require_POST
+@player_view
+def party_say(request, character):
+    try:
+        party_engine.say(character, request.POST.get('text', ''))
+    except RpgError as error:
+        return JsonResponse({'ok': False, 'error': str(error)}, status=400)
+    return JsonResponse({'ok': True})
+
+
+@player_view
+def party_feed(request, character):
+    """Messages du groupe postés après ``after`` et état des membres."""
+    try:
+        after = int(request.GET.get('after') or 0)
+    except ValueError:
+        after = 0
+    party = party_engine.party_of(character)
+    return JsonResponse({
+        'party': bool(party),
+        'messages': [{
+            'id': m.id, 'name': m.character.name, 'text': m.text, 'mine': m.character_id == character.pk,
+            'time': date_format(timezone.localtime(m.created_at), 'H:i'),
+        } for m in party_engine.chat(party, after)],
+        'members': [{'id': m.pk, 'name': m.name, 'level': m.level, 'hp': m.hp, 'max_hp': max_hp(m),
+                     'location': m.location.name if m.location else '', 'ko': m.is_ko,
+                     'here': m.location_id == character.location_id, 'me': m.pk == character.pk}
+                    for m in party_engine.members(party)],
+    })
+
+
+# ---------------------------------------------------------------------------
+# Combats à plusieurs
+# ---------------------------------------------------------------------------
+@require_POST
+@player_view
+def combat_join(request, character, combat_id):
+    return _run(request, fight.join, character, combat_id)
+
+
+@player_view
+def combat_state(request, character):
+    """Signature de l'état visible du combat : la page de jeu se recharge quand elle change."""
+    combat = fight.current_combat(character)
+    if combat is None:
+        return JsonResponse({'combat': 0})
+    group = fight.group_state(combat, character) if fight.is_group(combat) else None
+    return JsonResponse({
+        'combat': combat.pk, 'turn': combat.turn, 'hp': combat.monster_hp,
+        'fighters': len(group['seats']) if group else 1,
+        'chosen': group['chosen_count'] if group else 0,
+        'can_force': group['can_force'] if group else False,
     })
 
 

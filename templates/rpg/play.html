@@ -21,15 +21,40 @@
     {% if combat.monster.description %}<p class="rpg-muted">{{ combat.monster.description|bbcode|safe }}</p>{% endif %}
     <p class="rpg-muted">{{ combat.monster.get_behavior_display }} · Force {{ combat.monster.force }} · Dextérité {{ combat.monster.dexterite }}{% if combat.monster.armor %} · Armure {{ combat.monster.armor }}{% endif %}</p>
     <div class="rpg-bar rpg-bar--enemy">
-        <span class="rpg-bar__fill" style="width: {{ combat.monster_hp|hp_percent:combat.monster.hp }}%"></span>
-        <span class="rpg-bar__label">PV {{ combat.monster_hp }} / {{ combat.monster.hp }}</span>
+        <span class="rpg-bar__fill" style="width: {{ combat.monster_hp|hp_percent:combat.max_hp }}%"></span>
+        <span class="rpg-bar__label">PV {{ combat.monster_hp }} / {{ combat.max_hp }}</span>
     </div>
 
-    <div class="rpg-duel-status">
+    {% if group %}
+    <ul class="rpg-party-fighters" aria-label="Le groupe dans la mêlée">
+        {% for seat in group.seats %}
+        <li class="{% if seat.is_me %}is-me{% endif %}{% if seat.is_target %} is-target{% endif %}">
+            <span class="rpg-party-fighters__name"><strong>{{ seat.character.name }}</strong>{% if seat.is_target %} 🎯{% endif %}
+                <span class="rpg-muted">{% if seat.chosen %}✓ a choisi{% else %}réfléchit…{% endif %}</span></span>
+            <span class="rpg-bar"><span class="rpg-bar__fill" style="width: {{ seat.character.hp|hp_percent:seat.max_hp }}%"></span>
+                <span class="rpg-bar__label">PV {{ seat.character.hp }} / {{ seat.max_hp }}</span></span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="rpg-duel-status" data-combat data-state="{% url 'rpg_combat_state' %}" data-id="{{ combat.id }}" data-turn="{{ combat.turn }}"
+         data-hp="{{ combat.monster_hp }}" data-fighters="{% if group %}{{ group.seats|length }}{% else %}1{% endif %}"
+         data-chosen="{% if group %}{{ group.chosen_count }}{% else %}0{% endif %}" data-force="{% if group.can_force %}1{% else %}0{% endif %}">
         <strong>Manche {{ combat.turn }}</strong>
         <span>{% if intention.1 %}👁️ {{ intention.1 }}{% else %}Tu ne devines pas encore ce qu'il prépare.{% endif %}</span>
         {% if combat.monster_shaken %}<span class="rpg-pill">ébranlé : Frappe ou Garde seulement</span>{% endif %}
     </div>
+
+    {% if group and group.my_action %}
+    <p class="rpg-notice">✓ Tu joues <strong>{{ group.my_action_label }}</strong>. En attente de {% for h in group.waiting %}{{ h.name }}{% if not forloop.last %}, {% endif %}{% endfor %}… la page se met à jour toute seule.</p>
+    {% if group.can_force %}
+    <form method="post" action="{% url 'rpg_combat' %}" class="rpg-actions">
+        {% csrf_token %}
+        <button type="submit" name="action" value="force" class="btn">⏩ Ne plus attendre (les absents se mettent en garde)</button>
+    </form>
+    {% endif %}
+    {% else %}
 
     <form method="post" action="{% url 'rpg_combat' %}" class="rpg-duel-actions">
         {% csrf_token %}
@@ -56,7 +81,11 @@
         </form>
     </div>
     {% endif %}
+    {% if group %}
+    {% include "rpg/partials/actions_help.html" with actions=combat_actions intro="Chacun choisit en secret ; la manche se joue quand tout le groupe a choisi. Le monstre ne vise qu'un héros (🎯) : une Feinte le prend au dépourvu s'il attaque un autre que toi." %}
+    {% else %}
     {% include "rpg/partials/actions_help.html" with actions=combat_actions intro="Le monstre agit en même temps que toi." %}
+    {% endif %}
     <form method="post" action="{% url 'rpg_combat' %}" class="rpg-actions">
         {% csrf_token %}
         {% for entry in consumables %}
@@ -65,9 +94,28 @@
         <input type="hidden" name="action" value="item">
         {% if not combat.monster.is_boss %}<button type="submit" class="btn btn-small" onclick="this.form.querySelector('[name=action]').value='flee'">🏃 Fuir</button>{% endif %}
     </form>
+    {% endif %}
 
     {% include 'rpg/partials/clash_log.html' %}
 </section>
+<script>
+(function () {
+    // Un allié qui rejoint, une manche jouée par le groupe : la page se recharge quand l'état change.
+    var box = document.querySelector('[data-combat]');
+    if (!box) return;
+    setInterval(function () {
+        if (document.hidden) return;
+        fetch(box.dataset.state, {credentials: 'same-origin'}).then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (s) {
+                if (!s) return;
+                var changed = String(s.combat) !== box.dataset.id || String(s.turn) !== box.dataset.turn
+                    || String(s.hp) !== box.dataset.hp || String(s.fighters) !== box.dataset.fighters
+                    || String(s.chosen) !== box.dataset.chosen || (s.can_force ? '1' : '0') !== box.dataset.force;
+                if (changed) location.reload();
+            }).catch(function () {});
+    }, 4000);
+})();
+</script>
 
 {% elif mode == 'scene' %}
 <section class="rpg-screen rpg-screen--scene">
@@ -121,6 +169,18 @@
         <a href="{% url 'rpg_map' %}" class="btn">🗺️ Carte</a>
     </div>
 
+    {% if joinable %}
+    <div class="rpg-notice rpg-party-help">
+        {% for c in joinable %}
+        <form method="post" action="{% url 'rpg_combat_join' c.id %}">
+            {% csrf_token %}
+            <span>🆘 <strong>{{ c.character.name }}</strong> affronte {{ c.monster.name }} ({{ c.monster_hp }} / {{ c.max_hp }} PV).</span>
+            <button type="submit" class="btn btn-small btn-add">⚔️ Rejoindre le combat</button>
+        </form>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if npcs %}
     <h3>Ici</h3>
     <ul class="rpg-npcs">
@@ -170,6 +230,7 @@
             {% for h in present %}
             <li>
                 <span>{{ h.name }} <span class="rpg-muted">niv. {{ h.level }}</span></span>
+                {% if h.pk not in party_member_ids %}<form method="post" action="{% url 'rpg_party_invite' h.pk %}">{% csrf_token %}<input type="hidden" name="next" value="play"><button type="submit" class="btn btn-small">👥 Inviter</button></form>{% endif %}
                 <a href="{% url 'rpg_trade_new' %}?avec={{ h.pk }}" class="btn btn-small">🤝 Échanger</a>
                 <form method="post" action="{% url 'rpg_duel_challenge' h.pk %}">{% csrf_token %}<button type="submit" class="btn btn-small">🤺 Défier</button></form>
             </li>
@@ -203,6 +264,8 @@
     var csrf = box.querySelector('input[name=csrfmiddlewaretoken]').value;
     var tradeUrl = "{% url 'rpg_trade_new' %}";
     var duelUrl = "{% url 'rpg_duel_challenge' 0 %}".replace(/0$/, '');
+    var inviteUrl = "{% url 'rpg_party_invite' 0 %}".replace(/0$/, '');
+    var partyIds = {{ party_member_ids|default:"[]"|safe }};
     function text(tag, value, cls) { var el = document.createElement(tag); el.textContent = value; if (cls) el.className = cls; return el; }
     function refresh(force) {
         if (document.hidden && !force) return;
@@ -225,11 +288,17 @@
                     var li = document.createElement('li');
                     var who = text('span', h.name + ' '); who.append(text('span', 'niv. ' + h.level, 'rpg-muted'));
                     var trade = text('a', '🤝 Échanger', 'btn btn-small'); trade.href = tradeUrl + '?avec=' + h.id;
-                    var form = document.createElement('form'); form.method = 'post'; form.action = duelUrl + h.id;
-                    var token = document.createElement('input'); token.type = 'hidden'; token.name = 'csrfmiddlewaretoken'; token.value = csrf;
-                    var button = text('button', '🤺 Défier', 'btn btn-small'); button.type = 'submit';
-                    form.append(token, button);
-                    li.append(who, trade, form); present.append(li);
+                    function postButton(action, label, extra) {
+                        var f = document.createElement('form'); f.method = 'post'; f.action = action;
+                        var token = document.createElement('input'); token.type = 'hidden'; token.name = 'csrfmiddlewaretoken'; token.value = csrf;
+                        f.append(token);
+                        if (extra) { var n = document.createElement('input'); n.type = 'hidden'; n.name = 'next'; n.value = extra; f.append(n); }
+                        var b = text('button', label, 'btn btn-small'); b.type = 'submit'; f.append(b);
+                        return f;
+                    }
+                    li.append(who);
+                    if (partyIds.indexOf(h.id) === -1) li.append(postButton(inviteUrl + h.id, '👥 Inviter', 'play'));
+                    li.append(trade, postButton(duelUrl + h.id, '🤺 Défier')); present.append(li);
                 });
             }).catch(function () {});
     }
@@ -263,6 +332,8 @@
 })();
 </script>
 {% endif %}
+
+{% if mode != 'ko' %}{% include "rpg/partials/party_chat.html" %}{% endif %}
 
 {% include "rpg/partials/log.html" %}
 {% endblock %}

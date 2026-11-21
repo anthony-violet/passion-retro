@@ -292,3 +292,19 @@
 .rpg-exit__lock { font-size: .72em; opacity: .85; }
 .rpg-exits .rpg-exit[disabled] { cursor: not-allowed; opacity: .6; background: transparent !important; color: inherit !important;
     box-shadow: none !important; }
+
+/* Groupes */
+.rpg-party-list { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+.rpg-party-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.rpg-party-list form { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.rpg-party-list__who { flex: 1 1 180px; display: grid; }
+.rpg-party-list__bar { flex: 1 1 160px; }
+.rpg-party-members { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; font-size: .92em; }
+.rpg-party-members .is-me strong { text-decoration: underline; }
+.rpg-party-fighters { list-style: none; padding: 0; margin: 0 0 10px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.rpg-party-fighters li { display: grid; gap: 4px; padding: 6px 8px; border: 1px dashed currentColor; border-radius: var(--rpg-radius); }
+.rpg-party-fighters li.is-me { border-style: solid; }
+.rpg-party-fighters li.is-target { box-shadow: 0 0 0 2px var(--rpg-bad); }
+.rpg-party-fighters__name { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.rpg-party-help form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; }
+.rpg-party-help form + form { margin-top: 6px; }
