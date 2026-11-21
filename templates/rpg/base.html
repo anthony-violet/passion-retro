@@ -4,16 +4,41 @@
 {% block extracss %}<link rel="stylesheet" href="{% static 'css/rpg.css' %}"><link rel="stylesheet" href="{% static 'css/ivakar_map.css' %}">{% endblock %}
 
 {% block content %}
+<script>
+/* Zone de jeu agrandie (menus du site masqués) : choix mémorisé dans le navigateur. */
+try { if (localStorage.getItem('ivakar-wide') === '1') document.body.classList.add('rpg-wide'); } catch (e) {}
+</script>
 <div class="container rpg">
-    <ul class="breadcrumbs">
-        <li><a href="{% url 'portal_games' %}">Portail de jeux</a></li>
-        <li><a href="{% url 'rpg_home' %}">Ivakar</a></li>
-        {% block crumb %}{% endblock %}
-    </ul>
+    <div class="rpg-topbar">
+        <ul class="breadcrumbs">
+            <li><a href="{% url 'portal_games' %}">Portail de jeux</a></li>
+            <li><a href="{% url 'rpg_home' %}">Ivakar</a></li>
+            {% block crumb %}{% endblock %}
+        </ul>
+        <button type="button" class="btn btn-small rpg-wide-toggle" data-rpg-wide aria-pressed="false">⛶ Agrandir</button>
+    </div>
     {% block rpg_body %}{% endblock %}
 </div>
 {% include "rpg/partials/notifications.html" %}
 <script src="{% static 'js/ivakar_notifications.js' %}" defer></script>
+<script>
+(function () {
+    var button = document.querySelector('[data-rpg-wide]');
+    if (!button) return;
+    function sync() {
+        var wide = document.body.classList.contains('rpg-wide');
+        button.textContent = wide ? '🗗 Réduire' : '⛶ Agrandir';
+        button.setAttribute('aria-pressed', wide ? 'true' : 'false');
+        button.title = wide ? "Réafficher les menus du site" : "Masquer les menus du site et jouer en pleine largeur";
+    }
+    button.addEventListener('click', function () {
+        var wide = document.body.classList.toggle('rpg-wide');
+        try { localStorage.setItem('ivakar-wide', wide ? '1' : '0'); } catch (e) {}
+        sync();
+    });
+    sync();
+})();
+</script>
 <script>
 /* Après un formulaire du jeu, la page revient là où le joueur était au lieu de remonter en haut. */
 (function () {

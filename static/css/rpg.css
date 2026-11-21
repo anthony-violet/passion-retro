@@ -26,9 +26,9 @@
 .rpg-main { min-width: 0; display: grid; gap: 16px; }
 @media (max-width: 760px) { .rpg-layout { grid-template-columns: 1fr; } }
 
-.rpg-hud { border: 2px solid currentColor; border-radius: var(--rpg-radius); padding: 12px; display: grid; gap: 8px;
-    position: sticky; top: 12px; }
-@media (max-width: 760px) { .rpg-hud { position: static; } }
+.rpg-side { display: grid; gap: 12px; position: sticky; top: 12px; min-width: 0; max-height: calc(100vh - 24px); overflow-y: auto; }
+@media (max-width: 760px) { .rpg-side { position: static; max-height: none; } }
+.rpg-hud { border: 2px solid currentColor; border-radius: var(--rpg-radius); padding: 12px; display: grid; gap: 8px; }
 .rpg-hud__name { display: flex; justify-content: space-between; gap: 8px; }
 .rpg-hud__stats { list-style: none; display: flex; justify-content: space-between; padding: 0; margin: 0; }
 .rpg-hud__nav { display: grid; gap: 2px; }
@@ -308,3 +308,17 @@
 .rpg-party-fighters__name { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
 .rpg-party-help form { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0; }
 .rpg-party-help form + form { margin-top: 6px; }
+
+/* Discussion de groupe sous la colonne du héros */
+.rpg-side .rpg-party-chat { padding: 10px 12px; }
+.rpg-side .rpg-tavern__messages { max-height: 220px; }
+.rpg-side .rpg-tavern__form { flex-wrap: wrap; }
+.rpg-side .rpg-tavern__form input { flex: 1 1 100%; }
+
+/* Zone de jeu agrandie : les menus gauche et droit du site disparaissent */
+.rpg-topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.rpg-topbar .breadcrumbs { flex: 1 1 auto; margin: 0; }
+body.rpg-wide > .row > .col:not(:has(.rpg)) { display: none; }
+body.rpg-wide > .row > .col:has(.rpg) { flex: 0 0 calc(100% - 20px) !important; max-width: none !important; width: auto !important; }
+body.rpg-wide .container.rpg { max-width: none; }
+@media (min-width: 1100px) { body.rpg-wide .rpg-layout { grid-template-columns: 300px 1fr; } }

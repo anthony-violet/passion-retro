@@ -2,7 +2,10 @@
 
 {% block rpg_body %}
 <div class="rpg-layout">
-    {% include "rpg/partials/hud.html" %}
+    <div class="rpg-side">
+        {% include "rpg/partials/hud.html" %}
+        {% if character and not character.is_ko %}{% include "rpg/partials/party_chat.html" %}{% endif %}
+    </div>
     <div class="rpg-main">
         {% block game %}{% endblock %}
     </div>
