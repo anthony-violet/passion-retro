@@ -278,3 +278,17 @@
 .rpg-actions-help dd { margin: 0 0 0 4px; opacity: .85; }
 .rpg-duel-actions .rpg-duel-action { width: 100% !important; max-width: none !important; justify-self: stretch; margin: 0; box-sizing: border-box; }
 .rpg-duel-action__name { white-space: normal; overflow: visible; }
+
+/* Chemins du lieu : une grille de tuiles plutôt qu'une longue liste */
+.rpg-exits { list-style: none; padding: 0; margin: 8px 0 12px; display: grid; gap: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+.rpg-exits form { margin: 0; height: 100%; }
+.rpg-exits .rpg-exit { width: 100% !important; max-width: none !important; height: 100%; margin: 0; box-sizing: border-box;
+    display: grid; gap: 2px; align-content: start; text-align: left; padding: 7px 9px; border: 1px solid rgba(127, 127, 127, .55);
+    border-radius: 6px; background: transparent; color: inherit; font: inherit; cursor: pointer; line-height: 1.25; }
+.rpg-exit:hover:not([disabled]), .rpg-exit:focus-visible { border-color: currentColor; background: rgba(127, 127, 127, .12); }
+.rpg-exit__name { font-weight: bold; font-size: .9em; }
+.rpg-exit__meta { font-size: .75em; opacity: .75; }
+.rpg-exit__lock { font-size: .72em; opacity: .85; }
+.rpg-exits .rpg-exit[disabled] { cursor: not-allowed; opacity: .6; background: transparent !important; color: inherit !important;
+    box-shadow: none !important; }
