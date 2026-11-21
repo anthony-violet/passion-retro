@@ -37,5 +37,5 @@
         <a href="{% url 'rpg_exchange' %}">💱 Change</a>
         <a href="{% url 'rpg_rewards' %}">🏅 Récompenses</a>
     </nav>
+    {% if mode != 'ko' %}{% include "rpg/partials/party_chat.html" %}{% endif %}
 </aside>
-{% if mode != 'ko' %}{% include "rpg/partials/party_chat.html" %}{% endif %}
